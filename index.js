@@ -96,7 +96,7 @@ function replaceUrls(text) {
 }
 
 Typer.speed = 3;
-Typer.file = 'sasquatch.txt';
+Typer.file = 'CodeNerve.txt';
 Typer.init();
 
 var timer = setInterval('t();', 30);
