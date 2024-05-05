@@ -105,12 +105,14 @@ export default {
 }
 
 .gradient-text {
-    background: linear-gradient(90deg, #11998e, #38ef7d);
+    background: linear-gradient(120deg, #11998e, #38ef7d, #93F9B9);
     background-size: 300%;
     /* Light to darker purple gradient */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientAnimation 5s linear infinite alternate; /* Apply animation to the gradient */
+    white-space: nowrap;
+
 }
 </style>
 

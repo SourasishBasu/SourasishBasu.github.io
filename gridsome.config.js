@@ -7,6 +7,7 @@
 module.exports = {
   
   icon: "./src/pfp.png",
+  siteUrl: 'https://SourasishBasu.github.io',
 
   plugins: [
     // Tailwind

@@ -65,7 +65,7 @@ export default {
   ul.tabs__header > li {
     padding: 15px 30px;
     border-radius: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 40px;
     cursor: pointer;
     list-style-type: none;
   }
@@ -78,7 +78,7 @@ ul.tabs__header > li.tab__selected::before {
 ul.tabs__header > li.tab__selected {
   border-radius: 10px 10px 0 0;
   border-right: 8px solid transparent;
-  color: #D37EA8
+  color: #a667f8
 }
 
   .tab-content {
@@ -113,11 +113,13 @@ ul.tabs__header > li.tab__selected {
 
   .tabs__dark li {
     background-color: #ddd;
+    
     color: #aaa;
   }
 
   .tabs__dark li.tab__selected {
     background-color: #555;
+    
     color: white;
   }
 
