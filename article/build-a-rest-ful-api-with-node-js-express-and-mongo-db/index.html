@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html data-html-server-rendered="true" lang="en" data-vue-tag="%7B%22lang%22:%7B%22ssr%22:%22en%22%7D%7D">
+  <head>
+    <title>Build a RestFul API With Node.js, Express &amp; MongoDB - SourasishBasu.github</title><meta name="gridsome:hash" content="ec5f7ff05b2818bf6840adc260690604c2795812"><meta data-vue-tag="ssr" charset="utf-8"><meta data-vue-tag="ssr" name="generator" content="Gridsome v0.7.23"><meta data-vue-tag="ssr" data-key="viewport" name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta data-vue-tag="ssr" data-key="format-detection" name="format-detection" content="telephone=no"><link data-vue-tag="ssr" rel="icon" href="data:,"><link data-vue-tag="ssr" rel="icon" type="image/png" sizes="16x16" href="/assets/static/pfp.ce0531f.b94d4ec8e5868f937f6e6b73af7f0719.png"><link data-vue-tag="ssr" rel="icon" type="image/png" sizes="32x32" href="/assets/static/pfp.ac8d93a.b94d4ec8e5868f937f6e6b73af7f0719.png"><link data-vue-tag="ssr" rel="icon" type="image/png" sizes="96x96" href="/assets/static/pfp.b9532cc.b94d4ec8e5868f937f6e6b73af7f0719.png"><link data-vue-tag="ssr" rel="apple-touch-icon" type="image/png" sizes="76x76" href="/assets/static/pfp.f22e9f3.b94d4ec8e5868f937f6e6b73af7f0719.png"><link data-vue-tag="ssr" rel="apple-touch-icon" type="image/png" sizes="152x152" href="/assets/static/pfp.62d22cb.b94d4ec8e5868f937f6e6b73af7f0719.png"><link data-vue-tag="ssr" rel="apple-touch-icon" type="image/png" sizes="120x120" href="/assets/static/pfp.1539b60.b94d4ec8e5868f937f6e6b73af7f0719.png"><link data-vue-tag="ssr" rel="apple-touch-icon" type="image/png" sizes="167x167" href="/assets/static/pfp.dc0cdc5.b94d4ec8e5868f937f6e6b73af7f0719.png"><link data-vue-tag="ssr" rel="apple-touch-icon" type="image/png" sizes="180x180" href="/assets/static/pfp.7b22250.b94d4ec8e5868f937f6e6b73af7f0719.png"><link rel="preload" href="/assets/css/0.styles.c72b0f2e.css" as="style"><link rel="preload" href="/assets/js/app.5beb5335.js" as="script"><link rel="preload" href="/assets/js/page--src-templates-articles-vue.2473ae0c.js" as="script"><link rel="prefetch" href="/assets/js/page--src-pages-404-vue.8acbb0e6.js"><link rel="prefetch" href="/assets/js/page--src-pages-articles-vue.e144e044.js"><link rel="prefetch" href="/assets/js/page--src-pages-index-vue.4b9f9b5c.js"><link rel="prefetch" href="/assets/js/page--src-templates-tag-vue.2fe6844a.js"><link rel="stylesheet" href="/assets/css/0.styles.c72b0f2e.css"><noscript data-vue-tag="ssr"><style>.g-image--loading{display:none;}</style></noscript>
+  </head>
+  <body >
+    <div data-server-rendered="true" id="app"><header class="contain flex justify-between items-center h-40"><h1 class="text-4xl text-dimGrey font-bold gradient-text"><a href="/" class="active">Sasquatch</a></h1><nav class="hidden md:flex items-center gap-3 text-green"><a href="/" class="hover:underline text-xl border-r-2 border-dashed border-green pr-4 active">Home</a><a href="/articles/" class="text-xl hover:underline">Articles</a></nav><div class="md:hidden block"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="bars" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="cursor-pointer svg-inline--fa fa-bars fa-lg"><path fill="currentColor" d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"></path></svg></div></header><header class="transition ease-in duration-500 h-32 w-full bg-[#1D1F21] md:hidden top-28 left-0 right-0 hidden"></header><article class="contain mt-14 mb-14"><div class="flex md:flex-row flex-col justify-between md:items-center items-start mb-14"><div><h1 class="font-semibold text-2xl mb-5">Build a RestFul API With Node.js, Express &amp; MongoDB</h1><div class="flex items-center text-dimGrey text-sl"><p class="border-r-2 border-solid border-dimGrey pr-3">
+              📅 09 Nov 2022
+            </p><p class="pl-3">☕ 7 min read</p></div></div><div class="flex items-center gap-1 mt-3 md:mt-0">
+          🏷️
+          <a href="/tag/backend/" class="decoration-cuppy underline underline-offset-4">
+            #backend
+          </a><a href="/tag/api/" class="decoration-cuppy underline underline-offset-4">
+            #api
+          </a></div></div><main class="text-dimGrey leading-8"><p>In this detailed tutorial, we will be building a Rest API with <strong>Node.js</strong>, <strong>Express</strong> and <strong>MongoDB</strong> non-relational database. This API will expose endpoints that will allow for <strong>CRUD</strong> (Create, Read, Update, Delete) operations.</p>
+<br>
+<h3 id="prerequisites"><a href="#prerequisites" aria-hidden="true"><span class="icon icon-link"></span></a>#Prerequisites</h3>
+<br>
+<p>To follow along with the tutorial, you'll need to have the following specified tools installed 👇:</p>
+<br>
+<ul>
+<li><a href="nodejs.org">Node</a></li>
+<li>MongoDB Compass</li>
+<li>A text/code editor of your choice</li>
+<li>A terminal</li>
+</ul>
+<br>
+<p>Also make sure you've mastered fundamentals of the following in order to sail through smoothly:</p>
+<br>
+<ul>
+<li>Node</li>
+<li>JavaScript</li>
+<li>MongoDB</li>
+<li>APIs</li>
+</ul>
+<br>
+<h3 id="to-do-lists"><a href="#to-do-lists" aria-hidden="true"><span class="icon icon-link"></span></a>#To-do lists</h3>
+<br>
+<p>What we are going to build is a Rest API where user details can be stored. Information such as <strong>Email</strong>, <strong>Name</strong>, &#x26; <strong>Phone number</strong> will be stored with each individual user. Since this is a CRUD API, 4 types of endpoint need to be exposed.</p>
+<br>
+<p>First, we will create our <strong>GET</strong> endpoint that will list all user details in our MongoDB database:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #D8DEE9FF">GET /get</span></span></code></pre>
+<br>
+<p>We will be starting with an empty database. So, we need to create a <strong>POST</strong> endpoint that will allow us to add user details:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #D8DEE9FF">POST /add</span></span></code></pre>
+<br>
+<p>The third endpoint will be the <strong>PATCH</strong> method, this will allow us to update users information when we need to:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #D8DEE9FF">PATCH /update</span></span></code></pre>
+<br>
+<p>Finally, we have to create a <strong>DELETE</strong> endpoint incase we have to delete every information about a user:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #D8DEE9FF">DELETE /remove</span></span></code></pre>
+<br>
+<p>By making these 4 endpoints, we will achieve our aim to create a CRUD API. Without wasting time further, open up any <strong>terminal</strong> of choice, I will be using <strong>Git bash</strong> terminal.</p>
+<br>
+<h3 id="creating-our-project"><a href="#creating-our-project" aria-hidden="true"><span class="icon icon-link"></span></a>#Creating our project</h3>
+<br>
+<p>We will kick off by making a folder called <strong>userApp</strong> for our project. Afterwards, initialize a <strong>package.json</strong> file in the root by typing the <strong>npm init -y</strong> command.</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #D8DEE9FF">Dev.Adewale </span><span style="color: #81A1C1">~</span><span style="color: #D8DEE9FF">/documents $ mkdir userApp</span></span>
+
+<span class="line"><span style="color: #D8DEE9FF">Dev.Adewale </span><span style="color: #81A1C1">~</span><span style="color: #D8DEE9FF">/documents $ </span><span style="color: #88C0D0">cd</span><span style="color: #D8DEE9FF"> userApp</span></span>
+
+<span class="line"><span style="color: #D8DEE9FF">Dev.Adewale </span><span style="color: #81A1C1">~</span><span style="color: #D8DEE9FF">/documents/userApp $ npm init -y</span></span>
+<span class="line"><span style="color: #D8DEE9FF">Wrote to C:</span><span style="color: #EBCB8B">\U</span><span style="color: #D8DEE9FF">sers</span><span style="color: #EBCB8B">\A</span><span style="color: #D8DEE9FF">deyemi</span><span style="color: #EBCB8B">\d</span><span style="color: #D8DEE9FF">ocuments</span><span style="color: #EBCB8B">\u</span><span style="color: #D8DEE9FF">serApp</span><span style="color: #EBCB8B">\p</span><span style="color: #D8DEE9FF">ackage.json:</span></span>
+
+<span class="line"><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">name</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">: </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">userapp</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">version</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">: </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">1.0.0</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">description</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">: </span><span style="color: #ECEFF4">&quot;&quot;</span><span style="color: #D8DEE9FF">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">main</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">: </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">index.js</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">scripts</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">: </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">test</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">: </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">echo </span><span style="color: #EBCB8B">\&quot;</span><span style="color: #A3BE8C">Error: no test specified</span><span style="color: #EBCB8B">\&quot;</span><span style="color: #A3BE8C"> &amp;&amp; exit 1</span><span style="color: #ECEFF4">&quot;</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">keywords</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">: </span><span style="color: #ECEFF4">[]</span><span style="color: #D8DEE9FF">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">author</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">: </span><span style="color: #ECEFF4">&quot;&quot;</span><span style="color: #D8DEE9FF">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">license</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">: </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">ISC</span><span style="color: #ECEFF4">&quot;</span></span>
+<span class="line"><span style="color: #ECEFF4">}</span></span></code></pre>
+<br>
+<p>After project initialization, we'll have to install all dependencies that will make it somewhat easy for us to build our API and it's <strong>CRUD</strong> endpoints. So, open your terminal again and install 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #D8DEE9FF">npm i express mongoose --save</span></span></code></pre>
+<br>
+<p>We have to install one more package, but to our <strong>devDependencies</strong> this time around:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #D8DEE9FF">npm i nodemon --save-dev</span></span></code></pre>
+<br>
+<p>Here's a breakdown of what we installed 🕵️‍♂️:</p>
+<br>
+<h3 id="express"><a href="#express" aria-hidden="true"><span class="icon icon-link"></span></a>#Express</h3>
+<br>
+<p>Express is a fast, minimal and flexible <strong>Node</strong> web application framework. It comes with robust set of features that will allow us spin up our API <strong>Server</strong> without much complexity.</p>
+<br>
+<h3 id="mongoose"><a href="#mongoose" aria-hidden="true"><span class="icon icon-link"></span></a>#Mongoose</h3>
+<br>
+<p>We installed the <strong>mongoose</strong> package instead of <strong>mongodb</strong> earlier, wondering why? It's because Mongoose is a wrapper package that provides more advanced features than using the MongoDB package.</p>
+<br>
+<p>Mongoose is an Object Data Modeling (ODM) library that manages relationships between data, provides schema validation, and is used to create a connection between MongoDB and the Node.js runtime environment.<br></br></p>
+<h3 id="nodemon"><a href="#nodemon" aria-hidden="true"><span class="icon icon-link"></span></a>#Nodemon</h3>
+<br>
+<p>While installing our dependencies, <strong>nodemon</strong> was installed to the <strong>devDependencies</strong> section. Why? We really don't need this package in production, it's only useful while developing locally. Nodemon is a Node app wrapper that will watch for any file changes in our project and automatically restart our server.</p>
+<br>
+<p>Without it, we will have to restart the server manually everytime we make changes to any file in our project folder. Yikes 😖, that will be stressful!</p>
+<br>
+<p>Now, let's get our hands dirty with code...</p>
+<br>
+<h3 id="start-coding"><a href="#start-coding" aria-hidden="true"><span class="icon icon-link"></span></a>#Start coding</h3>
+<br>
+<p>Create a <strong>server.js</strong> file in the project root folder. You can name the JS file anything, it doesn't matter. This will be the entry point to our app. To start coding, open the <strong>package.json</strong> file and edit it like so 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">name</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">userapp</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">version</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">1.0.0</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">description</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;&quot;</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">main</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">index.js</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">scripts</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">dev</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">nodemon server.js</span><span style="color: #ECEFF4">&quot;</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">},</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">keywords</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">[],</span></span>
+<span class="line"><span style="color: #D8DEE9FF">   </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">type</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">module</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">author</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;&quot;</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">license</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">ISC</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">dependencies</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">express</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">^4.18.2</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">mongoose</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">^6.7.2</span><span style="color: #ECEFF4">&quot;</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">},</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">devDependencies</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #ECEFF4">&quot;</span><span style="color: #8FBCBB">nodemon</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">^2.0.20</span><span style="color: #ECEFF4">&quot;</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span><span style="color: #ECEFF4">}</span></span>
+<span class="line"><span style="color: #ECEFF4">}</span></span></code></pre>
+<br>
+<p>What changed? If you noticed, we add a new text <strong>"type": "module"</strong>. This is notify the package file that we will be using <strong>ES6</strong> syntax whenever we're importing a package in our code.</p>
+<br>
+<p>We also added a script of <strong>"dev": "nodemon server.js"</strong>. This will spin up our server, watch for file changes and automatically restart the server for us.</p>
+<br>
+<p>In <strong>server.js</strong>, write the following code:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #616E88">/* Import express */</span></span>
+<span class="line"><span style="color: #81A1C1">import</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">express</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">from</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">express</span><span style="color: #ECEFF4">&quot;</span><span style="color: #81A1C1">;</span></span>
+
+<span class="line"><span style="color: #616E88">/* Initialize express import */</span></span>
+<span class="line"><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">app</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #88C0D0">express</span><span style="color: #D8DEE9FF">()</span></span>
+
+<span class="line"><span style="color: #616E88">/* Listen to server on a port */</span></span>
+<span class="line"><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">PORT</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">process</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">env</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">PORT</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">||</span><span style="color: #D8DEE9FF"> </span><span style="color: #B48EAD">3000</span></span>
+<span class="line"><span style="color: #D8DEE9">app</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">listen</span><span style="color: #D8DEE9FF">(</span><span style="color: #D8DEE9">PORT</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">()</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=&gt;</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #D8DEE9">console</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">log</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">`</span><span style="color: #A3BE8C">it&#39;s alive on http://localhost:</span><span style="color: #81A1C1">${</span><span style="color: #D8DEE9">PORT</span><span style="color: #81A1C1">}</span><span style="color: #ECEFF4">`</span><span style="color: #D8DEE9FF">)</span><span style="color: #81A1C1">;</span></span>
+<span class="line"><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span></code></pre>
+<br>
+<p>We imported the <strong>express</strong> package, stored and intialized it in a variable. The <strong>app</strong> variable will now give us access to all <strong>express</strong> has to offer. At the end of the code, we started listening to our server on a port. Now open your terminal again and run <strong>npm run dev</strong>, the name of the script we created in the <strong>package.json</strong> file. You should get the output below 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #D8DEE9">Dev</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">Adewale</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">~/</span><span style="color: #D8DEE9">mongodb</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">$</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">npm</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">run</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">dev</span></span>
+
+<span class="line"><span style="color: #81A1C1">&gt;</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">userapp</span><span style="color: #D8DEE9FF">@</span><span style="color: #B48EAD">1.0</span><span style="color: #ECEFF4">.</span><span style="color: #B48EAD">0</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">dev</span></span>
+<span class="line"><span style="color: #81A1C1">&gt;</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">nodemon</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">server</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">js</span></span>
+
+<span class="line"><span style="color: #D8DEE9FF">[</span><span style="color: #D8DEE9">nodemon</span><span style="color: #D8DEE9FF">] </span><span style="color: #B48EAD">2.0</span><span style="color: #ECEFF4">.</span><span style="color: #B48EAD">20</span></span>
+<span class="line"><span style="color: #D8DEE9FF">[</span><span style="color: #D8DEE9">nodemon</span><span style="color: #D8DEE9FF">] </span><span style="color: #D8DEE9">to</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">restart</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">at</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">any</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">time</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">enter</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">`</span><span style="color: #A3BE8C">rs</span><span style="color: #ECEFF4">`</span></span>
+<span class="line"><span style="color: #D8DEE9FF">[</span><span style="color: #D8DEE9">nodemon</span><span style="color: #D8DEE9FF">] </span><span style="color: #D8DEE9">watching</span><span style="color: #D8DEE9FF"> </span><span style="color: #88C0D0">path</span><span style="color: #D8DEE9FF">(</span><span style="color: #D8DEE9">s</span><span style="color: #D8DEE9FF">): </span><span style="color: #81A1C1">*</span><span style="color: #ECEFF4">.</span><span style="color: #81A1C1">*</span></span>
+<span class="line"><span style="color: #D8DEE9FF">[</span><span style="color: #D8DEE9">nodemon</span><span style="color: #D8DEE9FF">] </span><span style="color: #D8DEE9">watching</span><span style="color: #D8DEE9FF"> extensions</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">js</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9">mjs</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9">json</span><span style="color: #D8DEE9FF">  </span></span>
+<span class="line"><span style="color: #D8DEE9FF">[</span><span style="color: #D8DEE9">nodemon</span><span style="color: #D8DEE9FF">] </span><span style="color: #D8DEE9">starting</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">`</span><span style="color: #A3BE8C">node server.js</span><span style="color: #ECEFF4">`</span></span>
+<span class="line"><span style="color: #D8DEE9">it</span><span style="color: #ECEFF4">&#39;</span><span style="color: #A3BE8C">s alive on http://localhost:300</span><span style="color: #D8DEE9">0</span></span></code></pre>
+<br>
+<p>Now that our server is up and running, let's connect to our MongoDB database. But first, open up <strong>MongoDB Compass</strong> and grab your local database installation <strong>URI</strong>. Then, create a <strong>db.js</strong> file in the project root folder and make the following changes 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #616E88">/* Import mongoose */</span></span>
+<span class="line"><span style="color: #81A1C1">import</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">mongoose</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">from</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">mongoose</span><span style="color: #ECEFF4">&quot;</span><span style="color: #81A1C1">;</span></span>
+
+<span class="line"><span style="color: #616E88">/* Store local MongoDB uri ending with your database name */</span></span>
+<span class="line"><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">uri</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">mongodb://localhost:27017/UserDB</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF"> </span><span style="color: #616E88">/* &lt;- Database name */</span></span>
+
+<span class="line"><span style="color: #616E88">/* Connect to DB */</span></span>
+<span class="line"><span style="color: #D8DEE9">mongoose</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">connect</span><span style="color: #D8DEE9FF">(</span><span style="color: #D8DEE9">uri</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #88C0D0">useNewUrlParser</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">true</span></span>
+<span class="line"><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span>
+
+<span class="line"><span style="color: #616E88">/* Store connection instance */</span></span>
+<span class="line"><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">db</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">mongoose</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">connection</span></span>
+
+<span class="line"><span style="color: #616E88">/* Callback function to let us know when we&#39;re connected */</span></span>
+<span class="line"><span style="color: #D8DEE9">db</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">once</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">open</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">()</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=&gt;</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #D8DEE9">console</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">log</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">Connected to MongoDB!</span><span style="color: #ECEFF4">&quot;</span><span style="color: #D8DEE9FF">)</span><span style="color: #81A1C1">;</span></span>
+<span class="line"><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span>
+
+<span class="line"><span style="color: #616E88">/* Export the store connection instance */</span></span>
+<span class="line"><span style="color: #81A1C1">export</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">default</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">db</span></span></code></pre>
+<br>
+<p>Now navigate back to the <strong>server.js</strong> file and import the <strong>db.js</strong> file at the top-level:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #616E88">/* Import database connection to MongoDB */</span></span>
+<span class="line"><span style="color: #81A1C1">import</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">db</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">from</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">./db.js</span><span style="color: #ECEFF4">&quot;</span><span style="color: #81A1C1">;</span></span></code></pre>
+<br>
+<p>Afterwards, you should see some additional changes in the terminal output like below 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #D8DEE9FF">Dev.Adewale </span><span style="color: #81A1C1">~</span><span style="color: #D8DEE9FF">/mongodb $ npm run dev</span></span>
+
+<span class="line"><span style="color: #81A1C1">&gt;</span><span style="color: #D8DEE9FF"> userapp@1.0.0 dev</span></span>
+<span class="line"><span style="color: #81A1C1">&gt;</span><span style="color: #D8DEE9FF"> nodemon server.js</span></span>
+
+<span class="line"><span style="color: #ECEFF4">[</span><span style="color: #D8DEE9FF">nodemon</span><span style="color: #ECEFF4">]</span><span style="color: #D8DEE9FF"> 2.0.20</span></span>
+<span class="line"><span style="color: #ECEFF4">[</span><span style="color: #D8DEE9FF">nodemon</span><span style="color: #ECEFF4">]</span><span style="color: #D8DEE9FF"> to restart at any time, enter </span><span style="color: #ECEFF4">`</span><span style="color: #A3BE8C">rs</span><span style="color: #ECEFF4">`</span></span>
+<span class="line"><span style="color: #ECEFF4">[</span><span style="color: #D8DEE9FF">nodemon</span><span style="color: #ECEFF4">]</span><span style="color: #D8DEE9FF"> watching path</span><span style="color: #ECEFF4">(</span><span style="color: #D8DEE9FF">s</span><span style="color: #ECEFF4">)</span><span style="color: #D8DEE9FF">: </span><span style="color: #81A1C1">*</span><span style="color: #D8DEE9FF">.</span><span style="color: #81A1C1">*</span></span>
+<span class="line"><span style="color: #ECEFF4">[</span><span style="color: #D8DEE9FF">nodemon</span><span style="color: #ECEFF4">]</span><span style="color: #D8DEE9FF"> watching extensions: js,mjs,json  </span></span>
+<span class="line"><span style="color: #ECEFF4">[</span><span style="color: #D8DEE9FF">nodemon</span><span style="color: #ECEFF4">]</span><span style="color: #D8DEE9FF"> starting </span><span style="color: #ECEFF4">`</span><span style="color: #A3BE8C">node server.js</span><span style="color: #ECEFF4">`</span></span>
+<span class="line"><span style="color: #D8DEE9FF">it</span><span style="color: #ECEFF4">&#39;</span><span style="color: #A3BE8C">s alive on http://localhost:3000</span></span>
+<span class="line"><span style="color: #A3BE8C">Connected to MongoDB!</span></span></code></pre>
+<br>
+<p>Next, we will be creating a model that will enforce the structure of user's data that will be stored in our database. Create a <strong>model</strong> folder in the project root folder and also create a <strong>User.js</strong> file inside it. Let's make some changes 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #616E88">/* Import mongoose */</span></span>
+<span class="line"><span style="color: #81A1C1">import</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">mongoose</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">from</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">mongoose</span><span style="color: #ECEFF4">&quot;</span><span style="color: #81A1C1">;</span></span>
+
+<span class="line"><span style="color: #616E88">/* Create a schema */</span></span>
+<span class="line"><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">userSchema</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">new</span><span style="color: #D8DEE9FF"> mongoose</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9FF">Schema(</span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">  </span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #88C0D0">email</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">        </span><span style="color: #88C0D0">type</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">String</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">        </span><span style="color: #88C0D0">required</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">true</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #ECEFF4">},</span></span>
+
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #88C0D0">name</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">        </span><span style="color: #88C0D0">type</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">String</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">        </span><span style="color: #88C0D0">required</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">true</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #ECEFF4">},</span></span>
+
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #88C0D0">phoneNumber</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">        </span><span style="color: #88C0D0">type</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">Number</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">        </span><span style="color: #88C0D0">required</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">true</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #ECEFF4">}</span></span>
+
+<span class="line"><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span>
+
+<span class="line"><span style="color: #616E88">/* Export the model */</span></span>
+<span class="line"><span style="color: #81A1C1">export</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">default</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">mongoose</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">model</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">Users</span><span style="color: #ECEFF4">&quot;</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">userSchema</span><span style="color: #D8DEE9FF">)</span></span></code></pre>
+<br>
+<p>We also have to setup routes handler that will respond to our endpoints. First create a <strong>routes</strong> folder containing <strong>router.js</strong> file. Make changes to the <strong>router.js</strong> file like so 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #616E88">/* Import express */</span></span>
+<span class="line"><span style="color: #81A1C1">import</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">express</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">from</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&#39;</span><span style="color: #A3BE8C">express</span><span style="color: #ECEFF4">&#39;</span></span>
+
+<span class="line"><span style="color: #616E88">/* Init express Router */</span></span>
+<span class="line"><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">Router</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">express</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">Router</span><span style="color: #D8DEE9FF">()</span></span>
+
+<span class="line"><span style="color: #616E88">/* Export the Router variable */</span></span>
+<span class="line"><span style="color: #81A1C1">export</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">default</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">Router</span></span></code></pre>
+<br> 
+<p>In the <strong>server.js</strong> file, we have to create a <strong>middleware</strong> that will intercept every request we're getting and redirect them to the <strong>router.js</strong> file where they will be handled 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #616E88">/* Import express */</span></span>
+<span class="line"><span style="color: #81A1C1">import</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">express</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">from</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">express</span><span style="color: #ECEFF4">&quot;</span><span style="color: #81A1C1">;</span></span>
+
+<span class="line"><span style="color: #616E88">/* Import database connection to MongoDB */</span></span>
+<span class="line"><span style="color: #81A1C1">import</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">db</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">from</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">./db.js</span><span style="color: #ECEFF4">&quot;</span><span style="color: #81A1C1">;</span></span>
+
+<span class="line"><span style="color: #616E88">/* Import Router */</span></span>
+<span class="line"><span style="color: #81A1C1">import</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">Router</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">from</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&quot;</span><span style="color: #A3BE8C">./routes/router.js</span><span style="color: #ECEFF4">&quot;</span><span style="color: #81A1C1">;</span></span>
+
+<span class="line"><span style="color: #616E88">/* Init express instance */</span></span>
+<span class="line"><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">app</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #88C0D0">express</span><span style="color: #D8DEE9FF">()</span></span>
+
+<span class="line"><span style="color: #616E88">/* MIDDLEWARE STARTS */</span></span>
+
+<span class="line"><span style="color: #616E88">/* Redirect requests to Router */</span></span>
+<span class="line"><span style="color: #D8DEE9">app</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">use</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">&#39;</span><span style="color: #A3BE8C">/</span><span style="color: #ECEFF4">&#39;</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">Router</span><span style="color: #D8DEE9FF">)</span></span>
+
+<span class="line"><span style="color: #616E88">/* MIDDLEWARE ENDS */</span></span>
+
+<span class="line"><span style="color: #616E88">/* Listening to port */</span></span>
+<span class="line"><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">PORT</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">process</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">env</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">PORT</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">||</span><span style="color: #D8DEE9FF"> </span><span style="color: #B48EAD">3000</span></span>
+<span class="line"><span style="color: #D8DEE9">app</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">listen</span><span style="color: #D8DEE9FF">(</span><span style="color: #D8DEE9">PORT</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">()</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=&gt;</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #D8DEE9">console</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">log</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">`</span><span style="color: #A3BE8C">it&#39;s alive on http://localhost:</span><span style="color: #81A1C1">${</span><span style="color: #D8DEE9">PORT</span><span style="color: #81A1C1">}</span><span style="color: #ECEFF4">`</span><span style="color: #D8DEE9FF">)</span><span style="color: #81A1C1">;</span></span>
+<span class="line"><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span></code></pre>
+<br>
+<p>We can now proceed to setup every endpoints in the <strong>router.js</strong> file. The first endpoint is the <strong>GET</strong> method, import the <strong>model</strong> created earlier in the router file. Then it can be used to communicate with our MongoDB database 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #616E88">/* Import mongoose schema */</span></span>
+<span class="line"><span style="color: #81A1C1">import</span><span style="color: #D8DEE9FF"> </span><span style="color: #8FBCBB">User</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">from</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">&#39;</span><span style="color: #A3BE8C">../model/User.js</span><span style="color: #ECEFF4">&#39;</span></span>
+
+<span class="line"><span style="color: #616E88">/* Get all method */</span></span>
+<span class="line"><span style="color: #D8DEE9">Router</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">get</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">&#39;</span><span style="color: #A3BE8C">/get</span><span style="color: #ECEFF4">&#39;</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">async</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">(</span><span style="color: #D8DEE9">req</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">res</span><span style="color: #ECEFF4">)</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=&gt;</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">get</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">await</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">User</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">find</span><span style="color: #D8DEE9FF">()</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #D8DEE9">res</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">send</span><span style="color: #D8DEE9FF">(</span><span style="color: #D8DEE9">get</span><span style="color: #D8DEE9FF">)</span></span>
+<span class="line"><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span></code></pre>
+<br>
+<p>Now find an <strong>API client</strong> to test our first endpoint, I recommend <strong>Postman</strong> or <strong>Insomnia</strong> if you prefer a desktop client. Paste in the <strong>localhost</strong> URL followed by the corresponding <strong>endpoint</strong>. It should look like so 👉: <strong><a href="http://localhost:3000/get" target="_blank" rel="nofollow noopener noreferrer">http://localhost:3000/get</a></strong>.</p>
+<br>
+<p>Note that you're going to get an empty response for now because we have nothing in our database. Next, we're going to create a <strong>POST</strong> endpoint and fill our database with some documents.</p>
+<br>
+<p>Navigate back to <strong>router.js</strong> and setup the <strong>POST</strong> endpoint 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #616E88">/* Post method */</span></span>
+<span class="line"><span style="color: #D8DEE9">Router</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">post</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">&#39;</span><span style="color: #A3BE8C">/add</span><span style="color: #ECEFF4">&#39;</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">async</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">(</span><span style="color: #D8DEE9">req</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">res</span><span style="color: #ECEFF4">)</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=&gt;</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">addUser</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">new</span><span style="color: #D8DEE9FF"> User(</span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">        </span><span style="color: #88C0D0">email</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">req</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">body</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">email</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">        </span><span style="color: #88C0D0">name</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">req</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">body</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">name</span><span style="color: #ECEFF4">,</span></span>
+<span class="line"><span style="color: #D8DEE9FF">        </span><span style="color: #88C0D0">phoneNumber</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">req</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">body</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">phoneNumber</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span>
+
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #81A1C1">await</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">addUser</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">save</span><span style="color: #D8DEE9FF">()</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #D8DEE9">res</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">send</span><span style="color: #D8DEE9FF">(</span><span style="color: #D8DEE9">addUser</span><span style="color: #D8DEE9FF">)</span></span>
+<span class="line"><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span></code></pre>
+<br>
+<p>To test our post endpoint, open up any API client you're using and send a POST request. Check your <strong>MongoDB Compass</strong> afterwards and you should see a new <strong>Database name</strong> with a <strong>Collection</strong> containing the <strong>data</strong> you just sent.</p>
+<br>
+<p>The <strong>POST</strong> endpoint is up, what if we have to delete a user data? Let's continue by creating a <strong>DELETE</strong> endpoint in the <strong>router.js</strong> file 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #616E88">/* Delete method */</span></span>
+<span class="line"><span style="color: #D8DEE9">Router</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">delete</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">&#39;</span><span style="color: #A3BE8C">/remove/:id</span><span style="color: #ECEFF4">&#39;</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">async</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">(</span><span style="color: #D8DEE9">req</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">res</span><span style="color: #ECEFF4">)</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=&gt;</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">remove</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">await</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">User</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">deleteOne</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">{</span><span style="color: #88C0D0">_id</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">req</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">params</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">id</span><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #D8DEE9">res</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">send</span><span style="color: #D8DEE9FF">(</span><span style="color: #D8DEE9">remove</span><span style="color: #D8DEE9FF">)</span></span>
+<span class="line"><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span></code></pre>
+<br>
+<p>The last endpoint we will be creating is the <strong>PATCH</strong> method, this will allow us to edit and update existing users data store in our database. Navigate back to the <strong>router.js</strong> file and make new changes 👇:</p>
+<br>
+<pre class="shiki" style="background-color: #2e3440ff"><code><span class="line"><span style="color: #616E88">/* Patch method */</span></span>
+<span class="line"><span style="color: #D8DEE9">Router</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">patch</span><span style="color: #D8DEE9FF">(</span><span style="color: #ECEFF4">&#39;</span><span style="color: #A3BE8C">/update/:id</span><span style="color: #ECEFF4">&#39;</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">async</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">(</span><span style="color: #D8DEE9">req</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">res</span><span style="color: #ECEFF4">)</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=&gt;</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #81A1C1">const</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">update</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">=</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">await</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">User</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">findByIdAndUpdate</span><span style="color: #D8DEE9FF">(</span><span style="color: #D8DEE9">req</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">params</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">id</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #D8DEE9">req</span><span style="color: #ECEFF4">.</span><span style="color: #D8DEE9">body</span><span style="color: #ECEFF4">,</span><span style="color: #D8DEE9FF"> </span><span style="color: #ECEFF4">{</span><span style="color: #88C0D0">new</span><span style="color: #ECEFF4">:</span><span style="color: #D8DEE9FF"> </span><span style="color: #81A1C1">true</span><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span>
+<span class="line"><span style="color: #D8DEE9FF">    </span><span style="color: #D8DEE9">res</span><span style="color: #ECEFF4">.</span><span style="color: #88C0D0">send</span><span style="color: #D8DEE9FF">(</span><span style="color: #D8DEE9">update</span><span style="color: #D8DEE9FF">)</span></span>
+<span class="line"><span style="color: #ECEFF4">}</span><span style="color: #D8DEE9FF">)</span></span></code></pre>
+<br>
+<p>Make sure to test if all endpoints is functional and working as expected in any API client of your choice. If you have any questions or you're getting an error, be sure to comment. I will try to give a valid response as soon as I can. Bye for now 🙋‍♂️!</p>
+</main></article><footer class="contain flex justify-between mb-5 text-sl text-dimGreyAlt"><p><span>© 2024 🚀</span></p><p style="text-align: right;">Contact Me:
+
+        <a href="https://www.linkedin.com/in/sourasishbasu" target="_blank" style="margin-right: 10px;"><svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="linkedin" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-inline--fa fa-linkedin fa-xl"><path fill="currentColor" d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"></path></svg></a><a href="https://github.com/sourasishbasu" target="_blank" style="margin-right: 10px;"><svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="github" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="svg-inline--fa fa-github fa-lg"><path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg></a><a href="https://discordapp.com/users/524877465496190976" target="_blank" style="margin-right: 10px;"><svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="discord" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-inline--fa fa-discord fa-lg"><path fill="currentColor" d="M524.531,69.836a1.5,1.5,0,0,0-.764-.7A485.065,485.065,0,0,0,404.081,32.03a1.816,1.816,0,0,0-1.923.91,337.461,337.461,0,0,0-14.9,30.6,447.848,447.848,0,0,0-134.426,0,309.541,309.541,0,0,0-15.135-30.6,1.89,1.89,0,0,0-1.924-.91A483.689,483.689,0,0,0,116.085,69.137a1.712,1.712,0,0,0-.788.676C39.068,183.651,18.186,294.69,28.43,404.354a2.016,2.016,0,0,0,.765,1.375A487.666,487.666,0,0,0,176.02,479.918a1.9,1.9,0,0,0,2.063-.676A348.2,348.2,0,0,0,208.12,430.4a1.86,1.86,0,0,0-1.019-2.588,321.173,321.173,0,0,1-45.868-21.853,1.885,1.885,0,0,1-.185-3.126c3.082-2.309,6.166-4.711,9.109-7.137a1.819,1.819,0,0,1,1.9-.256c96.229,43.917,200.41,43.917,295.5,0a1.812,1.812,0,0,1,1.924.233c2.944,2.426,6.027,4.851,9.132,7.16a1.884,1.884,0,0,1-.162,3.126,301.407,301.407,0,0,1-45.89,21.83,1.875,1.875,0,0,0-1,2.611,391.055,391.055,0,0,0,30.014,48.815,1.864,1.864,0,0,0,2.063.7A486.048,486.048,0,0,0,610.7,405.729a1.882,1.882,0,0,0,.765-1.352C623.729,277.594,590.933,167.465,524.531,69.836ZM222.491,337.58c-28.972,0-52.844-26.587-52.844-59.239S193.056,219.1,222.491,219.1c29.665,0,53.306,26.82,52.843,59.239C275.334,310.993,251.924,337.58,222.491,337.58Zm195.38,0c-28.971,0-52.843-26.587-52.843-59.239S388.437,219.1,417.871,219.1c29.667,0,53.307,26.82,52.844,59.239C470.715,310.993,447.538,337.58,417.871,337.58Z"></path></svg></a><a href="mailto:sourasishbasu06@gmail.com" style="margin-right: 10px;"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="at" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-inline--fa fa-at fa-lg"><path fill="currentColor" d="M256 64C150 64 64 150 64 256s86 192 192 192c17.7 0 32 14.3 32 32s-14.3 32-32 32C114.6 512 0 397.4 0 256S114.6 0 256 0S512 114.6 512 256v32c0 53-43 96-96 96c-29.3 0-55.6-13.2-73.2-33.9C320 371.1 289.5 384 256 384c-70.7 0-128-57.3-128-128s57.3-128 128-128c27.9 0 53.7 8.9 74.7 24.1c5.7-5 13.1-8.1 21.3-8.1c17.7 0 32 14.3 32 32v80 32c0 17.7 14.3 32 32 32s32-14.3 32-32V256c0-106-86-192-192-192zm64 192a64 64 0 1 0 -128 0 64 64 0 1 0 128 0z"></path></svg></a></p></footer></div>
+    <script src="/assets/js/app.5beb5335.js" defer></script><script src="/assets/js/page--src-templates-articles-vue.2473ae0c.js" defer></script>
+  </body>
+</html>
