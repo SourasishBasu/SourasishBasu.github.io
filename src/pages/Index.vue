@@ -6,7 +6,7 @@
           <h1 ref="animatedName" class="font-semibold text-2xl dhing">
             {{ animatedText }}
           </h1>
-          <p class="text-dimGrey leading-8 text-lg bhing">
+          <p class="text-dimGrey leading-8 bhing">
             I'm a Backend and Cloud Engineer who thrives to craft solutions that are both simple and elegant.
             Currently learning and working on Cloud Native and web technologies, I have a strong foundation in <span class="text-border">AWS</span>, <span class="text-border">Python</span>. 
             I'm always looking to learn and collaborate on challenging projects.
@@ -23,7 +23,7 @@
             <tab title="Pwnagotchi" position="Raspberry Pi pentesting device" company="Pwnagotchi" companyURL="https://github.com/SourasishBasu/Pwnagotchi-raspberry-pi0" :itemList="pwItemList"/>
           </tabs>
 
-          <div class="wrap">
+          <div class="wrap bhing">
             <a href="https://drive.google.com/file/d/1MjfRNqZZC0wZpOTCUCzSpph0Bmlgexmg/view" target="_blank"> 
               <button class="btn" id="btn1">View Resume</button>  
               <button class="btn" id="btn2"></button>  
@@ -148,20 +148,13 @@ export default {
 }
 
 .bhing{
-  font-family: 'Rubik Variable';
+  font-family: 'Mabry Pro';
+  font-size: 1.2rem;
 }
 
 ::selection {
   color: black;
   background: #2BBC89;
-}
-
-.wave:hover {
-  animation-play-state: running;
-}
-
-.wave.running {
-  animation-play-state: running;
 }
 
 .wrap {
@@ -182,7 +175,7 @@ export default {
 
 .wrap .btn {
   position: absolute;
-  width: 200px;
+  width: 190px;
   height: 50px;
   color: black;
   font-size: 1.4rem;
@@ -241,6 +234,14 @@ export default {
     font-weight: 300 900;
     src: url(https://cdn.jsdelivr.net/fontsource/fonts/rubik:vf@latest/latin-wght-normal.woff2) format('woff2-variations');
     unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+    font-family: "Mabry Pro";
+    src: url("../fonts/MabryPro-Regular.woff2")format("woff2"),
+    url("../fonts/MabryPro-Regular.woff")format("woff"),
+    url("../fonts/MabryPro-Regular.ttf")format("truetype"),
+    url("https://db.onlinewebfonts.com/t/fc0ba89248939ae27a47ce54c1f44737.svg#Mabry Pro")format("svg");
 }
 </style>
 

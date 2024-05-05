@@ -72,7 +72,9 @@ export default {
 
 ul.tabs__header > li.tab__selected::before {
   content: ">"; /* Add the ">" symbol before the tab name */
-  margin-right: 5px; /* Adjust spacing between the ">" symbol and the tab name */
+  margin-right: 15px; /* Adjust spacing between the ">" symbol and the tab name */
+  display: inline;
+  float: left;
 }
 
 ul.tabs__header > li.tab__selected {
