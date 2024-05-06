@@ -8,43 +8,59 @@ This is a static website built with Vue.js and Gridsome. It serves as a personal
 - Gridsome
 - Docker
 - GitHub Actions
-- Cloudflare Pages
+- Github Pages
 
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-### Prerequisites
+## Prerequisites
 
+- NodeJS 16 and above
 - Docker and docker-compose installed on your local system.
 
-### Installation and Setup
+## Installation and Setup
 
 1. Clone the repository
     ```bash
-    git clone https://github.com/yourusername/your-repo-name.git
+    git clone https://github.com/SourasishBasu/SourasishBasu.github.io.git
     ```
 
 2. Navigate to the project directory
     ```bash
-    cd your-repo-name
+    cd SourasishBasu.github.io
     ```
+### Setup Locally
 
-3. Run Docker Compose to build and start the application
-    ```bash
-    docker-compose up
-    ```
+Install `Yarn`, `Gridsome CLI` and all the required packages for the site.
 
-4. Access the website locally in your browser at `localhost:8082`
+```bash
+npm install yarn
+npm install --global @gridsome/cli
+yarn install
+gridsome develop
+```
+
+### Setup Via Docker
+
+Run Docker Compose to build and start the application
+
+```bash
+docker-compose up
+```
+
+Access the website locally in your browser at `localhost:8082`
 
 ## Deployment
 
-This project is deployed using Cloudflare Pages via GitHub Actions. Whenever changes are pushed to the `main` branch of the GitHub repository, GitHub Actions automatically builds the project and deploys the contents of the `dist` directory to Cloudflare Pages.
+This project is deployed using Github Pages via GitHub Actions. Execute the following to deploy through your repository.
 
-## Contributing
+```bash
+yarn deploy / npm deploy
+```
 
-Contributions are welcome! Please feel free to submit a pull request or open an issue for any bugs, feature requests, or suggestions.
+Whenever changes are pushed to the `gh-pages` branch of the GitHub repository, GitHub Actions automatically builds the project and deploys the contents of the `dist` directory to Github Pages.
 
-## Acknowledgments
+### Acknowledgments
 
-- This project is a fork of [dev-adewale/portfolio](https://github.com/dev-adewale/portfolio)
+- This project is based on [dev-adewale/portfolio](https://github.com/dev-adewale/portfolio)
