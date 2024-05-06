@@ -16,9 +16,9 @@
 
         <!-- Work Experience Section -->
         <div class="contain mt-16 flex flex-col gap-3 dhing">
-          <h2 class="dhing" style="font-size:1.7rem; color:#52fe6f">Projects</h2>
+          <h2 class="dhing" style="font-size:1.8rem; color:#52fe6f">Projects</h2>
           <tabs :mode="mode">
-            <tab title="Nextform" position="Serverless web-form app" company="NextForm" companyURL="https://nextf0rm.vercel.app/" :itemList="nextItemList"/>
+            <tab title="Nextform" position="Serverless web-form app" company="NextForm" companyURL="https://github.com/SourasishBasu/Registration-Validator-SMS-AWS" :itemList="nextItemList"/>
             <tab title="FileWizard" position="Seamless File Conversion Webapp" company="FileWizard" companyURL="https://filewizard.vercel.app/" :itemList="fwItemList"/>
             <tab title="Pwnagotchi" position="Raspberry Pi pentesting device" company="Pwnagotchi" companyURL="https://github.com/SourasishBasu/Pwnagotchi-raspberry-pi0" :itemList="pwItemList"/>
           </tabs>
@@ -44,8 +44,8 @@
           </vue-marquee-slider> 
     
         </div>
-            <p class="mt-5" style="font-size:1.3rem; font-family:Mabry Pro;">Currently learning Terraform, Docker, Ansible and other Devops Technologies. </p>
-            <p class="mt-5" style="font-size:1.3rem; font-family:Mabry Pro;">Available for work. Let's <a href="mailto:hi@jay-is-savvy.dev" class="decoration-cuppy underline underline-offset-4">connect</a>.</p>
+            <p class="mt-5" style="font-size:1.3rem; font-family:Mabry Pro;">Currently learning Terraform, Docker, Ansible and other DevOps technologies. </p>
+            <p class="mt-5" style="font-size:1.3rem; font-family:Mabry Pro;">Available for work. Let's <a href="mailto:sourasishbasu06@gmail.com" class="decoration-cuppy underline underline-offset-4">connect</a>.</p>
           </div>
 
           <div class="wrap dhing">

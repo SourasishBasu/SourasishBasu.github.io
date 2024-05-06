@@ -1,7 +1,7 @@
 <template>
   <div class='tab' v-show='isActive'>
     <slot></slot>
-    <div>
+    <div style="padding-bottom: 20px;">
       <h2 style="font-weight: bold; font-size:1.2rem; padding-bottom: 20px;"><span>{{ position }} </span>
         <span 
           ref="companyLink"
@@ -65,6 +65,12 @@ export default {
       };
       document.body.appendChild(image);
 
+      // Apply fade in effect using CSS transition
+      image.style.opacity = 0;
+      setTimeout(() => {
+        image.style.opacity = 1;
+      }, 10); // Delaying to ensure opacity change triggers the transition
+
       // Store the image element in the component's data
       this.image = image;
 
@@ -74,20 +80,23 @@ export default {
     getImageUrl(company) {
       // Define a mapping of company names to image URLs
       const imageUrls = {
-        'NextForm': 'https://utfs.io/f/79934bc5-246d-4381-a850-24decbc1cb6f-25e8.png',
-        'FileWizard': 'https://utfs.io/f/3348cfbd-66dc-4d86-97e9-d71a81ce0bf3-2hu.png',
-        'Pwnagotchi': 'https://miro.medium.com/v2/resize:fit:1400/1*bzolAXFYrRB9sFSk1B75WA.png',
+        'NextForm': 'next.png',
+        'FileWizard': 'fw.png',
+        'Pwnagotchi': 'pwgh.png',
         // Add more mappings as needed
       };
       return imageUrls[company];
     },
     hideImage() {
-      if (this.image) {
-        document.body.removeChild(this.image);
-        this.image = null;
-        // Remove mousemove event listener when hiding the image
-        document.removeEventListener('mousemove', this.updateImagePosition);
-      }
+      this.image.style.opacity = 0;
+
+        // Remove the image element after transition ends
+        setTimeout(() => {
+          document.body.removeChild(this.image);
+          this.image = null;
+          // Remove mousemove event listener when hiding the image
+          document.removeEventListener('mousemove', this.updateImagePosition);
+        }, 300); // Assuming the transition duration is 300ms
     },
     updateImagePosition(event) {
       // Update image position based on mouse coordinates
@@ -114,5 +123,6 @@ export default {
   max-height: 300px; /* Maximum height */
   width: auto; /* Auto width */
   height: auto; /* Auto height */
+  transition: opacity 0.3s ease-in-out; /* Transition effect for opacity */
 }
 </style>

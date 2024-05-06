@@ -5,7 +5,7 @@
         :key='tab.title'
         @click='selectTab(index)'
         :class='{"tab__selected": (index == selectedIndex)}'
-        style="font-size:1.4rem;">
+        style="font-size:1.35rem;">
         {{ tab.title }}
       </li>
     </ul>
@@ -49,7 +49,6 @@ export default {
 </script>
 
 <style lang="css">
-
   .tabs-container {
     display: flex;
     align-items: flex-start;
@@ -68,42 +67,31 @@ export default {
     margin-bottom: 40px;
     cursor: pointer;
     list-style-type: none;
+    position: relative; /* Position relative for pseudo-element */
   }
 
   ul.tabs__header > li:hover {
-  background-color: #000; /* Change background color on hover */
-}
+    background-color: #000; /* Change background color on hover */
+  }
 
-ul.tabs__header > li:hover::before {
-  content: ">"; /* Display ">" symbol on hover */
-  margin-right: 15px; /* Adjust spacing between ">" symbol and tab name on hover */
-  display: inline;
-  float: left;
-}
+  ul.tabs__header > li::before {
+    content: ""; /* Initially invisible ">" symbol */
+    position: absolute; /* Position absolute for pseudo-element */
+    left: 0; /* Align to the left of the tab */
+    top: 50%; /* Align vertically in the middle */
+    transform: translateY(-50%); /* Adjust vertical alignment */
+  }
 
-ul.tabs__header > li.tab__selected:hover {
-  background-color: #000; /* Adjust background color of selected tab on hover */
-}
+  ul.tabs__header > li.tab__selected {
+    border-radius: 10px 10px 0 0;
+    border-right: 8px solid transparent;
+    color: #a667f8;
+  }
 
-ul.tabs__header > li.tab__selected:hover::before {
-  content: ">"; /* Keep ">" symbol displayed on hover for selected tab */
-  margin-right: 15px; /* Adjust spacing for selected tab on hover */
-  display: inline;
-  float: left;
-}
-
-ul.tabs__header > li.tab__selected::before {
-  content: ">"; /* Add the ">" symbol before the tab name */
-  margin-right: 15px; /* Adjust spacing between the ">" symbol and the tab name */
-  display: inline;
-  float: left;
-}
-
-ul.tabs__header > li.tab__selected {
-  border-radius: 10px 10px 0 0;
-  border-right: 8px solid transparent;
-  color: #a667f8
-}
+  ul.tabs__header > li.tab__selected::before {
+    content: ">"; /* ">" symbol for selected tab */
+    margin-right: 15px; /* Adjust spacing between ">" symbol and tab name */
+  }
 
   .tab-content {
     flex: 1;

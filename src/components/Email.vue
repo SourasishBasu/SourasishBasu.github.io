@@ -29,7 +29,7 @@ export default {
         'hello',
         'namaste',
         'kem-cho',
-        'you-can-email-me-at-literally-anything! Really',
+        'you-can-email-me-at-literally-anything!',
         'well, not anything. But most things',
         'like-this',
         'or-this',
