@@ -2,7 +2,7 @@
   <div class='tab' v-show='isActive'>
     <slot></slot>
     <div>
-      <h2 style="font-weight: bold; padding-bottom: 10px;"><span>{{ position }} </span>
+      <h2 style="font-weight: bold; font-size:1.2rem; padding-bottom: 20px;"><span>{{ position }} </span>
         <span 
           ref="companyLink"
           @mouseover="showImage(company)"
@@ -11,13 +11,14 @@
           :href="companyURL"
           rel="noopener noreferrer"
           target="_blank"
+          style="cursor: pointer;"
         >
           @{{ company }}
         </span>
       </h2>                
       <div>
         <ul style="list-style-type: disc;">
-          <li v-for="(item, index) in itemList" :key="index" style="color: #C9CACC; margin-bottom: 20px; line-height: 2.0;">{{ item }}</li>
+          <li v-for="(item, index) in itemList" :key="index" style="font-size: 1.1rem; color: #C9CACC; margin-bottom: 20px; line-height: 2.0;">{{ item }}</li>
         </ul>
       </div>
     </div>

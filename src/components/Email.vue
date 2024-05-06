@@ -1,5 +1,5 @@
 <template>
-  <div class="inline-container" :style="isValidMessage ? {} : { color: 'crimson' }"
+  <div class="inline-container" :style="isValidMessage ? {} : { color: '#C9CACC' }"
        @mouseenter="setIsActive(false)" @mouseleave="(idx < messages.length) && setIsActive(true)">
     <a :href="isValidMessage ? `mailto:sourasishbasu06@gmail.com` : ''">
       <span>{{ message }}</span>
@@ -27,7 +27,7 @@ export default {
       messages: [
         'hi',
         'hello',
-        'namste',
+        'namaste',
         'kem-cho',
         'you-can-email-me-at-literally-anything! Really',
         'well, not anything. But most things',
@@ -40,6 +40,7 @@ export default {
         'help',
         'admin',
         'or-I-really-like-your-website',
+        'lets-chat-about-the-newest-tech',
         'thanks'
       ]
     };

@@ -1,7 +1,7 @@
 <template>
   <div>
     <header class="contain flex justify-between items-center h-40">
-      <h1 class="text-4xl text-dimGrey font-bold gradient-text">
+      <h1 class="text-4xl font-bold gradient-text">
         <g-link to="/">Sasquatch</g-link>
       </h1>
 
@@ -51,7 +51,7 @@
       "
     >
       <nav
-        class="w-11/12 mx-auto flex flex-col items-end gap-3 pt-3" style="color: #a667f8;"
+        class="w-11/12 mx-auto flex flex-col items-center gap-3 pt-3" style="color: #a667f8;"
       >
         <g-link class="hover:underline" to="/">Home</g-link>
         <g-link class="hover:underline" to="/articles/">Articles</g-link>
@@ -62,12 +62,12 @@
 
     <slot />
 
-    <footer class="contain flex justify-between mb-5 text-sl text-dimGreyAlt">
+    <footer class="contain flex justify-between mb-5 text-base text-dimGreyAlt" style="padding-top:30px">
       <p>
-        <span>&copy; 2024</span>
+        <span style="color:#c9cacc;">&copy; 2024 sourasish.basu</span>
       </p>
       
-      <p style="text-align: right;">Contact Me:
+      <p style="text-align: right;"><span style="color:#c9cacc;">Contact Me: </span>
         <a href="https://www.linkedin.com/in/sourasishbasu" target="_blank" style="margin-right: 10px;">
           <app-icon icon="fab fa-linkedin" size="xl" :style="{ color: linkedinColor }" @mouseenter="linkedinColor = '#0A66C2'" @mouseleave="linkedinColor = ''"></app-icon>
         </a>
@@ -129,7 +129,7 @@ export default {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientAnimation 5s linear infinite alternate; /* Apply animation to the gradient */
-    white-space: nowrap;
+    white-space: pre;
 }
 </style>
 

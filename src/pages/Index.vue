@@ -6,7 +6,7 @@
           <h1 ref="animatedName" class="font-semibold text-2xl dhing">
             {{ animatedText }}
           </h1>
-          <p class="text-dimGrey leading-8 bhing">
+          <p class="text-dimGrey leading-8 bhing" style="font-size:1.25rem;">
             I'm a Backend and Cloud Engineer who thrives to craft solutions that are both simple and elegant.
             Currently learning and working on Cloud Native and web technologies, I have a strong foundation in <span class="text-border">AWS</span>, <span class="text-border">Python</span>. 
             I'm always looking to learn and collaborate on challenging projects.
@@ -16,14 +16,39 @@
 
         <!-- Work Experience Section -->
         <div class="contain mt-16 flex flex-col gap-3 dhing">
-          <h2 class="text-2xl dhing" style="color:#52fe6f">Projects</h2>
+          <h2 class="dhing" style="font-size:1.7rem; color:#52fe6f">Projects</h2>
           <tabs :mode="mode">
             <tab title="Nextform" position="Serverless web-form app" company="NextForm" companyURL="https://nextf0rm.vercel.app/" :itemList="nextItemList"/>
             <tab title="FileWizard" position="Seamless File Conversion Webapp" company="FileWizard" companyURL="https://filewizard.vercel.app/" :itemList="fwItemList"/>
             <tab title="Pwnagotchi" position="Raspberry Pi pentesting device" company="Pwnagotchi" companyURL="https://github.com/SourasishBasu/Pwnagotchi-raspberry-pi0" :itemList="pwItemList"/>
           </tabs>
+        </div>
 
-          <div class="wrap bhing">
+        <!-- Technologies List Section -->
+        <div class="contain mt-4">
+          
+          <div class="mb-5">
+            <h2 class="dhing" style="font-size:1.8rem; color:#a667f8">Technologies</h2>
+            <div style="padding-top:40px; padding-bottom:30px;" v-if="isBrowser">
+            <vue-marquee-slider
+                id="marquee-slider-loop"
+                :speed="12000"
+                :width="80"
+              >
+                <app-icon
+                v-for="icon in iconArray"
+                :key="icon"
+                :icon="icon"
+                :size="'3x'"
+                />
+          </vue-marquee-slider> 
+    
+        </div>
+            <p class="mt-5" style="font-size:1.3rem; font-family:Mabry Pro;">Currently learning Terraform, Docker, Ansible and other Devops Technologies. </p>
+            <p class="mt-5" style="font-size:1.3rem; font-family:Mabry Pro;">Available for work. Let's <a href="mailto:hi@jay-is-savvy.dev" class="decoration-cuppy underline underline-offset-4">connect</a>.</p>
+          </div>
+
+          <div class="wrap dhing">
             <a href="https://drive.google.com/file/d/1MjfRNqZZC0wZpOTCUCzSpph0Bmlgexmg/view" target="_blank"> 
               <button class="btn" id="btn1">View Resume</button>  
               <button class="btn" id="btn2"></button>  
@@ -39,6 +64,9 @@
 import Tab from '../components/Tab.vue'
 import Tabs from '../components/Tabs.vue'
 import Email from '../components/Email.vue'
+import Vue from 'vue';
+import VueMarqueeSlider from 'vue-marquee-slider';
+Vue.use(VueMarqueeSlider)
 export default {
   metaInfo: {
     title: "Sourasish Basu",
@@ -46,7 +74,7 @@ export default {
   components: {
     Tab,
     Tabs,
-    Email
+    Email,
   },
   data () {
     return {
@@ -66,11 +94,24 @@ export default {
         'Utilized machine learning to optimize attacks to capture WPA handshakes, conduct deauth attacks while passively monitoring Wi-Fi networks',
         'Monitored and analyzed network traffic, identifying vulnerabilities and providing real-time alerts to the user',
       ],
-      animatedText: "Hi, I'm Sourasish Basu",
+      animatedText: "what's happening here?",
       isAnimating: false,
       intervalId: null,
       letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      originalText: "Hi, I'm Sourasish Basu"
+      originalText: "Hi, I'm Sourasish Basu",
+      isBrowser: false, // Flag to indicate if code is running in the browser
+
+      iconArray: [
+      'fa-brands fa-docker', // Example Font Awesome icon
+      'fa-brands fa-aws',
+      'fa-brands fa-python',
+      'fa-brands fa-node',
+      'fa-solid fa-database',
+      'fa-brands fa-digital-ocean',
+      // Add more icons as needed
+    ],
+    isBrowser: false, // Flag to indicate if code is running in the browser
+
     }
   },
   methods: {
@@ -93,17 +134,17 @@ export default {
 
       const scramble = () => {
         this.isAnimating = true;
-        this.animatedText = this.animatedText
+        this.animatedText = this.originalText
           .split('')
           .map((_, index) => {
             if (index < iteration) {
-              return this.animatedText[index];
+              return this.originalText[index];
             }
             return this.letters[Math.floor(Math.random() * 26)];
           })
           .join('');
 
-        if (iteration < this.animatedText.length) {
+        if (iteration < this.originalText.length) {
           iteration += 1 / 3;
           this.intervalId = setTimeout(scramble, 30);
         } else {
@@ -118,9 +159,18 @@ export default {
 
       const unscramble = () => {
         this.isAnimating = true;
-        this.animatedText = this.originalText.slice(0, iteration) + this.animatedText.slice(iteration);
+        this.originalText = this.animatedText
+          .split('')
+          .map((_, index) => {
+            if (index < iteration) {
+              return this.animatedText[index];
+            }
+            
+            return this.originalText[index];
+          })
+          .join('');
 
-        if (iteration < this.originalText.length) {
+        if (iteration < this.animatedText.length) {
           iteration++;
           this.intervalId = setTimeout(unscramble, 30);
         } else {
@@ -132,12 +182,15 @@ export default {
     }
   },
   mounted() {
+    this.isBrowser = typeof window !== 'undefined';
+    
     this.$refs.animatedName.addEventListener('mouseover', this.handleMouseOver);
   },
   beforeDestroy() {
     this.$refs.animatedName.removeEventListener('mouseover', this.handleMouseOver);
     clearTimeout(this.intervalId);
   }
+  
 };
 </script>
 
@@ -175,16 +228,16 @@ export default {
 
 .wrap .btn {
   position: absolute;
-  width: 190px;
+  width: 185px;
   height: 50px;
   color: black;
   font-size: 1.4rem;
   border: solid 2px black;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .wrap #btn1 {
-  background: #38ef7d;
+  background: #C147E9;
   text-align: center;
   z-index: 3;
 }
@@ -213,17 +266,9 @@ export default {
 
 @font-face {
   font-family: "PexicoMicro-Regular";
-  src: url("https://db.onlinewebfonts.com/t/852be80a3188170a0c4ebb2534efb54d.eot");
-  src: url("https://db.onlinewebfonts.com/t/852be80a3188170a0c4ebb2534efb54d.eot?#iefix")
-      format("embedded-opentype"),
-    url("https://db.onlinewebfonts.com/t/852be80a3188170a0c4ebb2534efb54d.woff2")
-      format("woff2"),
-    url("https://db.onlinewebfonts.com/t/852be80a3188170a0c4ebb2534efb54d.woff")
-      format("woff"),
-    url("https://db.onlinewebfonts.com/t/852be80a3188170a0c4ebb2534efb54d.ttf")
-      format("truetype"),
-    url("https://db.onlinewebfonts.com/t/852be80a3188170a0c4ebb2534efb54d.svg#PexicoMicro-Regular")
-      format("svg");
+  src: url("../fonts/PexicoMicro-Regular.woff2")format("woff2"),
+    url("../fonts/PexicoMicro-Regular.woff")format("woff"),
+    url("../fonts/PexicoMicro-Regular.ttf")format("truetype"),
 }
 
       @font-face {

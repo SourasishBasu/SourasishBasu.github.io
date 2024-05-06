@@ -10485,6 +10485,11 @@ vue-loader@^15.7.1:
     vue-hot-reload-api "^2.3.0"
     vue-style-loader "^4.1.0"
 
+vue-marquee-slider@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/vue-marquee-slider/-/vue-marquee-slider-1.0.6.tgz#776aa884cdc4af36da773f2109402bfa6d7a8a80"
+  integrity sha512-0ar9QpMtx8M5Zu4ih10b+zeHaLXxjv3qztjgM2LtG5gnfeo+HnBeDED7HqmAZba0qup5chdIcVtDW4kVGgAa1g==
+
 vue-meta@^2.2.2:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/vue-meta/-/vue-meta-2.4.0.tgz#a419fb4b4135ce965dab32ec641d1989c2ee4845"

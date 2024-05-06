@@ -4,7 +4,8 @@
       <li v-for='(tab, index) in tabs'
         :key='tab.title'
         @click='selectTab(index)'
-        :class='{"tab__selected": (index == selectedIndex)}'>
+        :class='{"tab__selected": (index == selectedIndex)}'
+        style="font-size:1.4rem;">
         {{ tab.title }}
       </li>
     </ul>
@@ -64,11 +65,32 @@ export default {
 
   ul.tabs__header > li {
     padding: 15px 30px;
-    border-radius: 10px;
     margin-bottom: 40px;
     cursor: pointer;
     list-style-type: none;
   }
+
+  ul.tabs__header > li:hover {
+  background-color: #000; /* Change background color on hover */
+}
+
+ul.tabs__header > li:hover::before {
+  content: ">"; /* Display ">" symbol on hover */
+  margin-right: 15px; /* Adjust spacing between ">" symbol and tab name on hover */
+  display: inline;
+  float: left;
+}
+
+ul.tabs__header > li.tab__selected:hover {
+  background-color: #000; /* Adjust background color of selected tab on hover */
+}
+
+ul.tabs__header > li.tab__selected:hover::before {
+  content: ">"; /* Keep ">" symbol displayed on hover for selected tab */
+  margin-right: 15px; /* Adjust spacing for selected tab on hover */
+  display: inline;
+  float: left;
+}
 
 ul.tabs__header > li.tab__selected::before {
   content: ">"; /* Add the ">" symbol before the tab name */
