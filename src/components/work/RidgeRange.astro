@@ -1,0 +1,29 @@
+---
+import RidgelineDitherFooter from '@/components/ui/ridgeline-dither-footer';
+
+// The Work footer's range: the 21st.dev ridgeline dither, as in its glacier demo
+// (seed 23, 7 ridges), with the altimeter off and the paper matched to the sheet.
+// Hydrates when it scrolls near, then develops back to front.
+const range = 'clamp(280px, 30vw, 420px)';
+---
+
+<div class="band ridge-band">
+  <RidgelineDitherFooter
+    client:visible
+    sceneOnly
+    preset="glacier"
+    seed={23}
+    ridges={7}
+    altimeter={false}
+    palette={{ paper: '#FBFBF9' }}
+    maxWidth="100%"
+    height={range}
+    sceneMinHeight={range}
+  />
+</div>
+
+<style>
+  .ridge-band {
+    overflow: hidden;
+  }
+</style>

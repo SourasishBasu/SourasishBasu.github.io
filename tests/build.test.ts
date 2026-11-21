@@ -77,11 +77,26 @@ test('both pages share the footer', () => {
   }
 });
 
-test('work footer draws seven dithered ridges, off footer has the pond', () => {
+test('work footer has the dithered range without the altimeter, off footer has the pond', () => {
   const work = html('index.html');
-  const scene = work.slice(work.indexOf('class="band scene'), work.indexOf('</svg>', work.indexOf('class="band scene')));
-  assert.equal(tags(scene, 'path', /fill="url\(#d[0-6]\)"/).length, 7);
-  assert.match(html('off-the-clock/index.html'), /class="band pond/);
+  const footer = work.slice(work.indexOf('<footer'), work.indexOf('</footer>'));
+  const range = tags(footer, 'div', /class="rdf-root rdf-scene-only/);
+  assert.equal(range.length, 1);
+  assert.match(range[0], /aria-hidden="true"/);
+  assert.match(footer, /<astro-island[^>]*client="visible"/);
+  assert.match(footer, /<canvas/);
+  assert.doesNotMatch(footer, /class="(rdf-alt|rdf-top|rdf-bar|bird)/);
+  const off = html('off-the-clock/index.html');
+  assert.equal(tags(off, 'div', /class="band pond/, /role="img"/).length, 1);
+  assert.equal(tags(off, 'canvas', /class="pond-canvas/).length, 1);
+});
+
+test('third-party code is credited with its licence', () => {
+  const notices = readFileSync(new URL('../THIRD_PARTY_NOTICES.md', import.meta.url), 'utf8');
+  assert.match(notices, /ascii-animals/);
+  assert.match(notices, /Copyright \(c\) 2026 drewdi/);
+  assert.match(notices, /ridgeline-dither-footer/);
+  assert.ok(existsSync(new URL('../src/vendor/ascii-animals/LICENSE', import.meta.url)));
 });
 
 // ---------- phase 2: Work page ----------

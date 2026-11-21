@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Placeholders from '../components/off/Placeholders.astro';
+import Pond from '../components/pond/Pond.astro';
 ---
 
 <Base
@@ -10,13 +11,5 @@ import Placeholders from '../components/off/Placeholders.astro';
   page="off"
 >
   <Placeholders />
-  <section slot="scene" class="band pond" aria-hidden="true"></section>
+  <Pond slot="scene" />
 </Base>
-
-<style>
-  .pond {
-    height: 320px;
-    overflow: hidden;
-    background: #06070c;
-  }
-</style>
