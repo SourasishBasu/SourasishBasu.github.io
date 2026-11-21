@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import Placeholders from '../components/off/Placeholders.astro';
+---
+
+<Base
+  title="Off the clock · Sourasish Basu"
+  description="What Sourasish Basu is into once he logs off: films and Gunpla."
+  theme="dark"
+  page="off"
+>
+  <Placeholders />
+  <section slot="scene" class="band pond" aria-hidden="true"></section>
+</Base>
+
+<style>
+  .pond {
+    height: 320px;
+    overflow: hidden;
+    background: #06070c;
+  }
+</style>

@@ -1,66 +1,49 @@
-# Personal Portfolio Website
+# sourasishbasu.github.io
 
-This is a static website built with Vue.js and Gridsome. It serves as a personal portfolio to showcase my work.
+Personal site of Sourasish Basu, platform engineer. It has two pages: **Work** (`/`) and **Off the clock** (`/off-the-clock/`). The whole site is drawn as a sheet of paper on a cutting mat.
 
-## Technologies Used
+## Stack
 
-- Vue.js
-- Gridsome
-- Docker
-- GitHub Actions
-- Github Pages
+- [Astro](https://astro.build) with static output, TypeScript
+- Plain CSS with custom properties (`src/styles/tokens.css`), scoped styles per component
+- Self-hosted fonts from Fontsource: Archivo (variable, width axis), IBM Plex Sans, IBM Plex Mono
+- Tests: Node's built-in test runner (`node:test`) with native TypeScript stripping
 
-## Getting Started
+## Commands
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+Node 22.23.1 (see `.node-version`).
 
-## Prerequisites
+| Command | What it does |
+| --- | --- |
+| `npm ci` | Install the locked dependencies |
+| `npm run dev` | Dev server on http://localhost:4321 |
+| `npm run build` | Static build into `dist/` |
+| `npm run preview` | Serve `dist/` locally |
+| `npm run check` | Type-check `.astro` and `.ts` files |
+| `npm test` | Unit tests plus checks on the built site (run `npm run build` first) |
 
-- NodeJS 16 and above
-- Docker and docker-compose installed on your local system.
+## Layout
 
-## Installation and Setup
-
-1. Clone the repository
-    ```bash
-    git clone https://github.com/SourasishBasu/SourasishBasu.github.io.git
-    ```
-
-2. Navigate to the project directory
-    ```bash
-    cd SourasishBasu.github.io
-    ```
-### Setup Locally
-
-Install `Yarn`, `Gridsome CLI` and all the required packages for the site.
-
-```bash
-npm install yarn
-npm install --global @gridsome/cli
-yarn install
-gridsome develop
+```
+src/
+  data/        site, experience, projects and tools content (typed TS)
+  lib/         small pure helpers (ridgeline paths, flap cells)
+  styles/      tokens.css (light + dark), global.css (sheet, bands, primitives)
+  layouts/     Base.astro: head, fonts, sheet, top bar, footer
+  components/  TopBar, Footer, IstClock, work/*, off/*
+  pages/       index (Work), off-the-clock, 404
+public/        favicon, tool icons, legacy policy pages and sitemap (kept at their old paths)
+tests/         unit.test.ts, build.test.ts
 ```
 
-### Setup Via Docker
+## Deploy
 
-Run Docker Compose to build and start the application
+Cloudflare Pages, connected to this repository:
 
-```bash
-docker-compose up
-```
+- Build command: `npm run build`
+- Output directory: `dist`
+- Node version: from `.node-version`
 
-Access the website locally in your browser at `localhost:8082`
+## Credits
 
-## Deployment
-
-This project is deployed using Github Pages via GitHub Actions. Execute the following to deploy through your repository.
-
-```bash
-yarn deploy / npm deploy
-```
-
-Whenever changes are pushed to the `gh-pages` branch of the GitHub repository, GitHub Actions automatically builds the project and deploys the contents of the `dist` directory to Github Pages.
-
-### Acknowledgments
-
-- This project is based on [dev-adewale/portfolio](https://github.com/dev-adewale/portfolio)
+Tool logos come from [simple-icons](https://simpleicons.org) (CC0) and [devicon](https://devicon.dev) (MIT). See `THIRD_PARTY_NOTICES.md`.

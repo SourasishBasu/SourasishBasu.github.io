@@ -1,0 +1,140 @@
+---
+import { site } from '../data/site';
+
+interface Props {
+  page: 'work' | 'off' | 'none';
+}
+
+const { page } = Astro.props;
+const links = [
+  { id: 'work', href: '/', label: 'Work' },
+  { id: 'off', href: '/off-the-clock/', label: 'Off the clock' },
+] as const;
+---
+
+<header class="band top">
+  <nav aria-label="Pages" class="seg">
+    {
+      links.map((l) => (
+        <a href={l.href} class:list={['seg-item', { on: page === l.id }]} aria-current={page === l.id ? 'page' : undefined}>
+          {l.id === 'work' ? (
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+              <rect x="2" y="4.5" width="12" height="9" rx="1.5" />
+              <path d="M5.5 4.5V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.5M2 8.5h12" />
+            </svg>
+          ) : (
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M8 2v2M8 12v2M2 8h2M12 8h2M3.8 3.8l1.4 1.4M10.8 10.8l1.4 1.4M3.8 12.2l1.4-1.4M10.8 5.2l1.4-1.4" />
+              <circle cx="8" cy="8" r="2.4" />
+            </svg>
+          )}
+          {l.label}
+        </a>
+      ))
+    }
+  </nav>
+  <a href="/" class="name display">{site.name}</a>
+  <div class="end">
+    <a href="#contact" class="pill-btn">Get in touch</a>
+  </div>
+  <span class="cross cl"></span><span class="cross cr"></span>
+</header>
+
+<style>
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: var(--top-h);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+    padding: 0 16px;
+    background: var(--top-bg);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  .seg {
+    justify-self: start;
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 9px;
+    background: var(--seg-bg);
+    box-shadow: inset 0 0 0 1px var(--seg-ring);
+  }
+
+  .seg-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 7px;
+    font: 500 13px/1 var(--font-sans);
+    color: var(--seg-text);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .seg-item:not(.on):hover {
+    color: var(--seg-hover-text);
+    background: var(--seg-hover-bg);
+  }
+
+  .seg-item.on {
+    background: var(--seg-on);
+    color: var(--seg-on-text);
+    box-shadow: var(--seg-on-shadow);
+  }
+
+  .seg-item:focus-visible {
+    outline-offset: 2px;
+  }
+
+  .name {
+    justify-self: center;
+    font-size: 17px;
+    font-stretch: 112%;
+    letter-spacing: 0;
+    color: var(--ink);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .name:hover {
+    color: var(--ink);
+  }
+
+  .end {
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  @media (max-width: 760px) {
+    .top {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+
+    .name,
+    .seg-item svg {
+      display: none;
+    }
+
+    .seg-item {
+      padding: 0 10px;
+      font-size: 12.5px;
+    }
+
+    .end .pill-btn {
+      height: 36px;
+      padding: 0 12px;
+      font-size: 13px;
+    }
+  }
+</style>

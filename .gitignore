@@ -1,8 +1,19 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs and OS files
 *.log
-.cache
 .DS_Store
-src/.temp
-node_modules
+.cache
+
+# env files
 .env
 .env.*
-dist
+
+# local tooling
+.claude/
+notes/

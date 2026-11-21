@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Page not found · Sourasish Basu" description="This page doesn't exist." theme="light" page="none">
+  <section class="band nf">
+    <span class="eyebrow">404</span>
+    <h1 class="display h2">Page not found</h1>
+    <p class="lead">Nothing lives at this address anymore.</p>
+    <a class="pill-btn pill-btn--lg" href="/">Back to the work</a>
+    <span class="cross cl"></span><span class="cross cr"></span>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    padding: 120px 40px 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  @media (max-width: 760px) {
+    .nf {
+      padding: 80px 16px 96px;
+    }
+  }
+</style>

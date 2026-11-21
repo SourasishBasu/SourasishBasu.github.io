@@ -1,0 +1,476 @@
+/*
+ * Global layer: reset, the mat / sheet / band skeleton, type utilities and
+ * the shared primitives (pill buttons, tags, flap cells, chips, dither fills).
+ * Component-specific styles live in each .astro file.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-padding-top: var(--top-h);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: clip;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background-color: var(--mat);
+  background-image:
+    linear-gradient(var(--mat-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mat-major) 1px, transparent 1px),
+    linear-gradient(var(--mat-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mat-minor) 1px, transparent 1px);
+  background-size:
+    80px 80px,
+    80px 80px,
+    16px 16px,
+    16px 16px;
+  background-position: center top;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img,
+svg {
+  display: block;
+}
+
+button {
+  font: inherit;
+}
+
+a {
+  color: var(--link);
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  z-index: 50;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font: 500 14px/1 var(--font-sans);
+  text-decoration: none;
+}
+
+.skip:focus {
+  top: 10px;
+}
+
+/* ---------- sheet on the mat ---------- */
+
+.sheet {
+  position: relative;
+  width: var(--sheet-w);
+  margin: 0 auto;
+  background: var(--paper);
+  border-left: 1px solid var(--rail);
+  border-right: 1px solid var(--rail);
+}
+
+.band {
+  position: relative;
+}
+
+/* every band ends in a rail line that runs across the mat */
+.band::after {
+  content: '';
+  position: absolute;
+  left: -100vw;
+  right: -100vw;
+  bottom: 0;
+  height: 1px;
+  background: var(--rail);
+  pointer-events: none;
+}
+
+/* + registration marks where a rail meets the sheet edge */
+.cross {
+  position: absolute;
+  z-index: 3;
+  bottom: -5px;
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+}
+
+.cross::before,
+.cross::after {
+  content: '';
+  position: absolute;
+  background: var(--cross);
+}
+
+.cross::before {
+  left: 5px;
+  top: 0;
+  width: 1px;
+  height: 11px;
+}
+
+.cross::after {
+  top: 5px;
+  left: 0;
+  width: 11px;
+  height: 1px;
+}
+
+.cross.cl {
+  left: -6px;
+}
+
+.cross.cr {
+  right: -6px;
+}
+
+/* tick strips on the outside of the sheet edges (light theme only) */
+.ruler {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(to bottom, var(--tick-major) 0 1px, transparent 1px 80px),
+    repeating-linear-gradient(to bottom, var(--tick-minor) 0 1px, transparent 1px 16px);
+  background-size:
+    12px 100%,
+    6px 100%;
+  background-repeat: no-repeat;
+}
+
+.ruler.l {
+  left: -13px;
+  background-position: right top;
+}
+
+.ruler.r {
+  right: -13px;
+  background-position: left top;
+}
+
+.vline {
+  border-left: 1px solid var(--rule);
+}
+
+@media (max-width: 760px) {
+  .sheet {
+    width: 100%;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .ruler,
+  .cross {
+    display: none;
+  }
+}
+
+/* ---------- type ---------- */
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.eyebrow {
+  font: 500 11.5px/1.3 var(--font-mono);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+.display {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.h2 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.08;
+}
+
+.lead {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .eyebrow {
+    font-size: 10.5px;
+  }
+
+  .h2 {
+    font-size: 30px;
+  }
+}
+
+/* ---------- primary pill ---------- */
+
+.pill-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font: 500 13.5px/1 var(--font-sans);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: var(--pill-shadow);
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.9, 0.25, 1.3),
+    background-color 0.2s;
+}
+
+.pill-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, var(--pill-sheen), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pill-btn:hover {
+  background: var(--pill-hover-bg);
+  color: var(--pill-hover-text);
+}
+
+.pill-btn:hover::before {
+  left: 120%;
+}
+
+.pill-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.pill-btn .arr {
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.25, 1.3);
+}
+
+.pill-btn:hover .arr {
+  transform: translateY(2px);
+}
+
+.pill-btn--lg {
+  height: 46px;
+  padding: 0 22px;
+  font-size: 14.5px;
+}
+
+/* ---------- ghost pill ---------- */
+
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--ghost-ring);
+  font: 500 14px/1 var(--font-sans);
+  color: var(--ghost-text);
+  text-decoration: none;
+}
+
+a.ghost-btn[href]:hover {
+  box-shadow: inset 0 0 0 1px var(--ghost-ring-hover);
+  color: var(--ghost-text);
+}
+
+.ghost-btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- tags ---------- */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--tag-ring);
+  font: 500 12px/1 var(--font-mono);
+  color: var(--tag-text);
+  white-space: nowrap;
+}
+
+.tag--sm {
+  height: 22px;
+  font-size: 11px;
+}
+
+/* ---------- flap cells (metrics, status, counters) ---------- */
+
+.flap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 3px;
+  background: var(--flap-face);
+  color: var(--flap-ink);
+}
+
+.flap::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--flap-seam);
+}
+
+.flap-row {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.flap--mini {
+  width: 30px;
+  height: 42px;
+  font: 500 24px/1 var(--font-display);
+}
+
+@media (max-width: 760px) {
+  .flap--mini {
+    width: 26px;
+    height: 36px;
+    font-size: 20px;
+  }
+}
+
+/* ---------- colour chips and dither fills ---------- */
+
+.chip-blue {
+  background: linear-gradient(rgba(255, 255, 255, 0.06) 0 50%, rgba(0, 0, 0, 0.08) 50%), var(--chip-blue);
+}
+
+.chip-red {
+  background: linear-gradient(rgba(255, 255, 255, 0.06) 0 50%, rgba(0, 0, 0, 0.08) 50%), var(--chip-red);
+}
+
+.chip-yellow {
+  background: linear-gradient(rgba(255, 255, 255, 0.08) 0 50%, rgba(0, 0, 0, 0.06) 50%), var(--chip-yellow);
+}
+
+.chip-white {
+  background: linear-gradient(rgba(255, 255, 255, 0.2) 0 50%, rgba(0, 0, 0, 0.05) 50%), var(--chip-white);
+}
+
+.chip-green {
+  background: linear-gradient(rgba(255, 255, 255, 0.06) 0 50%, rgba(0, 0, 0, 0.08) 50%), var(--chip-green);
+}
+
+.chip-orange {
+  background: linear-gradient(rgba(255, 255, 255, 0.06) 0 50%, rgba(0, 0, 0, 0.08) 50%), var(--chip-orange);
+}
+
+.dither-blue,
+.dither-red,
+.dither-yellow,
+.dither-ink,
+.dither-eink {
+  color: #fbfbf9;
+  background-size:
+    5px 5px,
+    100% 100%;
+}
+
+.dither-blue {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.5) 1.05px, transparent 1.35px), linear-gradient(140deg, #3a60c8, #1c2f6e);
+}
+
+.dither-red {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.45) 1.05px, transparent 1.35px), linear-gradient(140deg, #e2513f, #8e1e17);
+}
+
+.dither-yellow {
+  color: #141619;
+  background-image: radial-gradient(circle, rgba(20, 22, 25, 0.35) 1.05px, transparent 1.35px), linear-gradient(140deg, #f6cf52, #c98f0c);
+}
+
+.dither-ink {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.32) 1.05px, transparent 1.35px), linear-gradient(140deg, #3a3f45, #141619);
+}
+
+.dither-eink {
+  color: #141619;
+  background-image: radial-gradient(circle, rgba(20, 22, 25, 0.12) 1px, transparent 1.3px), linear-gradient(#dcded4, #d3d5ca);
+}
+
+/* ---------- flips ---------- */
+
+@keyframes flick {
+  0% {
+    transform: perspective(240px) rotateX(0);
+  }
+  45% {
+    transform: perspective(240px) rotateX(-88deg);
+    filter: brightness(0.55);
+  }
+  46% {
+    transform: perspective(240px) rotateX(88deg);
+    filter: brightness(0.55);
+  }
+  100% {
+    transform: perspective(240px) rotateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

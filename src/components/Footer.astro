@@ -1,0 +1,289 @@
+---
+import { site } from '../data/site';
+import IstClock from './IstClock.astro';
+
+const year = new Date().getFullYear();
+---
+
+<footer id="contact">
+  <section class="band info">
+    <div class="who">
+      <span class="display wordmark">{site.name}</span>
+      <p class="blurb">Platform engineer at Atlan. Usually somewhere between a terminal and a Grafana dashboard.</p>
+      <div class="chip-wrap">
+        <a class="chipbtn" href={`mailto:${site.email}`}>
+          <span>{site.email}</span>
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+            <rect x="5" y="5" width="8.5" height="8.5" rx="1.5" />
+            <path d="M10.5 5V3.5A1 1 0 0 0 9.5 2.5h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1H5" />
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="find vline">
+      <span class="eyebrow">Find me</span>
+      <a class="flink" href={site.github} rel="me">GitHub <span aria-hidden="true">↗</span></a>
+      <a class="flink" href={site.linkedin} rel="me">LinkedIn <span aria-hidden="true">↗</span></a>
+      <a class="ghost-btn resume" aria-disabled="true">
+        Résumé, PDF
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 2v9M4 7l4 4 4-4M3 14h10" />
+        </svg>
+      </a>
+    </div>
+
+    <div class="pet-cell vline">
+      <div class="pcb" role="img" aria-label="E-ink pet named Sasquatch">
+        <span class="hole" style="left:7px;top:7px"></span>
+        <span class="hole" style="right:7px;top:7px"></span>
+        <span class="hole" style="left:7px;bottom:7px"></span>
+        <span class="hole" style="right:7px;bottom:7px"></span>
+        <span class="eink">
+          <span class="eink-top"><span>SASQUATCH</span><span><IstClock /> IST</span></span>
+          <span class="face">(◕‿‿◕)</span>
+          <span class="eink-line">&gt; watching you scroll</span>
+        </span>
+      </div>
+    </div>
+    <span class="cross cl"></span><span class="cross cr"></span>
+  </section>
+
+  <slot name="scene" />
+
+  <div class="legal">
+    <span>© {year} {site.name}</span>
+    <span>India · <IstClock /> {site.tzLabel}</span>
+  </div>
+</footer>
+
+<style>
+  .info {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 3fr) minmax(0, 4fr);
+  }
+
+  .who {
+    padding: 56px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .wordmark {
+    font-size: 28px;
+    font-stretch: 112%;
+  }
+
+  .blurb {
+    margin: 0;
+    max-width: 380px;
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .chip-wrap {
+    display: flex;
+  }
+
+  .chipbtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 100%;
+    height: 44px;
+    padding: 0 14px 0 16px;
+    border-radius: 8px;
+    background: var(--chipbtn-bg);
+    box-shadow:
+      0 0 0 1px var(--chipbtn-ring),
+      0 2px 0 var(--chipbtn-base);
+    font: 500 14.5px/1 var(--font-mono);
+    color: var(--chipbtn-text);
+    text-decoration: none;
+  }
+
+  .chipbtn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chipbtn:hover {
+    color: var(--chipbtn-text);
+    box-shadow:
+      0 0 0 1px var(--chipbtn-ring-hover),
+      0 2px 0 var(--chipbtn-base-hover);
+  }
+
+  .chipbtn svg {
+    flex-shrink: 0;
+  }
+
+  .find {
+    padding: 56px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .find .eyebrow {
+    margin-bottom: 8px;
+  }
+
+  .flink {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+    font: 500 15px/1 var(--font-sans);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .flink:hover {
+    color: var(--link);
+  }
+
+  .resume {
+    margin-top: 18px;
+    align-self: flex-start;
+  }
+
+  .pet-cell {
+    padding: 40px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pcb {
+    position: relative;
+    display: block;
+    width: 300px;
+    max-width: 100%;
+    padding: 18px 18px 16px;
+    border-radius: 12px;
+    background-color: #22513c;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1.3px);
+    background-size: 8px 8px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 2px 0 #0f2a1e,
+      0 20px 40px -22px rgba(15, 42, 30, 0.8);
+  }
+
+  .hole {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--hole-bg);
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.45),
+      0 0 0 3px #c9a64a;
+  }
+
+  .eink {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background-color: #dcded4;
+    background-image: radial-gradient(circle, rgba(20, 22, 25, 0.06) 1px, transparent 1.2px);
+    background-size: 3px 3px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+    color: #16181a;
+    font-family: var(--font-mono);
+  }
+
+  .eink-top {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #16181a;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+
+  .face {
+    display: block;
+    padding: 16px 0 14px;
+    font: 500 40px/1 var(--font-mono);
+    letter-spacing: -0.02em;
+    text-align: center;
+    white-space: pre;
+  }
+
+  .eink-line {
+    display: block;
+    padding-top: 6px;
+    border-top: 1px solid #16181a;
+    font-size: 11px;
+  }
+
+  .legal {
+    padding: 14px 40px 18px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    font: 400 11.5px/1.4 var(--font-mono);
+    color: var(--graphite);
+  }
+
+  @media (max-width: 1023px) {
+    .info {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .pet-cell {
+      grid-column: 1 / -1;
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .info {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .who {
+      padding: 32px 16px 28px;
+      gap: 14px;
+    }
+
+    .wordmark {
+      font-size: 22px;
+    }
+
+    .chipbtn {
+      font-size: 13.5px;
+    }
+
+    .find {
+      padding: 24px 16px 28px;
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+
+    .pet-cell {
+      padding: 24px 16px 32px;
+    }
+
+    .pcb {
+      width: 100%;
+      padding: 14px;
+    }
+
+    .face {
+      font-size: 32px;
+      padding: 12px 0;
+    }
+
+    .legal {
+      padding: 14px 16px 18px;
+    }
+  }
+</style>

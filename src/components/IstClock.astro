@@ -1,0 +1,58 @@
+---
+// Local time in India, the only live data on the site. The element renders empty
+// at build time and reserves its width, so filling it in causes no layout shift.
+---
+
+<ist-clock class="clock" aria-hidden="true"></ist-clock>
+
+<style>
+  .clock {
+    display: inline-block;
+    min-width: 5ch;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+
+<script>
+  const fmt = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Kolkata',
+  });
+
+  const clocks = new Set<HTMLElement>();
+  let timer: number | undefined;
+
+  function tick() {
+    const now = fmt.format(new Date());
+    clocks.forEach((el) => {
+      if (el.textContent !== now) el.textContent = now;
+    });
+  }
+
+  function schedule() {
+    clearInterval(timer);
+    timer = document.hidden ? undefined : window.setInterval(tick, 15_000);
+  }
+
+  class IstClock extends HTMLElement {
+    connectedCallback() {
+      clocks.add(this);
+      tick();
+      if (clocks.size === 1) schedule();
+    }
+
+    disconnectedCallback() {
+      clocks.delete(this);
+      if (clocks.size === 0) clearInterval(timer);
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    tick();
+    schedule();
+  });
+
+  if (!customElements.get('ist-clock')) customElements.define('ist-clock', IstClock);
+</script>

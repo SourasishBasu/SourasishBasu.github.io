@@ -1,0 +1,140 @@
+/*
+ * Design tokens, ported from the Claude Design artboards:
+ * light values from Work.dc.html, dark values from OffClock.dc.html.
+ * The theme is set per page on <html data-theme>, not from the OS preference:
+ * Work is always light and Off the clock is always dark.
+ */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --font-display: 'Archivo Variable', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --top-h: 56px;
+  --sheet-w: min(1312px, calc(100% - 48px));
+
+  /* surfaces */
+  --mat: #e8ece6;
+  --mat-major: rgba(36, 64, 50, 0.15);
+  --mat-minor: rgba(36, 64, 50, 0.06);
+  --paper: #fbfbf9;
+  --rail: #c9cec6;
+  --rule: #daddd7;
+  --tint: #eff1ec;
+  --tint-hover: #f1f3ef;
+  --tick-major: #7f897d;
+  --tick-minor: #a9b2a7;
+  --cross: #141619;
+  --top-bg: rgba(251, 251, 249, 0.92);
+
+  /* text */
+  --ink: #141619;
+  --ink-2: #2b3036;
+  --graphite: #4e545b;
+  --muted: #4e545b;
+  --link: #2c4fb0;
+  --link-hover: #1b3480;
+  --focus: #2c4fb0;
+
+  /* segmented toggle */
+  --seg-bg: #eceeea;
+  --seg-ring: #daddd7;
+  --seg-text: #4e545b;
+  --seg-hover-bg: #e2e5e0;
+  --seg-hover-text: #141619;
+  --seg-on: linear-gradient(#26292c 0 50%, #1d1f22 50%);
+  --seg-on-text: #eceae4;
+  --seg-on-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+
+  /* primary pill */
+  --pill-bg: #141619;
+  --pill-text: #fbfbf9;
+  --pill-hover-bg: #262a30;
+  --pill-hover-text: #fff;
+  --pill-sheen: rgba(255, 255, 255, 0.18);
+  --pill-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 10px 20px -12px rgba(20, 22, 25, 0.8);
+
+  /* ghost pill, tags, chip button */
+  --ghost-ring: #c9cec6;
+  --ghost-ring-hover: #141619;
+  --ghost-text: #141619;
+  --tag-ring: #c9cec6;
+  --tag-text: #2b3036;
+  --chipbtn-bg: #fbfbf9;
+  --chipbtn-ring: #c9cec6;
+  --chipbtn-base: #daddd7;
+  --chipbtn-ring-hover: #141619;
+  --chipbtn-base-hover: #141619;
+  --chipbtn-text: #141619;
+
+  /* footer pet */
+  --hole-bg: #e8ece6;
+
+  /* flap material (same in both themes) */
+  --flap-face: linear-gradient(#272a2d 0 50%, #1e2023 50%);
+  --flap-ink: #eceae4;
+  --flap-seam: #0d0e0f;
+
+  /* colour chips */
+  --chip-blue: #2c4fb0;
+  --chip-red: #d63a2f;
+  --chip-yellow: #f2c12e;
+  --chip-white: #e9e7e1;
+  --chip-green: #2f9e62;
+  --chip-orange: #e8742a;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --mat: #0a0b0d;
+  --mat-major: rgba(255, 255, 255, 0.07);
+  --mat-minor: rgba(255, 255, 255, 0.028);
+  --paper: #101215;
+  --rail: #2a2e33;
+  --rule: #23272c;
+  --tint: #1a1d21;
+  --tint-hover: #171a1e;
+  --cross: #eceae4;
+  --top-bg: rgba(16, 18, 21, 0.86);
+
+  --ink: #eceae4;
+  --ink-2: #c9cdd2;
+  --graphite: #8d939b;
+  --muted: #9ca2aa;
+  --link: #a9b8ff;
+  --link-hover: #cbd4ff;
+  --focus: #a9b8ff;
+
+  --seg-bg: #1a1d21;
+  --seg-ring: #2a2e33;
+  --seg-text: #9ca2aa;
+  --seg-hover-bg: #23272c;
+  --seg-hover-text: #eceae4;
+  --seg-on: linear-gradient(#efede7 0 50%, #e2e0d9 50%);
+  --seg-on-text: #141619;
+  --seg-on-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+
+  --pill-bg: #eceae4;
+  --pill-text: #141619;
+  --pill-hover-bg: #fff;
+  --pill-hover-text: #000;
+  --pill-sheen: rgba(255, 255, 255, 0.7);
+  --pill-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 10px 22px -12px rgba(0, 0, 0, 0.9);
+
+  --ghost-ring: #3a3f45;
+  --ghost-ring-hover: #9ca2aa;
+  --ghost-text: #eceae4;
+  --tag-ring: #3a3f45;
+  --tag-text: #c9cdd2;
+  --chipbtn-bg: #1a1d21;
+  --chipbtn-ring: #2a2e33;
+  --chipbtn-base: #08090a;
+  --chipbtn-ring-hover: #9ca2aa;
+  --chipbtn-base-hover: #08090a;
+  --chipbtn-text: #eceae4;
+
+  --hole-bg: #101215;
+}
