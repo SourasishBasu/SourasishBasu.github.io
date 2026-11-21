@@ -113,7 +113,7 @@ const drivers = groups[4];
     display: block;
     width: 28px;
     height: 28px;
-    background-color: currentColor;
+    background-color: var(--c);
     -webkit-mask: var(--m) center / contain no-repeat;
     mask: var(--m) center / contain no-repeat;
     transition: background-color 0.2s;
@@ -129,11 +129,6 @@ const drivers = groups[4];
   .ti:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 3px;
-  }
-
-  .ti:hover i,
-  .ti:focus-visible i {
-    background-color: var(--c);
   }
 
   .ti::after {

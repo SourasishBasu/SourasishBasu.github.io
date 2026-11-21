@@ -1,0 +1,724 @@
+---
+import { fiveStar, filmsLogged, letterboxd } from '../../data/films';
+import { discPose } from './discs';
+
+// Films: the five-star Letterboxd films as CDs, after Ravi Klaassens' A24
+// concept site. Each disc lies tilted back with a silver edge, a clear hub and
+// a credit ring; the row climbs diagonally to the right. The section pins
+// while you scroll through it and the scroll carries the row along (on phones
+// a normal swipe does it). Arrows, keys, a click on a disc, a drag or a
+// sideways swipe also move it. The layout renders server-side, so it reads
+// correctly before (or without) the script.
+const count = filmsLogged === null ? null : String(filmsLogged);
+const flaps = count ? [...count] : ['#', '#', '#', '#'];
+const first = fiveStar[0];
+const pad = (n: number) => String(n).padStart(2, '0');
+const meta = fiveStar.map((f) => ({ title: f.title, year: f.year, director: f.director, href: letterboxd.film(f.slug) }));
+// The credit ring: repeated to roughly fill the circle (~130 characters at this size), then
+// fitted exactly with textLength so the end meets the start without overlapping.
+const RING = 2 * Math.PI * 44;
+const ring = (f: (typeof fiveStar)[number]) => {
+  const one = `Directed by ${f.director} · ${f.year} · ★★★★★ · ${letterboxd.user} · `.toUpperCase();
+  return one.repeat(Math.max(1, Math.round(130 / one.length)));
+};
+---
+
+<section class="band films" data-films={JSON.stringify(meta)} style={`--n:${fiveStar.length}`}>
+  <div class="intro">
+    <span class="eyebrow">Films</span>
+    <h2 class="display h2">I watch a lot of films</h2>
+    <p class="muted">Every one gets logged and rated on Letterboxd. Spin through the ones that got five stars.</p>
+    <div class="counter">
+      <span class="flap-row" aria-hidden="true">
+        {flaps.map((ch) => <span class="flap count-flap">{ch}</span>)}
+      </span>
+      <span class="mono count-label">
+        {count ? <span class="sr-only">{count} </span> : null}films logged, all time
+      </span>
+    </div>
+    <a class="lbx" href={letterboxd.profile}>
+      <span class="dots" aria-hidden="true"><i class="o"></i><i class="g"></i><i class="b"></i></span>
+      {letterboxd.user} on Letterboxd
+    </a>
+  </div>
+
+  <div class="track vline">
+    <div class="pin">
+      <div class="player" role="region" aria-roledescription="carousel" aria-label="Five-star films">
+        <svg class="grain" aria-hidden="true">
+          <filter id="films-grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch" /><feColorMatrix type="saturate" values="0" /></filter>
+          <rect width="100%" height="100%" filter="url(#films-grain)" />
+        </svg>
+        {
+          fiveStar.map((f, i) => {
+            const p = discPose(i);
+            return (
+              <button
+                type="button"
+                class:list={['cd', { focus: i === 0 }]}
+                data-i={i}
+                aria-label={`${f.title} (${f.year})`}
+                tabindex={i === 0 ? 0 : -1}
+                style={`--x:${p.x};--y:${p.y};--z:${p.z};--s:${p.scale};--d:${i};opacity:${p.opacity};z-index:${p.order};${p.visible ? '' : 'visibility:hidden;'}`}
+              >
+                <span class="disc">
+                  <span class="edge e4" />
+                  <span class="edge e3" />
+                  <span class="edge e2" />
+                  <span class="edge e1" />
+                  <span class="face">
+                    <span class="spin">
+                      <img class="art" src={f.poster} alt="" width="600" height="900" loading={i < 3 ? 'eager' : 'lazy'} decoding="async" referrerpolicy="no-referrer" draggable="false" />
+                      <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+                        <defs>
+                          <path id={`ring-${i}`} d="M50,50 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" />
+                        </defs>
+                        <text>
+                          <textPath href={`#ring-${i}`} textLength={RING.toFixed(1)} lengthAdjust="spacing">{ring(f)}</textPath>
+                        </text>
+                      </svg>
+                    </span>
+                    <span class="tone" />
+                    <span class="sheen" />
+                    <span class="hub" />
+                  </span>
+                  <span class="halo" />
+                </span>
+              </button>
+            );
+          })
+        }
+      </div>
+      <div class="info">
+        <div class="now" aria-live="polite">
+          <a class="display now-title" href={meta[0].href} data-title>{first.title}</a>
+          <span class="now-meta">
+            <span class="mono label">Directed by</span> <span data-director>{first.director}</span>
+          </span>
+        </div>
+        <div class="side">
+          <span class="mono now-pos">
+            <span data-year>{first.year}</span> · <span class="stars" aria-label="five stars">★★★★★</span> · <span data-pos>{pad(1)} / {pad(fiveStar.length)}</span>
+          </span>
+          <div class="ctrls">
+            <button type="button" class="ctrl" data-step="-1" aria-label="Previous film">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5" /></svg>
+            </button>
+            <button type="button" class="ctrl" data-step="1" aria-label="Next film">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5" /></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="cross cl"></span><span class="cross cr"></span>
+</section>
+
+<style>
+  .films {
+    --pin: calc(100svh - var(--top-h));
+    --step: 120px;
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    align-items: start;
+  }
+
+  .intro {
+    position: sticky;
+    top: var(--top-h);
+    padding: 64px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .muted {
+    margin: 0;
+    max-width: 400px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink-muted);
+  }
+
+  .counter {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .count-flap {
+    width: 40px;
+    height: 56px;
+    font: 500 32px/1 var(--font-display);
+  }
+
+  .count-label {
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+
+  .lbx {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 14px 0 12px;
+    border-radius: 999px;
+    background: var(--seg-bg);
+    box-shadow: inset 0 0 0 1px var(--rail);
+    color: var(--ink);
+    text-decoration: none;
+    font: 500 14px/1 var(--font-sans);
+  }
+
+  .lbx:hover {
+    color: #fff;
+    box-shadow: inset 0 0 0 1px var(--ink-muted);
+  }
+
+  .dots {
+    display: inline-flex;
+  }
+
+  .dots i {
+    display: block;
+    width: 13px;
+    height: 13px;
+    margin-left: -3px;
+    border-radius: 50%;
+    mix-blend-mode: screen;
+  }
+
+  .dots .o {
+    margin-left: 0;
+    background: #ff8000;
+  }
+
+  .dots .g {
+    background: #00e054;
+  }
+
+  .dots .b {
+    background: #40bcf4;
+  }
+
+  /* The pinned stage. The track only grows tall once the script takes over the scroll. */
+  .track {
+    min-width: 0;
+  }
+
+  .films.scrub .track {
+    height: calc(var(--pin) + (var(--n) - 1) * var(--step));
+  }
+
+  .pin {
+    position: sticky;
+    top: var(--top-h);
+    height: var(--pin);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .player {
+    --u: 1;
+    --disc: 380px;
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    perspective: 1400px;
+    background: radial-gradient(70% 70% at 50% 46%, #1b1d22, #0b0c0e 78%);
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  .grain {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.09;
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+
+  .cd {
+    all: unset;
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: var(--disc);
+    height: var(--disc);
+    margin: calc(var(--disc) / -2) 0 0 calc(var(--disc) / -2);
+    border-radius: 50%;
+    cursor: pointer;
+    transform: translate3d(calc(var(--x, 0) * var(--u) * 1px), calc(var(--y, 0) * var(--u) * 1px), calc(var(--z, 0) * var(--u) * 1px))
+      scale(var(--s, 1));
+    transition:
+      transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.4s ease;
+  }
+
+  .player.live .cd {
+    transition: none;
+  }
+
+  .cd:focus-visible {
+    outline: none;
+  }
+
+  /* The face is masked (for the hole), which would clip an outline, so focus gets its own ring. */
+  .halo {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    transform: translateZ(1px);
+    pointer-events: none;
+  }
+
+  .cd:focus-visible .halo {
+    box-shadow: 0 0 0 2px var(--focus);
+  }
+
+  /* Every disc lies back at the same angle; the edge layers sit under the face for thickness. */
+  .disc {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateZ(-20deg) rotateX(52deg);
+  }
+
+  .edge,
+  .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    -webkit-mask-image: radial-gradient(circle, transparent 0 8%, #000 8.4%);
+    mask-image: radial-gradient(circle, transparent 0 8%, #000 8.4%);
+  }
+
+  .edge {
+    background: radial-gradient(circle, #9aa0aa 0 60%, #d6dae1 92%, #8b919b);
+  }
+
+  .e1 {
+    transform: translateZ(-1.5px);
+  }
+
+  .e2 {
+    transform: translateZ(-3px);
+    filter: brightness(0.9);
+  }
+
+  .e3 {
+    transform: translateZ(-4.5px);
+    filter: brightness(0.8);
+  }
+
+  .e4 {
+    transform: translateZ(-6px);
+    filter: brightness(0.6);
+  }
+
+  .face {
+    overflow: hidden;
+    background: #15171b;
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255, 255, 255, 0.35),
+      inset 0 0 0 7px rgba(255, 255, 255, 0.05);
+  }
+
+  .spin {
+    position: absolute;
+    inset: 0;
+  }
+
+  .cd.focus .spin {
+    animation: spin 24s linear infinite;
+  }
+
+  .art {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 35%;
+    pointer-events: none;
+  }
+
+  .ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .ring text {
+    font: 500 2.6px var(--font-mono);
+    letter-spacing: 0.55px;
+    fill: rgba(255, 255, 255, 0.82);
+    stroke: rgba(0, 0, 0, 0.45);
+    stroke-width: 0.35px;
+    paint-order: stroke;
+  }
+
+  .tone {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(10, 11, 13, 0.5) 1.1px, transparent 1.4px);
+    background-size: 5px 5px;
+    -webkit-mask-image: linear-gradient(160deg, transparent 45%, #000 85%);
+    mask-image: linear-gradient(160deg, transparent 45%, #000 85%);
+  }
+
+  /* Iridescence: the rainbow turns as the disc moves along the row. */
+  .sheen {
+    position: absolute;
+    inset: 0;
+    mix-blend-mode: screen;
+    opacity: 0.45;
+    transform: rotate(calc(var(--phase, 0) * 1deg));
+    background: conic-gradient(
+      from 20deg,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0.35) 6%,
+      rgba(150, 200, 255, 0.22) 12%,
+      rgba(255, 255, 255, 0) 22%,
+      rgba(255, 170, 220, 0.25) 52%,
+      rgba(255, 255, 255, 0.3) 58%,
+      rgba(255, 255, 255, 0) 70%
+    );
+  }
+
+  /* The clear plastic hub: a frosted band with a bright inner ring around the hole. */
+  .hub {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle,
+      rgba(0, 0, 0, 0.35) 0 8.6%,
+      rgba(236, 239, 244, 0.92) 9% 10.4%,
+      rgba(206, 211, 219, 0.78) 10.8% 15.6%,
+      rgba(255, 255, 255, 0.9) 16% 16.6%,
+      rgba(150, 156, 166, 0.55) 17% 18.2%,
+      transparent 18.6%
+    );
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .info {
+    padding: 18px 28px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-top: 1px solid var(--rule);
+    background: var(--paper);
+  }
+
+  .now {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .now-title {
+    font-size: 26px;
+    font-stretch: 112%;
+    color: var(--ink);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .now-title:hover {
+    color: var(--link);
+  }
+
+  .now-meta {
+    font-size: 14px;
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .label {
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--graphite);
+  }
+
+  .side {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  .now-pos {
+    font-size: 12.5px;
+    color: var(--ink-muted);
+  }
+
+  .stars {
+    color: var(--chip-yellow);
+  }
+
+  .ctrls {
+    display: flex;
+    gap: 8px;
+  }
+
+  .ctrl {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--seg-bg);
+    box-shadow: inset 0 0 0 1px var(--rail);
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .ctrl:hover {
+    box-shadow: inset 0 0 0 1px var(--ink-muted);
+  }
+
+  .ctrl:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .ctrl[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  @media (max-width: 1023px) {
+    .films {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .intro {
+      position: static;
+      padding-bottom: 32px;
+    }
+
+    .track {
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .films {
+      --pin: calc(100svh - var(--top-h));
+      --step: 100px;
+    }
+
+    .intro {
+      padding: 40px 16px 28px;
+      gap: 16px;
+    }
+
+    .player {
+      --u: 0.7;
+      --disc: 266px;
+    }
+
+    .info {
+      padding: 14px 16px 16px;
+      flex-wrap: wrap;
+    }
+
+    .now-title {
+      font-size: 20px;
+    }
+
+    .side {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+</style>
+
+<script>
+  import { discPose, positionFromScroll } from './discs';
+
+  type Meta = { title: string; year: number; director: string; href: string };
+  const root = document.querySelector<HTMLElement>('[data-films]');
+  if (root) {
+    const films: Meta[] = JSON.parse(root.dataset.films ?? '[]');
+    const track = root.querySelector<HTMLElement>('.track')!;
+    const player = root.querySelector<HTMLElement>('.player')!;
+    const discs = [...root.querySelectorAll<HTMLButtonElement>('.cd')];
+    const title = root.querySelector<HTMLAnchorElement>('[data-title]')!;
+    const director = root.querySelector<HTMLElement>('[data-director]')!;
+    const year = root.querySelector<HTMLElement>('[data-year]')!;
+    const pos = root.querySelector<HTMLElement>('[data-pos]')!;
+    const steps = [...root.querySelectorAll<HTMLButtonElement>('[data-step]')];
+    const n = discs.length;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const pad = (v: number) => String(v).padStart(2, '0');
+
+    root.classList.add('scrub');
+
+    const cssPx = (name: string) => parseFloat(getComputedStyle(root).getPropertyValue(name)) || 0;
+    const topBar = () => cssPx('--top-h') || 56;
+    const step = () => cssPx('--step') || 120;
+    /** Page scroll offset at which disc i sits in focus. */
+    const offsetFor = (i: number) => track.getBoundingClientRect().top + window.scrollY - topBar() + i * step();
+
+    let shown = 0;
+    let target = 0;
+    let focus = -1;
+    let raf = 0;
+
+    const layout = (at: number) => {
+      discs.forEach((el, i) => {
+        const p = discPose(i - at);
+        el.style.setProperty('--x', p.x.toFixed(1));
+        el.style.setProperty('--y', p.y.toFixed(1));
+        el.style.setProperty('--z', p.z.toFixed(1));
+        el.style.setProperty('--s', p.scale.toFixed(3));
+        el.style.setProperty('--phase', ((i - at) * 40).toFixed(1));
+        el.style.opacity = p.opacity.toFixed(3);
+        el.style.zIndex = String(p.order);
+        el.style.visibility = p.visible ? '' : 'hidden';
+      });
+      const now = Math.round(at);
+      if (now !== focus) {
+        focus = now;
+        discs.forEach((el, k) => {
+          el.classList.toggle('focus', k === focus);
+          el.tabIndex = k === focus ? 0 : -1;
+        });
+        const f = films[focus];
+        title.textContent = f.title;
+        title.href = f.href;
+        director.textContent = f.director;
+        year.textContent = String(f.year);
+        pos.textContent = `${pad(focus + 1)} / ${pad(n)}`;
+        steps[0].setAttribute('aria-disabled', String(focus === 0));
+        steps[1].setAttribute('aria-disabled', String(focus === n - 1));
+      }
+    };
+
+    // Ease the row toward where the scroll says it should be, for a little inertia.
+    const tick = () => {
+      raf = 0;
+      const k = reduced.matches ? 1 : 0.18;
+      shown += (target - shown) * k;
+      if (Math.abs(target - shown) < 0.001) shown = target;
+      layout(shown);
+      if (shown !== target) raf = requestAnimationFrame(tick);
+    };
+    const read = () => {
+      const scrolled = window.scrollY - offsetFor(0);
+      target = positionFromScroll(scrolled, step(), n);
+      player.classList.add('live');
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    const goTo = (i: number) => {
+      const to = Math.min(n - 1, Math.max(0, i));
+      window.scrollTo({ top: offsetFor(to), behavior: reduced.matches ? 'auto' : 'smooth' });
+    };
+
+    window.addEventListener('scroll', read, { passive: true });
+    window.addEventListener('resize', read);
+    steps.forEach((b) => b.addEventListener('click', () => goTo(focus + Number(b.dataset.step))));
+
+    // A horizontal drag moves along the row too; a press that barely moves is a click.
+    let dragging = false;
+    let moved = false;
+    let lastX = 0;
+    player.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || e.pointerType === 'touch') return;
+      dragging = true;
+      moved = false;
+      lastX = e.clientX;
+    });
+    player.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - lastX;
+      if (!moved && Math.abs(dx) < 6) return;
+      if (!moved) {
+        moved = true;
+        player.setPointerCapture(e.pointerId);
+      }
+      lastX = e.clientX;
+      const perPx = step() / (300 * (parseFloat(getComputedStyle(player).getPropertyValue('--u')) || 1));
+      window.scrollBy(0, -dx * perPx);
+    });
+    const release = () => {
+      dragging = false;
+    };
+    player.addEventListener('pointerup', release);
+    player.addEventListener('pointercancel', release);
+
+    discs.forEach((el, i) => {
+      el.addEventListener('click', (e) => {
+        if (moved) {
+          e.preventDefault();
+          moved = false;
+          return;
+        }
+        if (i !== focus) goTo(i);
+      });
+      el.addEventListener('keydown', (e) => {
+        const to = { ArrowLeft: focus - 1, ArrowRight: focus + 1, Home: 0, End: n - 1 }[e.key];
+        if (to === undefined) return;
+        e.preventDefault();
+        goTo(to);
+        requestAnimationFrame(() => discs[Math.min(n - 1, Math.max(0, to))].focus({ preventScroll: true }));
+      });
+    });
+
+    // A sideways trackpad swipe also moves along the row.
+    player.addEventListener(
+      'wheel',
+      (e) => {
+        if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+        e.preventDefault();
+        window.scrollBy(0, e.deltaX * (step() / 120));
+      },
+      { passive: false },
+    );
+
+    // Fetch and decode every poster once the section is near, so a fast scrub never shows a blank disc.
+    const warm = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        warm.disconnect();
+        root.querySelectorAll<HTMLImageElement>('.art').forEach((img) => {
+          img.loading = 'eager';
+          img.decode?.().catch(() => {});
+        });
+      },
+      { rootMargin: '800px 0px' },
+    );
+    warm.observe(root);
+
+    read();
+    shown = target;
+    layout(shown);
+  }
+</script>

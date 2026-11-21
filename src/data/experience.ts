@@ -13,6 +13,10 @@ export interface Job {
   id: 'atlan' | 'adm';
   company: string;
   initials: string;
+  /** Square brand mark in public/logos/ (the company's own file). */
+  logo?: string;
+  /** The mark brings its own frame, so it fills the slot instead of sitting inset. */
+  logoFramed?: boolean;
   role: string;
   /** Short line under the company in the switcher. */
   short: string;
@@ -29,6 +33,8 @@ export const jobs: Job[] = [
     id: 'atlan',
     company: 'Atlan',
     initials: 'At',
+    logo: '/logos/atlan-mark.png',
+    logoFramed: true,
     role: 'Platform Engineer Intern',
     short: 'Platform · 2025–now',
     when: 'June 2025 – present',
@@ -62,6 +68,7 @@ export const jobs: Job[] = [
     id: 'adm',
     company: 'Anonymous Digital Marketing',
     initials: 'AD',
+    logo: '/logos/anonymous-digital-mark.png',
     role: 'Software Engineer Intern',
     short: 'Software · 2024',
     when: 'June – Oct 2024',

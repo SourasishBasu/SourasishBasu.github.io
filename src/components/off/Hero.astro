@@ -1,0 +1,130 @@
+---
+// Off the clock opening. The lamp glow follows danielsun.space's Story page: a
+// wide, short, desaturated lavender wash under the bar (about 4:1), half
+// strength ~95px down and gone by ~290px, with faint dust drifting in it.
+---
+
+<section class="band hero">
+  <div class="glow" aria-hidden="true"></div>
+  <canvas class="dust" aria-hidden="true"></canvas>
+  <div class="hero-main">
+    <span class="eyebrow">Off the clock</span>
+    <h1 class="display h1">Away from the terminal</h1>
+    <p class="muted">Work is only part of it. This is what I'm into once I log off.</p>
+  </div>
+  <span class="cross cl"></span><span class="cross cr"></span>
+</section>
+
+<style>
+  .hero {
+    overflow: hidden;
+  }
+
+  .glow {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 300px;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgb(118 117 130) 0,
+      rgb(82 80 102) 40px,
+      rgb(61 60 83) 70px,
+      rgb(52 51 71) 100px,
+      rgb(40 38 56) 130px,
+      rgb(30 29 43) 170px,
+      rgb(24 23 33) 210px,
+      rgb(18 19 24 / 0.6) 250px,
+      rgb(16 18 21 / 0) 300px
+    );
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(0 0 0 / 0.18) 7%,
+      rgb(0 0 0 / 0.44) 14%,
+      rgb(0 0 0 / 0.66) 21%,
+      rgb(0 0 0 / 0.83) 27%,
+      rgb(0 0 0 / 0.97) 38%,
+      #000 50%,
+      rgb(0 0 0 / 0.97) 62%,
+      rgb(0 0 0 / 0.83) 73%,
+      rgb(0 0 0 / 0.66) 79%,
+      rgb(0 0 0 / 0.44) 86%,
+      rgb(0 0 0 / 0.18) 93%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(0 0 0 / 0.18) 7%,
+      rgb(0 0 0 / 0.44) 14%,
+      rgb(0 0 0 / 0.66) 21%,
+      rgb(0 0 0 / 0.83) 27%,
+      rgb(0 0 0 / 0.97) 38%,
+      #000 50%,
+      rgb(0 0 0 / 0.97) 62%,
+      rgb(0 0 0 / 0.83) 73%,
+      rgb(0 0 0 / 0.66) 79%,
+      rgb(0 0 0 / 0.44) 86%,
+      rgb(0 0 0 / 0.18) 93%,
+      transparent 100%
+    );
+  }
+
+  .dust {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .hero-main {
+    position: relative;
+    padding: 220px 40px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .h1 {
+    margin: 0;
+    max-width: 720px;
+    font-size: 60px;
+    line-height: 1.04;
+  }
+
+  .muted {
+    margin: 0;
+    max-width: 520px;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--ink-muted);
+  }
+
+  @media (max-width: 760px) {
+    .glow {
+      height: 220px;
+    }
+
+    .hero-main {
+      padding: 140px 16px 48px;
+    }
+
+    .h1 {
+      font-size: 34px;
+    }
+
+    .muted {
+      font-size: 16px;
+    }
+  }
+</style>
+
+<script>
+  import { mountDust } from './dust';
+  const canvas = document.querySelector<HTMLCanvasElement>('.hero .dust');
+  if (canvas) mountDust(canvas);
+</script>

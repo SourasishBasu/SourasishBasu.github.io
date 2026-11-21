@@ -1,9 +1,9 @@
 ---
 import { jobs } from '../../data/experience';
 
-// Static in phase 2: Atlan is selected and the other panel is hidden.
-// Phase 4 adds the tab switching (click + arrow keys). On phones there are no
-// tabs: both companies are shown one after the other (Phone.dc.html).
+// Tabs: Atlan is selected in the HTML; the script below switches panels on
+// click and with the arrow keys, Home and End. On phones there are no tabs:
+// both companies are shown one after the other (Phone.dc.html).
 const selected = 'atlan';
 const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red' } as const;
 ---
@@ -12,7 +12,7 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
   <div class="xp-side">
     <span class="eyebrow">Work experience</span>
     <h2 class="display h2">Where I've worked</h2>
-    <div role="tablist" aria-label="Where I've worked" class="xp-tabs">
+    <div role="tablist" aria-label="Where I've worked" aria-orientation="vertical" class="xp-tabs">
       {
         jobs.map((j) => (
           <button
@@ -24,7 +24,7 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
             tabindex={j.id === selected ? 0 : -1}
             class:list={['xbtn', { sel: j.id === selected }]}
           >
-            <span class="logo logo-sm">{j.initials}</span>
+            <span class:list={['logo logo-sm', { 'has-img': j.logo, framed: j.logoFramed }]}>{j.logo ? <img src={j.logo} alt="" width="36" height="36" /> : j.initials}</span>
             <span class="xbtn-text">
               <span class="xbtn-name">{j.company}</span>
               <span class="mono xbtn-meta">{j.short}</span>
@@ -41,7 +41,7 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
         <article id={j.id} role="tabpanel" aria-labelledby={`tab-${j.id}`} hidden={j.id !== selected} class="panel">
           <div class:list={['head', { 'head--tight': !!j.summary }]}>
             <div class="who">
-              <span class="logo logo-lg">{j.initials}</span>
+              <span class:list={['logo logo-lg', { 'has-img': j.logo, framed: j.logoFramed }]}>{j.logo ? <img src={j.logo} alt={`${j.company} logo`} width="56" height="56" /> : j.initials}</span>
               <div class="who-text">
                 <h3 class="display company">{j.company}</h3>
                 <span class="role">{j.role}</span>
@@ -103,6 +103,34 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
   </div>
   <span class="cross cl"></span><span class="cross cr"></span>
 </section>
+
+<script>
+  const list = document.querySelector<HTMLElement>('.xp [role="tablist"]');
+  if (list) {
+    const tabs = [...list.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const select = (tab: HTMLButtonElement, focus = false) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        t.classList.toggle('sel', on);
+        const panel = document.getElementById(t.getAttribute('aria-controls') ?? '');
+        if (panel) panel.hidden = !on;
+      }
+      if (focus) tab.focus();
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (e) => {
+        const last = tabs.length - 1;
+        const to = { ArrowDown: i + 1, ArrowRight: i + 1, ArrowUp: i - 1, ArrowLeft: i - 1, Home: 0, End: last }[e.key];
+        if (to === undefined) return;
+        e.preventDefault();
+        select(tabs[(to + tabs.length) % tabs.length], true);
+      });
+    });
+  }
+</script>
 
 <style>
   .xp {
@@ -177,6 +205,23 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
     box-shadow: inset 0 0 0 1px var(--rail);
     font: 600 12.5px/1 var(--font-mono);
     color: var(--graphite);
+  }
+
+  .logo.has-img {
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  .logo img {
+    display: block;
+    width: 78%;
+    height: 78%;
+    object-fit: contain;
+  }
+
+  .logo.framed img {
+    width: 100%;
+    height: 100%;
   }
 
   .logo-sm {

@@ -13,7 +13,7 @@ OFL 1.1: https://openfontlicense.org
 
 Brand marks belong to their owners and are shown only to say which tools I use.
 
-- **simple-icons** 16.37.0 (https://simpleicons.org), released under CC0 1.0. Files: `ansible`, `argo`, `claude`, `cursor`, `docker`, `ghostty`, `githubactions`, `gnubash`, `go`, `googlecloud`, `grafana`, `kubernetes`, `modelcontextprotocol`, `opencode`, `opentelemetry`, `postgresql`, `prometheus`, `python`, `snowflake`, `temporal`, `terraform`, `typescript`, `victoriametrics`.
+- **simple-icons** 16.37.0 (https://simpleicons.org), released under CC0 1.0. Files: `ansible`, `claude`, `cursor`, `docker`, `ghostty`, `githubactions`, `gnubash`, `go`, `googlecloud`, `grafana`, `kubernetes`, `modelcontextprotocol`, `opencode`, `opentelemetry`, `postgresql`, `prometheus`, `python`, `snowflake`, `temporal`, `terraform`, `typescript`, `victoriametrics`.
 - **devicon** 2.18.0 (https://devicon.dev). Files: `aws`, `azure`, `argocd`, `loki`.
 
 ```
@@ -72,3 +72,10 @@ SOFTWARE.
 ## Work footer range (`src/components/ui/ridgeline-dither-footer.tsx`)
 
 **ridgeline-dither-footer**, a 21st.dev community component by @kedhareswer (https://21st.dev). Copied in as published, with a scene-only mode added (changes are marked `portfolio:` in the file).
+
+## Company marks (`public/logos/`)
+
+- `atlan-mark.png`: Atlan's favicon mark from its brand guidelines (https://atlan.com/brand/logo/), downsized to 160 px, colours unchanged as the guidelines require.
+- `anonymous-digital-mark.png`: Anonymous Digital's site icon (https://www.anonymousdigital.com/).
+
+Both are trademarks of their owners, shown to name my employers.

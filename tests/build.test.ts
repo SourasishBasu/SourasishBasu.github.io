@@ -73,7 +73,9 @@ test('both pages share the footer', () => {
     assert.match(footer, /Résumé, PDF/, p);
     assert.match(footer, /SASQUATCH/, p);
     assert.match(footer, /<ist-clock/, p);
-    assert.match(footer, /© 2026 Sourasish Basu/, p);
+    assert.match(footer, /© <span data-copyright-year[^>]*>\d{4}<\/span> Sourasish Basu/, p);
+    const legal = footer.slice(footer.indexOf('class="legal'));
+    assert.doesNotMatch(legal, /ist-clock|IST/, p);
   }
 });
 
@@ -149,11 +151,12 @@ test('experience: Atlan tab selected, both panels rendered', () => {
   for (const s of ['3 5 %', '6 0 %', '2 0 0 +', '9 9 . 9 %', 'National Restaurant Association of India', 'June – Oct 2024 · Kolkata']) assert.ok(adm.includes(s), s);
 });
 
-test('tools: 27 logo tiles in five groups, icons present', () => {
+test('tools: 26 logo tiles in five groups, icons present', () => {
   const page = html('index.html');
   const tools = section(page, 'class="band tools');
   const tiles = tags(tools, 'span', /class="ti\b/);
-  assert.equal(tiles.length, 27);
+  assert.equal(tiles.length, 26);
+  assert.ok(!tiles.some((t) => /Argo Workflows/.test(t)));
   for (const t of tiles) {
     assert.match(t, /role="img"/);
     assert.match(t, /tabindex="0"/);
@@ -185,4 +188,25 @@ test('projects: five rows in order, first selected, spec sheet for the AMD stack
   for (const s of ['Terraform', 'Ansible', 'ROCm', 'vLLM', 'Modal']) assert.match(spec, new RegExp(`class="tag"[^>]*>${s}<`));
   assert.equal(tags(spec, 'a', /href="https:\/\/github.com\/3xcaffeine\/amd-hackathon"/).length, 1);
   assert.match(spec, /Open the repository ↗/);
+});
+
+test('films: thirteen five-star discs, first in focus, posters linked back to Letterboxd', () => {
+  const off = html('off-the-clock/index.html');
+  const films = off.slice(off.indexOf('class="band films'), off.indexOf('class="band gunpla'));
+  const discs = tags(films, 'button', /class="cd/);
+  assert.equal(discs.length, 13);
+  assert.match(discs[0], /class="cd focus/);
+  assert.match(discs[0], /tabindex="0"/);
+  discs.slice(1).forEach((d) => assert.match(d, /tabindex="-1"/));
+  const imgs = tags(films, 'img', /class="art/);
+  assert.equal(imgs.length, 13);
+  imgs.forEach((i) => {
+    assert.match(i, /src="https:\/\/a\.ltrbxd\.com\/resized\//);
+    assert.match(i, /referrerpolicy="no-referrer"/);
+    assert.match(i, /alt=""/);
+  });
+  assert.equal(tags(films, 'a', /href="https:\/\/letterboxd\.com\/film\/city-of-god\/"/, /data-title/).length, 1);
+  assert.equal(tags(films, 'a', /href="https:\/\/letterboxd\.com\/sasquatch06\/"/).length, 1);
+  assert.match(films, /Fernando Meirelles/);
+  assert.doesNotMatch(off, /class="hero-side/);
 });

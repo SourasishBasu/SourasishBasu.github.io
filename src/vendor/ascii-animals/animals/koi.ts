@@ -60,7 +60,11 @@ const ORANGE: RGB = [236, 124, 44];
 const FIN: RGB = [236, 226, 214];
 
 /** kohaku (red on white), sanke (kohaku + black flecks), showa (black base, red and white), ogon (gold), chagoi (orange). */
-const VARIETIES = ["kohaku", "sanke", "showa", "ogon", "chagoi"] as const;
+// portfolio: two more varieties, tancho (white with a red crown) and asagi (blue-grey netted back, red flanks).
+export const VARIETIES = ["kohaku", "sanke", "showa", "ogon", "chagoi", "tancho", "asagi"] as const;
+const BLUE_GREY: RGB = [112, 138, 170];
+const NET: RGB = [70, 92, 124];
+const FLANK: RGB = [224, 96, 46];
 
 /** Body half-width at s (0 snout → 1 tail tip), as a fraction of length. */
 function halfWidth(s: number) {
@@ -345,6 +349,17 @@ function drawKoi(f: Koi, pen: Pen, flock: Flock<Koi>) {
         return patch ? ink(out, ...RED) : ink(out, ...BLACK, INK_DARK, "%#");
       case "ogon":
         return ink(out, ...GOLD, INK_SHIMMER);
+      // portfolio: tancho and asagi.
+      case "tancho": {
+        const crown = (s - 0.075) ** 2 / 0.0016 + (a / (w * 0.75)) ** 2 < 1;
+        return crown ? ink(out, ...RED) : ink(out, ...white);
+      }
+      case "asagi": {
+        if (s < 0.1) return ink(out, ...white);
+        if (across > 0.62 && s < 0.8) return ink(out, ...FLANK);
+        const net = (Math.round(s * 46) + Math.round(a * 92)) % 2 === 0;
+        return net ? ink(out, ...NET, INK_DARK, "=+") : ink(out, ...BLUE_GREY);
+      }
       default:
         // Chagoi.
         return ink(out, ORANGE[0] * (1 - 0.15 * across), ORANGE[1] * (1 - 0.15 * across), ORANGE[2], INK_SHIMMER);

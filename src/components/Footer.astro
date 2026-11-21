@@ -52,10 +52,17 @@ const year = new Date().getFullYear();
   <slot name="scene" />
 
   <div class="legal">
-    <span>© {year} {site.name}</span>
-    <span>India · <IstClock /> {site.tzLabel}</span>
+    <span>© <span data-copyright-year>{year}</span> {site.name}</span>
   </div>
 </footer>
+
+<script>
+  // The year renders at build time; correct it in the browser so it never goes stale between builds.
+  const year = String(new Date().getFullYear());
+  document.querySelectorAll('[data-copyright-year]').forEach((el) => {
+    if (el.textContent !== year) el.textContent = year;
+  });
+</script>
 
 <style>
   .info {
@@ -225,7 +232,7 @@ const year = new Date().getFullYear();
   .legal {
     padding: 14px 40px 18px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 16px;
     flex-wrap: wrap;
     font: 400 11.5px/1.4 var(--font-mono);

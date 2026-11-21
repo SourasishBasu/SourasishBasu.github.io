@@ -1,12 +1,12 @@
 // Tool logos, grouped as in the design. Icons live in public/icons/tools/
-// (simple-icons 16.37.0, CC0; devicon 2.18.0, MIT). They're drawn as CSS masks:
-// ink by default, brand colour on hover or focus.
+// (simple-icons 16.37.0, CC0; devicon 2.18.0, MIT). They're drawn as CSS masks
+// in each tool's brand colour.
 
 export interface Tool {
   name: string;
   /** File stem in public/icons/tools/. */
   icon: string;
-  /** Brand colour shown on hover. */
+  /** Brand colour the logo is drawn in. */
   color: string;
 }
 
@@ -33,7 +33,6 @@ export const groups: ToolGroup[] = [
     title: 'Delivery and orchestration',
     tools: [
       { name: 'Argo CD', icon: 'argocd', color: '#EF7B4D' },
-      { name: 'Argo Workflows', icon: 'argo', color: '#EF7B4D' },
       { name: 'Temporal', icon: 'temporal', color: '#141619' },
       { name: 'GitHub Actions', icon: 'githubactions', color: '#2088FF' },
       { name: 'Docker', icon: 'docker', color: '#2496ED' },

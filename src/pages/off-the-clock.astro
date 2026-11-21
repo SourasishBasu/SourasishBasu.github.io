@@ -1,6 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
-import Placeholders from '../components/off/Placeholders.astro';
+import Hero from '../components/off/Hero.astro';
+import Films from '../components/off/Films.astro';
+import Gunpla from '../components/off/Gunpla.astro';
 import Pond from '../components/pond/Pond.astro';
 ---
 
@@ -10,6 +12,8 @@ import Pond from '../components/pond/Pond.astro';
   theme="dark"
   page="off"
 >
-  <Placeholders />
+  <Hero />
+  <Films />
+  <Gunpla />
   <Pond slot="scene" />
 </Base>
