@@ -82,5 +82,12 @@ Both are trademarks of their owners, shown to name my employers.
 
 ## Gunpla viewer (`src/components/off/gunpla/`)
 
-- **three.js** 0.187.0 (https://threejs.org), MIT License, Copyright © 2010-2026 three.js authors. Loaded on demand with the viewer, including the addons `RoomEnvironment`, `EffectComposer`, `RenderPass`, `ShaderPass` and `OutputPass`.
+- **three.js** 0.187.0 (https://threejs.org), MIT License, Copyright © 2010-2026 three.js authors. Loaded on demand with the viewer, including the addons `RoomEnvironment` and `BufferGeometryUtils`.
 - The **Gundam Dynames** model is built in code from primitives (`dynames.ts`) after photos of the Bandai MG 1/100 kit; no third-party mesh, scan or line art is used. Gundam and its mobile suit designs are © Sotsu·Sunrise; Gunpla is a trademark of Bandai Spirits.
+- The kit pictures in `public/gunpla/` (Virtue, Vidar, Freedom) are cut out of Bandai's official product photos (Virtue and Freedom from the Gundam Planet and HLJ listings, Vidar from Bandai's CG render on HLJ), then redrawn as cel-shaded halftone. Photos © Bandai Spirits; designs © Sotsu·Sunrise. Replace them with photos of the built kits when there are some.
+
+## Film disc art (`src/data/disc-art.ts`)
+
+- By default each disc prints the film's Letterboxd still (TMDB and Letterboxd imagery), cropped square at build time with sharp's attention strategy through Astro's image service, and served from the site.
+- With a `FANART_API_KEY`, discs use fanart.tv's community disc art where it exists (https://fanart.tv). fanart.tv's terms let uploads be used without attribution; copyright in the artwork stays with its owners.
+

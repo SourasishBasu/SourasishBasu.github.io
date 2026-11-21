@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -13,5 +13,13 @@ export default defineConfig({
   build: { format: 'directory' },
   devToolbar: { enabled: false },
   integrations: [react()],
+  // Film disc art is fetched and cropped at build time, then served from the site.
+  image: { domains: ['a.ltrbxd.com', 'assets.fanart.tv'] },
+  env: {
+    schema: {
+      // Optional: a fanart.tv project key, for real disc art where it exists. Build-time only.
+      FANART_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+    },
+  },
   vite: { plugins: [tailwindcss()] },
 });

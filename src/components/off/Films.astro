@@ -3,7 +3,9 @@ import { letterboxd } from '../../data/films';
 import { getFilmStats } from '../../data/film-stats';
 import { getRecentFilms, MIN_RATING } from '../../data/recent-films';
 import { stars } from '../../data/letterboxd';
-import { discPose, RENDER_RADIUS, LOAD_RADIUS } from './discs';
+import { getImage } from 'astro:assets';
+import { discArt } from '../../data/disc-art';
+import { discPose, discTilt, RENDER_RADIUS, LOAD_RADIUS } from './discs';
 
 // Films: the latest Letterboxd films rated 3.5+ as CDs, after Ravi Klaassens' A24
 // concept site. Each disc turns three-quarters toward you: a landscape still
@@ -27,6 +29,21 @@ const meta = films.map((f) => ({
   rating: f.rating,
   watched: day(f.watched),
 }));
+
+// Disc art, fetched and cropped square at build time and served from the site (see disc-art.ts).
+// If processing fails the remote image is used as it is.
+const arts = await Promise.all(
+  films.map(async (f) => {
+    const art = await discArt(f);
+    if (!art) return null;
+    try {
+      const img = await getImage({ src: art.src, width: 720, height: 720, fit: 'cover', position: art.position, format: 'webp', quality: 80 });
+      return { kind: art.kind, src: img.src };
+    } catch {
+      return { kind: art.kind, src: art.src };
+    }
+  }),
+);
 
 const ssrTransform = (d: number) => {
   const p = discPose(d);
@@ -68,18 +85,18 @@ const ssrTransform = (d: number) => {
               hidden={i >= RENDER_RADIUS}
               style={`transform:${ssrTransform(i)};opacity:${p.opacity};z-index:${p.order}`}
             >
-              <span class="disc">
+              <span class="disc" style={`transform:${discTilt(i)}`}>
                 <span class="edge e2" />
                 <span class="edge e1" />
                 <span class="face">
                   <span class="spin">
                     <img
-                      class="art"
-                      src={load ? (f.still ?? f.poster ?? undefined) : undefined}
-                      data-src={f.still ?? f.poster ?? undefined}
+                      class:list={['art', { 'disc-art': arts[i]?.kind === 'disc' }]}
+                      src={load ? arts[i]?.src : undefined}
+                      data-src={arts[i]?.src}
                       alt=""
-                      width="1200"
-                      height="675"
+                      width="720"
+                      height="720"
                       loading={i < 3 ? 'eager' : 'lazy'}
                       decoding="async"
                       referrerpolicy="no-referrer"
@@ -274,15 +291,20 @@ const ssrTransform = (d: number) => {
   }
 
   /*
-   * Every disc turns three-quarters toward you at the same angle, as A24's gallery does
-   * (rotated −30° on X and Y): the top leans back a little and the right side comes forward.
-   * The edge layers sit behind the face for thickness.
+   * Discs off the focus turn three-quarters toward you, as A24's gallery does (−30° on X and Y):
+   * the top leans back and the right side comes forward. The focused disc turns nearly square
+   * to you (discs.ts sets the angle). The edge layers sit behind the face for thickness.
    */
   .disc {
     position: absolute;
     inset: 0;
     transform-style: preserve-3d;
     transform: rotateX(30deg) rotateY(-30deg);
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .player.dragging .disc {
+    transition: none;
   }
 
   .edge,
@@ -332,6 +354,12 @@ const ssrTransform = (d: number) => {
     pointer-events: none;
   }
 
+  /* Real disc art is already round, with its own hole: shown whole. */
+  .art.disc-art {
+    object-fit: contain;
+    filter: none;
+  }
+
   /*
    * Gloss: the soft strip-light highlight across the printed face (A24 lights the disc with a
    * long top strip), a faint clear band at the very rim, and print texture.
@@ -353,8 +381,8 @@ const ssrTransform = (d: number) => {
     position: absolute;
     inset: 0;
     background: conic-gradient(from 210deg, #f7f8fa, #a9afb8 14%, #e6e9ee 28%, #858c97 46%, #f2f4f7 62%, #9da4ae 80%, #f7f8fa);
-    -webkit-mask-image: radial-gradient(circle closest-side, transparent 0 93.2%, #000 93.6% 99.6%, transparent 100%);
-    mask-image: radial-gradient(circle closest-side, transparent 0 93.2%, #000 93.6% 99.6%, transparent 100%);
+    -webkit-mask-image: radial-gradient(circle closest-side, transparent 0 96.6%, #000 97% 99.6%, transparent 100%);
+    mask-image: radial-gradient(circle closest-side, transparent 0 96.6%, #000 97% 99.6%, transparent 100%);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
     border-radius: 50%;
   }
@@ -541,7 +569,7 @@ const ssrTransform = (d: number) => {
 </style>
 
 <script>
-  import { discPose, discTransform, RENDER_RADIUS, LOAD_RADIUS, STEP_X } from './discs';
+  import { discPose, discTransform, discTilt, RENDER_RADIUS, LOAD_RADIUS, STEP_X } from './discs';
 
   type Meta = { title: string; director: string | null; href: string; stars: string; rating: number | null; watched: string };
   const root = document.querySelector<HTMLElement>('[data-films]');
@@ -550,6 +578,7 @@ const ssrTransform = (d: number) => {
     const player = root.querySelector<HTMLElement>('.player')!;
     const discs = [...root.querySelectorAll<HTMLButtonElement>('.cd')];
     const arts = discs.map((d) => d.querySelector<HTMLImageElement>('.art')!);
+    const tilts = discs.map((d) => d.querySelector<HTMLElement>('.disc')!);
     const title = root.querySelector<HTMLAnchorElement>('[data-title]')!;
     const director = root.querySelector<HTMLElement>('[data-director]')!;
     const directorLine = root.querySelector<HTMLElement>('[data-director-line]')!;
@@ -575,6 +604,7 @@ const ssrTransform = (d: number) => {
         if (far) return;
         const p = discPose(d);
         el.style.transform = discTransform(d, unit);
+        tilts[i].style.transform = discTilt(d);
         el.style.opacity = p.opacity.toFixed(3);
         el.style.zIndex = String(p.order);
         el.style.pointerEvents = p.visible ? '' : 'none';

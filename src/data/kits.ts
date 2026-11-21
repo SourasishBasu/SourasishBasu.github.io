@@ -11,6 +11,8 @@ export interface Kit {
   whenLabel: 'Built' | 'Status';
   /** A 3D model exists for this kit. */
   model?: 'dynames';
+  /** Otherwise: a cut-out, cel-shaded halftone picture of the kit, shown on the turntable. */
+  art?: { src: string; width: number; height: number };
 }
 
 export const kits: Kit[] = [
@@ -34,6 +36,7 @@ export const kits: Kit[] = [
     built: true,
     when: '[Month Year]',
     whenLabel: 'Built',
+    art: { src: '/gunpla/virtue.webp', width: 840, height: 809 },
   },
   {
     id: 'vidar',
@@ -44,6 +47,7 @@ export const kits: Kit[] = [
     built: false,
     when: 'Up next',
     whenLabel: 'Status',
+    art: { src: '/gunpla/vidar.webp', width: 798, height: 814 },
   },
   {
     id: 'freedom',
@@ -54,5 +58,6 @@ export const kits: Kit[] = [
     built: false,
     when: 'After Vidar',
     whenLabel: 'Status',
+    art: { src: '/gunpla/freedom.webp', width: 825, height: 784 },
   },
 ];

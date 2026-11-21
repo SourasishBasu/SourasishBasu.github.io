@@ -205,9 +205,10 @@ test('films: recent rated discs, only nearby ones drawn and loaded, counts shown
   const arts = tags(films, 'img', /class="art/);
   assert.equal(arts.length, discs.length);
   arts.forEach((img, i) => {
-    assert.match(img, /data-src="https:\/\/a\.ltrbxd\.com\/resized\//);
-    assert.match(img, /referrerpolicy="no-referrer"/);
-    assert.equal(/\ssrc="https/.test(img), i <= 5, `art ${i} loads up front`);
+    // Cropped square at build time and served from the site.
+    assert.match(img, /data-src="\/_astro\/[^"]+\.webp"/);
+    assert.match(img, /width="720" height="720"/);
+    assert.equal(/\ssrc="\/_astro/.test(img), i <= 5, `art ${i} loads up front`);
   });
   // Plain discs: no title or credit text printed on them, and a metal rim.
   assert.equal(tags(films, 'img', /class="ring/).length, 0);
@@ -235,6 +236,12 @@ test('gunpla: kit tabs, Dynames first, a canvas for the model, details per kit',
   assert.equal(panels.length, 4);
   panels.forEach((p, i) => assert.equal(/\shidden/.test(p), i > 0));
   assert.equal(tags(g, 'div', /class="mruler/).length, 2);
+  // The other kits are halftone pictures, one each, only the selected one showing; no dither toggle.
+  const pics = tags(g, 'img', /data-art=/);
+  assert.deepEqual(pics.map((t) => t.match(/data-art="([^"]+)"/)?.[1]), ['virtue', 'vidar', 'freedom']);
+  pics.forEach((t) => assert.match(t, /\shidden/));
+  for (const k of ['virtue', 'vidar', 'freedom']) assert.ok(existsSync(dist(`gunpla/${k}.webp`)), k);
+  assert.doesNotMatch(g, /data-dither/);
   // three.js is loaded on demand, not with the page.
   const entry = [...off.matchAll(/<script type="module" src="([^"]+)"/g)].map((m) => m[1]);
   for (const src of entry) assert.doesNotMatch(readFileSync(dist(src.replace(/^\//, '')), 'utf8'), /WebGLRenderer/);

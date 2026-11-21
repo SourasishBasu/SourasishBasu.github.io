@@ -9,9 +9,12 @@
  * reflected meshes, so they light correctly.
  */
 import * as THREE from 'three';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 type V3 = [number, number, number];
 type V2 = [number, number];
+/** An outline point, with an optional corner radius. */
+type P2 = [number, number, number?];
 /** x0, x1, z0, z1 */
 type Rect = [number, number, number, number];
 
@@ -84,6 +87,52 @@ function plateGeometry(pts: V2[], depth: number, bevel: number) {
   return g;
 }
 
+/** A closed outline with each corner rounded off by a quadratic curve (radius per point, or `r`). */
+function roundedShape(pts: P2[], r: number) {
+  const s = new THREE.Shape();
+  const n = pts.length;
+  for (let i = 0; i < n; i++) {
+    const p = pts[i];
+    const a = pts[(i - 1 + n) % n];
+    const b = pts[(i + 1) % n];
+    const rad = p[2] ?? r;
+    const da = Math.hypot(a[0] - p[0], a[1] - p[1]);
+    const db = Math.hypot(b[0] - p[0], b[1] - p[1]);
+    const ra = Math.min(rad, da / 2);
+    const rb = Math.min(rad, db / 2);
+    const x1 = p[0] + ((a[0] - p[0]) / da) * ra;
+    const y1 = p[1] + ((a[1] - p[1]) / da) * ra;
+    if (i === 0) s.moveTo(x1, y1);
+    else s.lineTo(x1, y1);
+    s.quadraticCurveTo(p[0], p[1], p[0] + ((b[0] - p[0]) / db) * rb, p[1] + ((b[1] - p[1]) / db) * rb);
+  }
+  s.closePath();
+  return s;
+}
+
+/**
+ * A side outline (z, y) extruded across x and centred on x = 0, with rounded corners and edges and
+ * smooth shading: the curved shells of the head (helmet, crown, ear guards).
+ */
+function shellGeometry(pts: P2[], width: number, round: number, corner = 0.06) {
+  let g = new THREE.ExtrudeGeometry(roundedShape(pts, corner), {
+    depth: width,
+    bevelEnabled: true,
+    bevelThickness: round,
+    bevelSize: round,
+    bevelOffset: -round,
+    bevelSegments: 4,
+    curveSegments: 8,
+  });
+  g.translate(0, 0, -width / 2);
+  g.rotateY(-Math.PI / 2); // the outline's first axis becomes z, the extrusion runs along x
+  g.deleteAttribute('normal');
+  g.deleteAttribute('uv');
+  g = mergeVertices(g, 1e-4);
+  g.computeVertexNormals();
+  return g;
+}
+
 export function buildDynames(): DynamesModel {
   const owned: { dispose(): void }[] = [];
   const material = (color: string, roughness: number, extra: Record<string, unknown> = {}) => {
@@ -99,6 +148,10 @@ export function buildDynames(): DynamesModel {
   const R = material(PALETTE.red, 0.36);
   const N = material(PALETTE.navy, 0.45);
   const GL = material('#0E3B20', 0.3, { emissive: PALETTE.glow, emissiveIntensity: 2 });
+  const EYE = material('#0B3330', 0.25, { emissive: '#5FEAD6', emissiveIntensity: 1.7 });
+  const YD = material('#A97F16', 0.5); // the chest vents' louvres, a deeper yellow
+  const VIS = material('#1B2026', 0.18, { metalness: 0.3 }); // visor glass
+  const SNIPER = material('#A9BCCB', 0.22); // the sniper visor's housing along the helmet side
   const lines = new THREE.LineBasicMaterial({ color: '#14181A', transparent: true, opacity: 0.42 });
   owned.push(lines);
 
@@ -138,6 +191,9 @@ export function buildDynames(): DynamesModel {
     const geo = plateGeometry(pts.map(([x, y]) => [x - cx, y - cy] as V2), depth, bevel);
     return add(parent, geo, mat, [cx, cy, z], rot, mat !== GL);
   };
+  /** A shell (see shellGeometry) centred at `x` in its parent. */
+  const shell = (parent: any, pts: P2[], width: number, mat: any, x = 0, round = 0.06, corner = 0.06) =>
+    add(parent, shellGeometry(pts, width, round, corner), mat, [x, 0, 0]);
   const cyl = (parent: any, r: number, len: number, mat: any, pos: V3, axis: 'x' | 'y' | 'z' = 'y', seg = 20, r2 = r) => {
     const rot: V3 = axis === 'x' ? [0, 0, Math.PI / 2] : axis === 'z' ? [Math.PI / 2, 0, 0] : [0, 0, 0];
     return add(parent, new THREE.CylinderGeometry(r, r2, len, seg), mat, pos, rot, mat !== GL);
@@ -196,40 +252,69 @@ export function buildDynames(): DynamesModel {
   block(torso, F, 0.85, 1.05, [-0.93, 0.93, -0.6, 0.75]);
   plate(torso, [[-0.36, 1.95], [0.36, 1.95], [0.4, 0.65], [0, 0.1], [-0.4, 0.65]], 0.2, R, 0.84); // red abdomen plate
   block(torso, G, 1.6, 4.6, [-1.25, 1.25, -0.85, 1.0], [-1.75, 1.75, -1.05, 1.15]); // chest
-  const centre = plate(torso, [[-0.62, 4.5], [0.62, 4.5], [0.66, 3.0], [0, 1.75], [-0.66, 3.0]], 0.22, G, 1.2, [0.05, 0, 0]);
-  cyl(centre, 0.17, 0.04, W, [0, 0.75, 0.15], 'z', 24); // Celestial Being mark
+  const centre = plate(torso, [[-0.5, 5.0], [0.5, 5.0], [0.62, 4.5], [0.66, 3.0], [0, 1.75], [-0.66, 3.0], [-0.62, 4.5]], 0.22, G, 1.2, [0.05, 0, 0]);
+  cyl(centre, 0.17, 0.04, W, [0, 0.55, 0.15], 'z', 24); // Celestial Being mark
+  block(centre, D, 1.2, 1.5, [-0.04, 0.04, 0.12, 0.16]); // slot at the top
   block(torso, G, 1.9, 4.4, [-1.3, 1.3, -1.25, -0.8], [-1.5, 1.5, -1.3, -0.9]); // back
-  cyl(torso, 1.85, 1.2, F, [0, 3.2, -0.25], 'z', 40); // drive ring
+  cyl(torso, 1.75, 1.1, F, [0, 2.2, -0.15], 'z', 48); // the drive's ring, its lower half showing under the chest
   cyl(torso, 0.33, 0.8, F, [0, 4.95, 0.05]); // neck
   pair(torso, [0, 0, 0], (s) => {
-    block(s, Y, 2.7, 3.6, [0.72, 1.42, 0.95, 1.2]); // chest vent
-    for (let k = 0; k < 3; k++) block(s, D, 2.82, 3.48, [0.83 + k * 0.21, 0.91 + k * 0.21, 1.19, 1.23]);
-    block(s, W, 4.3, 4.95, [0.45, 1.45, -0.55, 0.95], [0.5, 1.25, -0.4, 0.7]); // collar
+    block(s, Y, 2.55, 3.65, [0.74, 1.3, 0.95, 1.18]); // chest vent
+    block(s, YD, 2.72, 3.48, [0.85, 1.19, 1.17, 1.21]); // its louvre
+    add(s, new THREE.TorusGeometry(1.45, 0.17, 8, 24, 0.9), W, [0, 2.2, 0.45], [0, 0, -1.35]); // white crescent on the ring
+    block(s, W, 4.3, 5.15, [0.45, 1.45, -0.55, 0.95], [0.55, 1.2, -0.3, 0.62]); // collar
   });
-  const drive = group(torso, [0, 3.1, -1.3]);
-  cyl(drive, 0.95, 0.5, F, [0, 0, -0.25], 'z', 32);
-  add(drive, new THREE.TorusGeometry(0.72, 0.07, 8, 40), GL, [0, 0, -0.52], [0, 0, 0], false);
-  cyl(drive, 0.7, 1.15, D, [0, 0, -1.07], 'z', 28, 0.02); // cone, tip pointing back
-  ball(drive, 0.12, GL, [0, 0, -1.66]);
+  // The GN Drive on the back: a white domed cover ringed in green, the cone's tip showing through.
+  const drive = group(torso, [0, 2.9, -1.3]);
+  cyl(drive, 1.02, 0.14, F, [0, 0, 0.02], 'z', 40);
+  add(drive, new THREE.SphereGeometry(0.95, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2), W, [0, 0, -0.05], [-Math.PI / 2, 0, 0], false);
+  add(drive, new THREE.TorusGeometry(0.88, 0.045, 8, 48), GL, [0, 0, -0.38], [0, 0, 0], false);
+  add(drive, new THREE.TorusGeometry(0.6, 0.045, 8, 48), GL, [0, 0, -0.76], [0, 0, 0], false);
+  cyl(drive, 0.28, 0.5, D, [0, 0, -1.1], 'z', 20, 0.05); // cone tip
+  ball(drive, 0.1, GL, [0, 0, -1.37]);
   const emitter = new THREE.Object3D();
-  emitter.position.set(0, 0, -1.75);
+  emitter.position.set(0, 0, -1.45);
   drive.add(emitter);
 
-  // ── Head: helmet, face and visor, green cheek guards, the wide yellow V-fin and the two smaller antennas. ──
-  const head = group(torso, [0, 5.12, 0.1]);
-  head.scale.setScalar(1.15);
-  block(head, W, 0.15, 1.25, [-0.55, 0.55, -0.6, 0.62], [-0.48, 0.48, -0.55, 0.45]); // helmet
-  block(head, W, 1.2, 1.5, [-0.42, 0.42, -0.5, 0.4], [-0.3, 0.3, -0.4, 0.2]); // crown
-  block(head, W, 0, 0.62, [-0.3, 0.3, 0.2, 0.66], [-0.4, 0.4, 0.25, 0.7]); // face
-  block(head, R, -0.1, 0.16, [-0.13, 0.13, 0.5, 0.72]); // chin
-  block(head, D, 0.6, 0.86, [-0.42, 0.42, 0.5, 0.72]); // visor band
-  block(head, W, 0.84, 1.14, [-0.32, 0.32, 0.45, 0.7], [-0.28, 0.28, 0.45, 0.62]); // forehead
-  plate(head, [[-0.1, 0.92], [0.1, 0.92], [0.07, 1.2], [-0.07, 1.2]], 0.06, R, 0.8); // crest
+  // ── Head, after close-ups of the kit (front, three-quarter, back): a rounded hood whose brim
+  // overhangs a dark visor with teal eyes; the V-fin's point sits on the nose, red sensors at its
+  // sides; a white faceplate with a red chin; large green ear guards with white vents in front;
+  // the sniper visor's housing along each side of the hood; a slotted back; and two thin yellow
+  // antennas rising from the back corners. Outlines are side views (z forward, y up) in head units.
+  const head = group(torso, [0, 4.62, 0.12]);
+  const hood: P2[] = [
+    [0.52, 1.26, 0.02],
+    [0.56, 1.42, 0.06],
+    [0.32, 1.86, 0.14],
+    [-0.18, 1.96, 0.28],
+    [-0.64, 1.62, 0.26],
+    [-0.7, 1.02, 0.1],
+    [-0.58, 0.66, 0.06],
+    [-0.22, 0.66, 0.06],
+    [-0.02, 1.05, 0.1],
+    [0.24, 1.2, 0.06],
+  ];
+  shell(head, hood, 0.84, W, 0, 0.1); // hood
+  shell(head, [[0.56, 1.44], [0.34, 1.9], [-0.18, 2.01], [-0.62, 1.67], [-0.54, 1.6], [-0.17, 1.91], [0.3, 1.8], [0.5, 1.42]], 0.24, W, 0, 0.03, 0.03); // crown ridge
+  block(head, VIS, 1.06, 1.27, [-0.38, 0.38, 0.18, 0.47]); // visor
+  plate(head, [[-0.3, 1.08], [0.3, 1.08], [0.27, 0.7], [0.12, 0.47], [-0.12, 0.47], [-0.27, 0.7]], 0.4, W, 0.22, [0, 0, 0], 0.04); // faceplate
+  plate(head, [[-0.09, 0.62], [0.09, 0.62], [0.07, 0.36], [-0.07, 0.36]], 0.2, R, 0.36); // chin
+  block(head, W, 0.6, 1.06, [-0.4, 0.4, -0.8, -0.46], [-0.36, 0.36, -0.76, -0.5]); // back of the head
+  block(head, D, 0.86, 0.93, [-0.3, 0.3, -0.82, -0.78]); // its slot
   pair(head, [0, 0, 0], (s) => {
-    plate(s, [[0.06, 0.65], [0.38, 0.69], [0.36, 0.8], [0.1, 0.78]], 0.03, GL, 0.735, [0, 0, 0], 0); // eye
-    block(s, G, 0.05, 0.9, [0.45, 0.68, -0.3, 0.5], [0.5, 0.66, -0.35, 0.35]); // cheek guard
-    plate(s, [[0, 0.96], [0.32, 0.96], [1.75, 1.95], [1.62, 2.06], [0.28, 1.36], [0, 1.3]], 0.08, Y, 0.76, [-0.15, 0, 0], 0.02); // V-fin
-    plate(s, [[0.55, 0.25], [0.68, 0.25], [1.05, 0.98], [0.97, 1.03]], 0.06, Y, 0.35, [0, 0, 0], 0.015); // side antenna
+    plate(s, [[0.04, 1.13], [0.22, 1.15], [0.27, 1.24], [0.06, 1.23]], 0.02, EYE, 0.48, [0, 0, 0], 0); // eye
+    block(s, F, 0.6, 0.78, [0.04, 0.09, 0.4, 0.47]); // mouth vent
+    const fin = plate(s, [[0, 0.76], [1.12, 1.64], [1.09, 1.72], [0.28, 1.21], [0.1, 1.14], [0, 1.12]], 0.08, Y, 0.56, [-0.18, 0, 0], 0.015); // V-fin
+    // A red sensor set into the fin's root (fin-local: centred on the outline's bounding box).
+    plate(fin, [[-0.32, -0.2], [-0.2, -0.13], [-0.22, -0.05], [-0.34, -0.1]], 0.04, R, 0.06, [0, 0, 0], 0.01);
+    // Ear guard, with three vent slats on its outer face.
+    shell(s, [[0.34, 1.18], [0.2, 1.34], [-0.36, 1.34], [-0.5, 1.18], [-0.5, 0.66], [-0.32, 0.52], [0.2, 0.52], [0.34, 0.66]], 0.14, G, 0.6, 0.04, 0.08);
+    for (let k = 0; k < 3; k++) block(s, F, 0.78 + k * 0.13, 0.84 + k * 0.13, [0.66, 0.7, -0.32, 0.06]);
+    block(s, W, 0.48, 0.66, [0.3, 0.46, 0.14, 0.38]); // cheek vent block
+    block(s, D, 0.55, 0.6, [0.33, 0.43, 0.38, 0.4]); // its slot
+    shell(s, [[0.36, 1.24], [0.18, 1.54], [-0.28, 1.68], [-0.52, 1.52], [-0.24, 1.44], [0.12, 1.34]], 0.05, SNIPER, 0.53, 0.015, 0.05); // sniper visor housing
+    const antenna = group(s, [0.44, 0.94, -0.44], [-0.3, 0, -0.5]);
+    plate(antenna, [[-0.035, 0], [0.035, 0], [0.016, 1.0], [-0.008, 1.0]], 0.05, Y, 0, [0, 0, 0], 0.01); // rear antenna
   });
 
   // ── Shoulders, arms and the GN Full Shields. The right arm reaches forward for the rifle. ──

@@ -1,44 +1,38 @@
 ---
 import { kits } from '../../data/kits';
 
-// The bench: a green cutting mat with rulers. Kits with a model (the Dynames) show it in 3D on a turntable,
-// loaded only when the section comes near the screen. Until then, and for kits without one, the artboard's
-// figure stands in: dotted for a built kit, a dashed outline for one that's still in the box.
-// The kit list on the right is a set of tabs; each one shows its kit on the bench and its details below.
+// The bench: a green cutting mat with rulers and a turntable. The Dynames is a 3D model, loaded only when
+// the section comes near the screen; the other kits are cut-out, cel-shaded halftone pictures standing on the
+// turntable. The kit list on the right is a set of tabs; each one shows its kit on the bench and its details below.
 const first = kits[0];
-const parts = [
-  'left:60px;top:0;width:40px;height:38px;border-radius:12px 12px 10px 10px',
-  'left:72px;top:-14px;width:16px;height:16px;border-radius:3px|acc',
-  'left:30px;top:44px;width:100px;height:86px;border-radius:14px 14px 24px 24px',
-  'left:58px;top:58px;width:44px;height:26px;border-radius:6px|acc2',
-  'left:0;top:44px;width:36px;height:36px;border-radius:10px',
-  'left:124px;top:44px;width:36px;height:36px;border-radius:10px',
-  'left:6px;top:84px;width:24px;height:98px;border-radius:10px',
-  'left:130px;top:84px;width:24px;height:98px;border-radius:10px',
-  'left:48px;top:134px;width:64px;height:34px;border-radius:8px',
-  'left:42px;top:172px;width:34px;height:116px;border-radius:10px',
-  'left:84px;top:172px;width:34px;height:116px;border-radius:10px',
-  'left:34px;top:288px;width:46px;height:18px;border-radius:6px|acc',
-  'left:80px;top:288px;width:46px;height:18px;border-radius:6px|acc',
-].map((p) => {
-  const [style, cls] = p.split('|');
-  return { style, cls };
-});
 ---
 
 <section class="band gunpla" data-gunpla>
   <div class="stage">
     <div class="bench" data-bench>
       <span class="lamp" aria-hidden="true"></span>
-      <div class="stand" data-stand data-mode={first.built ? 'built' : 'ghost'} aria-hidden="true">
-        <span class="disc"><span class="plane"><span class="ticks"></span></span></span>
-        <div class="mech">
-          {parts.map((p) => <span class:list={['pt', p.cls]} style={p.style} />)}
-        </div>
+      <div class="stand" data-stand>
+        <span class="disc" aria-hidden="true"><span class="plane"><span class="ticks"></span></span></span>
+        {
+          kits
+            .filter((k) => k.art)
+            .map((k) => (
+              <img
+                class:list={['kit-art', { next: !k.built }]}
+                data-art={k.id}
+                src={k.art!.src}
+                width={k.art!.width}
+                height={k.art!.height}
+                alt={`${k.name}, drawn in halftone`}
+                loading="lazy"
+                decoding="async"
+                hidden={k.id !== first.id}
+              />
+            ))
+        }
       </div>
-      <canvas class="model" data-model role="img" aria-label="Gundam Dynames, a 3D model turning on the bench. Drag sideways to turn it."
+      <canvas class="model" data-model role="img" aria-label="Gundam Dynames, a 3D model turning on the bench. Drag sideways to turn it; pinch or double-click to zoom."
       ></canvas>
-      <button class="dither" type="button" data-dither aria-pressed="false" hidden>Dither</button>
       <div class="mruler top" aria-hidden="true"></div>
       <div class="mruler left" aria-hidden="true"></div>
     </div>
@@ -110,22 +104,21 @@ const parts = [
   const bench = root?.querySelector<HTMLElement>('[data-bench]');
   const stand = root?.querySelector<HTMLElement>('[data-stand]');
   const canvas = root?.querySelector<HTMLCanvasElement>('[data-model]');
-  const ditherBtn = root?.querySelector<HTMLButtonElement>('[data-dither]');
   const list = root?.querySelector<HTMLElement>('[role="tablist"]');
 
-  if (root && bench && stand && canvas && ditherBtn && list) {
+  if (root && bench && stand && canvas && list) {
     const tabs = [...list.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let viewer: BenchViewer | null = null;
     let current = tabs.find((t) => t.getAttribute('aria-selected') === 'true') ?? tabs[0];
     let onScreen = false;
 
-    // Show the selected kit on the bench: the 3D model once it's ready, the stand-in figure otherwise.
+    // Show the selected kit on the bench: the 3D model once it's ready, or the kit's picture.
+    const arts = [...stand.querySelectorAll<HTMLImageElement>('[data-art]')];
     const show = () => {
       const model = current.dataset.hasModel !== undefined && viewer !== null;
       root.dataset.view = model ? 'model' : 'figure';
-      stand.dataset.mode = current.dataset.built !== undefined ? 'built' : 'ghost';
-      ditherBtn.hidden = !model;
+      for (const img of arts) img.hidden = img.dataset.art !== current.dataset.kit;
       viewer?.setActive(model && onScreen && !document.hidden);
     };
 
@@ -153,12 +146,6 @@ const parts = [
       });
     });
 
-    ditherBtn.addEventListener('click', () => {
-      const on = ditherBtn.getAttribute('aria-pressed') !== 'true';
-      ditherBtn.setAttribute('aria-pressed', String(on));
-      viewer?.setDither(on);
-    });
-
     // Load three.js and the model when the bench is within a screen or so of view; run it only while visible.
     let loading = false;
     const load = () => {
@@ -170,7 +157,7 @@ const parts = [
           show();
         })
         .catch(() => {
-          // No WebGL (or the chunk failed): the stand-in figure stays.
+          // No WebGL (or the chunk failed): the empty turntable stays.
         });
     };
     new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && load(), { rootMargin: '800px 0px' }).observe(bench);
@@ -212,6 +199,7 @@ const parts = [
   /* ── The bench: cutting mat, rulers, lamp ── */
   .bench {
     position: relative;
+    container-type: size;
     height: 520px;
     overflow: hidden;
     background-color: #22684b;
@@ -312,53 +300,7 @@ const parts = [
     opacity: 0;
   }
 
-  .dither {
-    all: unset;
-    position: absolute;
-    z-index: 3;
-    right: 16px;
-    top: 44px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 9px;
-    border-radius: 4px;
-    font: 500 11px/1 var(--font-mono);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #e4ead8;
-    background: rgba(10, 24, 17, 0.85);
-    box-shadow: inset 0 0 0 1px rgba(240, 248, 222, 0.25);
-    cursor: pointer;
-  }
-
-  .dither::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    box-shadow: inset 0 0 0 1.5px rgba(228, 234, 216, 0.6);
-  }
-
-  .dither[aria-pressed='true']::before {
-    background: #9fe0b4;
-    box-shadow: 0 0 6px #9fe0b4;
-  }
-
-  .dither:hover {
-    box-shadow: inset 0 0 0 1px rgba(240, 248, 222, 0.6);
-  }
-
-  .dither:focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-  }
-
-  .dither[hidden] {
-    display: none;
-  }
-
-  /* ── The stand-in figure (artboard): a turntable disc and a figure of rounded parts ── */
+  /* ── The turntable, and the halftone pictures of kits without a model ── */
   .stand {
     position: absolute;
     inset: 0;
@@ -405,54 +347,34 @@ const parts = [
     }
   }
 
-  .mech {
+  .kit-art {
     position: absolute;
     left: 52%;
-    bottom: 15%;
-    width: 160px;
-    height: 306px;
-    margin-left: -80px;
-    transform-style: preserve-3d;
+    /* Feet at the middle of the disc: the disc sits 9% up and is a 3.6:1 ellipse half the bench wide. */
+    bottom: calc(9cqh + 50cqw / 7.2);
+    height: 76cqh;
+    width: auto;
+    max-width: 92cqw;
+    object-fit: contain;
+    object-position: 50% 100%;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.35));
+    animation: art-in 0.45s ease both;
   }
 
-  [data-mode='built'] .mech {
-    animation: sway 7s ease-in-out infinite;
+  .kit-art[hidden] {
+    display: none;
   }
 
-  @keyframes sway {
-    0%,
-    100% {
-      transform: perspective(700px) rotateY(-18deg);
+  .kit-art.next {
+    opacity: 0.9;
+  }
+
+  @keyframes art-in {
+    from {
+      opacity: 0;
+      translate: 0 8px;
     }
-    50% {
-      transform: perspective(700px) rotateY(18deg);
-    }
-  }
-
-  .pt {
-    position: absolute;
-    box-sizing: border-box;
-  }
-
-  [data-mode='built'] .pt {
-    background-image: radial-gradient(circle, rgba(236, 234, 228, 0.9) 1.15px, transparent 1.45px);
-    background-size: 5px 5px;
-    box-shadow: inset 0 0 0 1.5px rgba(236, 234, 228, 0.55);
-    mask-image: linear-gradient(100deg, rgba(0, 0, 0, 0.45), #000 45%, rgba(0, 0, 0, 0.6));
-  }
-
-  [data-mode='built'] .pt.acc {
-    background-image: radial-gradient(circle, rgba(242, 193, 46, 0.95) 1.15px, transparent 1.45px);
-  }
-
-  [data-mode='built'] .pt.acc2 {
-    background-image: radial-gradient(circle, rgba(120, 170, 255, 0.95) 1.15px, transparent 1.45px);
-  }
-
-  [data-mode='ghost'] .pt {
-    border: 1.5px dashed rgba(236, 234, 228, 0.45);
-    background-image: radial-gradient(circle, rgba(236, 234, 228, 0.22) 0.8px, transparent 1.1px);
-    background-size: 7px 7px;
   }
 
   /* ── Kit details under the bench ── */
@@ -605,7 +527,7 @@ const parts = [
 
   @media (prefers-reduced-motion: reduce) {
     .ticks,
-    [data-mode='built'] .mech {
+    .kit-art {
       animation: none;
     }
   }
@@ -641,11 +563,6 @@ const parts = [
 
     .card > div:last-child {
       grid-column: 1 / -1;
-    }
-
-    .mech {
-      transform-origin: 50% 100%;
-      scale: 0.8;
     }
   }
 </style>

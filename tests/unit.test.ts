@@ -15,22 +15,30 @@ test('koiCount keeps a few fish in any pond width', async () => {
   assert.equal(koiCount(4000), 6);
 });
 
-test('discPose: focus is centred, the row climbs right and nearer discs grow', async () => {
+test('discPose: a belt, with the focus in front and both sides falling back along the diagonal', async () => {
   const { discPose } = await import('../src/components/off/discs.ts');
   const f = discPose(0);
   assert.deepEqual([f.x, f.y, f.z, f.scale, f.opacity, f.visible], [0, 0, 0, 1, 1, true]);
   const right = discPose(1);
   const left = discPose(-1);
-  assert.ok(right.x > 0 && right.y < 0 && right.scale > 1 && right.order > f.order);
-  assert.ok(left.x < 0 && left.y > 0 && left.scale < 1 && left.order < f.order);
+  assert.ok(right.x > 0 && right.y < 0 && left.x < 0 && left.y > 0, 'the row climbs to the right');
+  for (const side of [left, right]) {
+    assert.ok(side.z < 0 && side.scale < 1 && side.order < f.order, 'neighbours sit behind and smaller');
+    assert.equal(side.tilt, 1);
+  }
+  assert.equal(right.z, left.z);
+  assert.ok(f.tilt > 0 && f.tilt < 0.5, 'the focus turns nearly square to the viewer');
+  assert.ok(discPose(2).order < right.order);
   assert.equal(discPose(3).visible, false);
   assert.equal(discPose(2.5).opacity, 0);
 });
 
-test('discTransform scales offsets by the unit and keeps the pose scale', async () => {
-  const { discTransform } = await import('../src/components/off/discs.ts');
+test('discTransform scales offsets by the unit; discTilt eases from the focus to the three-quarter angle', async () => {
+  const { discTransform, discTilt } = await import('../src/components/off/discs.ts');
   assert.equal(discTransform(0, 1), 'translate3d(0.0px,0.0px,0.0px) scale(1.000)');
-  assert.equal(discTransform(1, 0.5), 'translate3d(145.0px,-43.0px,50.0px) scale(1.120)');
+  assert.equal(discTransform(1, 0.5), 'translate3d(145.0px,-43.0px,-60.0px) scale(0.850)');
+  assert.equal(discTilt(0), 'rotateX(7.50deg) rotateY(-7.50deg)');
+  assert.equal(discTilt(-2), 'rotateX(30.00deg) rotateY(-30.00deg)');
 });
 
 test('parseProfileStats reads Films and This year from a Letterboxd profile', async () => {
@@ -74,8 +82,46 @@ test('pickRecent keeps 3.5+ only, newest first, one entry per film', async () =>
 test('parseFilmPage takes landscape stills only, and the directors', async () => {
   const { parseFilmPage } = await import('../src/data/letterboxd.ts');
   const page = '<meta property="og:image" content="https://a.ltrbxd.com/resized/sm/upload/x/still-1200-1200-675-675-crop-000000.jpg?v=1"><script type="application/ld+json">{"director":[{"name":"A"},{"name":"B"},{"name":"C"}]}</script>';
-  assert.deepEqual(parseFilmPage(page), { still: 'https://a.ltrbxd.com/resized/sm/upload/x/still-1200-1200-675-675-crop-000000.jpg?v=1', director: 'A, B' });
-  assert.deepEqual(parseFilmPage('<meta property="og:image" content="https://a.ltrbxd.com/resized/film-poster/p-0-1000-0-1500-crop.jpg">'), { still: null, director: null });
+  assert.deepEqual(parseFilmPage(page), {
+    still: 'https://a.ltrbxd.com/resized/sm/upload/x/still-1200-1200-675-675-crop-000000.jpg?v=1',
+    backdrop: null,
+    director: 'A, B',
+    tmdb: null,
+    imdb: null,
+  });
+  assert.deepEqual(parseFilmPage('<meta property="og:image" content="https://a.ltrbxd.com/resized/film-poster/p-0-1000-0-1500-crop.jpg">'), {
+    still: null,
+    backdrop: null,
+    director: null,
+    tmdb: null,
+    imdb: null,
+  });
+});
+
+test('parseFilmPage reads the 1920 backdrop and the TMDB and IMDb ids', async () => {
+  const { parseFilmPage } = await import('../src/data/letterboxd.ts');
+  const page =
+    '<body class="film backdropped" data-type="film" data-tmdb-type="movie" data-tmdb-id="417466"><div data-backdrop2x="https://a.ltrbxd.com/resized/sm/upload/x/monos-1920-1920-1080-1080-crop-000000.jpg?v=9&amp;x=1"></div><a href="http://www.imdb.com/title/tt6062774/maindetails">IMDb</a>';
+  const f = parseFilmPage(page);
+  assert.equal(f.backdrop, 'https://a.ltrbxd.com/resized/sm/upload/x/monos-1920-1920-1080-1080-crop-000000.jpg?v=9&x=1');
+  assert.equal(f.tmdb, 417466);
+  assert.equal(f.imdb, 'tt6062774');
+  assert.equal(parseFilmPage('<body data-tmdb-type="tv" data-tmdb-id="5">').tmdb, null, 'TV ids are not film ids');
+});
+
+test('pickFanartDisc prefers English or neutral discs, then the most liked', async () => {
+  const { pickFanartDisc } = await import('../src/data/fanart.ts');
+  assert.equal(pickFanartDisc({}), null);
+  assert.equal(pickFanartDisc({ moviedisc: [] }), null);
+  const json = {
+    moviedisc: [
+      { url: 'http://assets.fanart.tv/fanart/de.png', lang: 'de', likes: '9' },
+      { url: 'http://assets.fanart.tv/fanart/en-1.png', lang: 'en', likes: '1' },
+      { url: 'http://assets.fanart.tv/fanart/en-4.png', lang: 'en', likes: '4' },
+      { url: 'http://assets.fanart.tv/fanart/none.png', lang: '00', likes: '7' },
+    ],
+  };
+  assert.equal(pickFanartDisc(json), 'https://assets.fanart.tv/fanart/en-4.png');
 });
 
 test('stars formats halves', async () => {

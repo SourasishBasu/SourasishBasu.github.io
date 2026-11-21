@@ -5,47 +5,24 @@
  * yourself (vertical drags still scroll the page on touch screens), and mouse
  * drags up and down tilt the view a little. GN particles drift from the drive.
  *
+ * Zoom has no buttons: pinch (trackpad or touch), Ctrl/⌘ + wheel, or a plain
+ * wheel once you've grabbed the model (until the pointer leaves it); a double
+ * click or double tap zooms to the part under it, and again to zoom back out.
+ * Zooming in rises toward the head unless you picked a spot.
+ *
  * Runs only while active (on screen and selected). With reduced motion it
- * doesn't spin or emit; it draws a still frame and moves only when dragged.
- * setDither(true) adds an ordered-dither pass (4×4 Bayer, a few levels per channel).
+ * doesn't spin or emit; it draws a still frame and moves only when you move it.
  */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { buildDynames, PALETTE } from './dynames';
 
 export interface BenchViewer {
   setActive(on: boolean): void;
-  setDither(on: boolean): void;
   dispose(): void;
 }
 
-const DitherShader = {
-  uniforms: { tDiffuse: { value: null }, cell: { value: 2 }, levels: { value: 5 } },
-  vertexShader: /* glsl */ `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }`,
-  fragmentShader: /* glsl */ `
-    uniform sampler2D tDiffuse;
-    uniform float cell;
-    uniform float levels;
-    varying vec2 vUv;
-    const float BAYER[16] = float[16](0., 8., 2., 10., 12., 4., 14., 6., 3., 11., 1., 9., 15., 7., 13., 5.);
-    void main() {
-      vec4 c = texture2D(tDiffuse, vUv);
-      vec2 q = mod(floor(gl_FragCoord.xy / cell), 4.0);
-      float t = (BAYER[int(q.x + q.y * 4.0)] + 0.5) / 16.0;
-      vec3 rgb = floor(c.rgb * (levels - 1.0) + t) / (levels - 1.0);
-      float a = step(t, c.a);
-      gl_FragColor = vec4(rgb * a, a);
-    }`,
-};
+const MAX_ZOOM = 5;
 
 function canvasTexture(size: number, draw: (g: CanvasRenderingContext2D, s: number) => void) {
   const c = document.createElement('canvas');
@@ -233,8 +210,17 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   const target = new THREE.Vector3(0, model.size.height * 0.44, 0);
   let tilt = 0.12;
   let dist = 50;
+  // Zoom: 1 frames everything; closer in, the view rises toward `focusY` (the head unless a spot was picked).
+  const baseY = target.y;
+  const headY = model.size.height * 0.9;
+  let zoom = 1;
+  let zoomTo = 1;
+  let focusY = headY;
   const place = () => {
-    camera.position.set(0, target.y + Math.sin(tilt) * dist, Math.cos(tilt) * dist);
+    const k = Math.min(1, ((zoom - 1) / (MAX_ZOOM - 1)) * 1.4);
+    target.y = baseY + (focusY - baseY) * k;
+    const d = dist / zoom;
+    camera.position.set(0, target.y + Math.sin(tilt) * d, Math.cos(tilt) * d);
     camera.lookAt(target);
   };
   const frame = () => {
@@ -249,30 +235,62 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     place();
   };
 
-  let composer: any = null;
-  let dither = false;
-  const render = () => (dither && composer ? composer.render() : renderer.render(scene, camera));
+  const render = () => renderer.render(scene, camera);
 
   const resize = () => {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
-    composer?.setSize(w, h);
     frame();
     if (!raf) render();
   };
   const ro = new ResizeObserver(resize);
   ro.observe(canvas);
 
-  // Spin and drag.
+  // Spin, drag, pinch and zoom.
   const autoSpin = reducedMotion ? 0 : 0.24;
   let angle = -0.55;
   let vel = autoSpin;
   let drag: { id: number; x: number; y: number; t: number } | null = null;
+  const touches = new Map<number, { x: number; y: number }>();
+  let pinch: { spread: number; zoom: number } | null = null;
+  /** After a press on the model, a plain wheel zooms until the pointer leaves it. */
+  let engaged = false;
+  let lastTap = { t: 0, x: 0, y: 0 };
+  let downAt = { t: 0, x: 0, y: 0 };
   /** Dev only: hold a set pose for checks. */
   let frozen = false;
+  const clampZoom = (z: number) => THREE.MathUtils.clamp(z, 1, MAX_ZOOM);
+  const spread = () => {
+    const [a, b] = [...touches.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y) || 1;
+  };
+  const ray = new THREE.Raycaster();
+  /** Zoom in on the part under a point (or the head), or back out if already zoomed. */
+  const toggleZoom = (clientX: number, clientY: number) => {
+    if (zoomTo > 1.4) {
+      zoomTo = 1;
+    } else {
+      const r = canvas.getBoundingClientRect();
+      ray.setFromCamera(new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1), camera);
+      const hit = ray.intersectObject(model.root, true).find((h: any) => h.object.isMesh);
+      focusY = hit ? THREE.MathUtils.clamp(hit.point.y, 2, model.size.height - 1) : headY;
+      zoomTo = 2.6;
+    }
+    wake();
+  };
   const onDown = (e: PointerEvent) => {
+    engaged = true;
+    downAt = { t: e.timeStamp, x: e.clientX, y: e.clientY };
+    if (e.pointerType === 'touch') touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touches.size >= 2) {
+      // A second finger: pinch instead of turning.
+      pinch = { spread: spread(), zoom: zoomTo };
+      if (zoomTo <= 1.001) focusY = headY;
+      drag = null;
+      return;
+    }
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp };
     try {
       canvas.setPointerCapture(e.pointerId);
@@ -284,6 +302,13 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     wake();
   };
   const onMove = (e: PointerEvent) => {
+    if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && touches.size >= 2) {
+      zoomTo = zoom = clampZoom((pinch.zoom * spread()) / pinch.spread);
+      place();
+      wake();
+      return;
+    }
     if (!drag || e.pointerId !== drag.id) return;
     const dt = Math.max(8, e.timeStamp - drag.t) / 1000;
     const turn = (e.clientX - drag.x) * 0.012;
@@ -299,16 +324,44 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     wake();
   };
   const onUp = (e: PointerEvent) => {
+    touches.delete(e.pointerId);
+    if (touches.size < 2) pinch = null;
+    // A quick second tap near the first zooms (mouse users get dblclick).
+    if (e.type === 'pointerup' && e.pointerType === 'touch' && e.timeStamp - downAt.t < 250 && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 10) {
+      if (e.timeStamp - lastTap.t < 320 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 30) {
+        toggleZoom(e.clientX, e.clientY);
+        lastTap = { t: 0, x: 0, y: 0 };
+      } else lastTap = { t: e.timeStamp, x: e.clientX, y: e.clientY };
+    }
     if (!drag || e.pointerId !== drag.id) return;
     drag = null;
     delete canvas.dataset.dragging;
     vel = THREE.MathUtils.clamp(vel, -6, 6);
     wake();
   };
+  const onWheel = (e: WheelEvent) => {
+    // Pinch on a trackpad arrives as a wheel with ctrlKey. A plain wheel only zooms once the model's been grabbed,
+    // and lets the page scroll when there's no further to zoom that way.
+    if (!(e.ctrlKey || e.metaKey || engaged)) return;
+    const step = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    const next = clampZoom(zoomTo * Math.exp(-step * (e.ctrlKey ? 0.01 : 0.0022)));
+    if (next === zoomTo) return;
+    e.preventDefault();
+    if (zoomTo <= 1.001) focusY = headY;
+    zoomTo = next;
+    wake();
+  };
+  const onDouble = (e: MouseEvent) => toggleZoom(e.clientX, e.clientY);
+  const onLeave = () => {
+    engaged = false;
+  };
   canvas.addEventListener('pointerdown', onDown);
   canvas.addEventListener('pointermove', onMove);
   canvas.addEventListener('pointerup', onUp);
   canvas.addEventListener('pointercancel', onUp);
+  canvas.addEventListener('pointerleave', onLeave);
+  canvas.addEventListener('wheel', onWheel, { passive: false });
+  canvas.addEventListener('dblclick', onDouble);
 
   let raf = 0;
   let active = false;
@@ -322,12 +375,16 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       angle += vel * dt;
     }
     turntable.rotation.y = angle;
+    if (Math.abs(zoomTo - zoom) > 0.0005) {
+      zoom += (zoomTo - zoom) * Math.min(1, dt * (reducedMotion ? 30 : 7));
+      place();
+    }
     if (!reducedMotion) {
       stepParticles(dt);
       model.glow.emissiveIntensity = 1.8 + 0.4 * Math.sin(now / 650);
     }
     render();
-    const moving = !reducedMotion || drag || Math.abs(vel - autoSpin) > 0.002;
+    const moving = !reducedMotion || drag || Math.abs(vel - autoSpin) > 0.002 || Math.abs(zoomTo - zoom) > 0.0005;
     if (active && moving) raf = requestAnimationFrame(tick);
   };
   function wake() {
@@ -341,10 +398,12 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
 
   if (import.meta.env.DEV) {
     (window as unknown as { __bench: unknown }).__bench = {
-      pose(a: number, t = tilt) {
+      pose(a: number, t = tilt, z = 1, fy = headY) {
         frozen = true;
         angle = a;
         tilt = t;
+        zoom = zoomTo = clampZoom(z);
+        focusY = fy;
         place();
         turntable.rotation.y = angle;
         render();
@@ -365,19 +424,6 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
         raf = 0;
       }
     },
-    setDither(on) {
-      dither = on;
-      if (on && !composer) {
-        composer = new EffectComposer(renderer);
-        composer.addPass(new RenderPass(scene, camera));
-        composer.addPass(new OutputPass());
-        const pass = new ShaderPass(DitherShader);
-        pass.uniforms.cell.value = renderer.getPixelRatio();
-        composer.addPass(pass);
-        composer.setSize(canvas.clientWidth, canvas.clientHeight);
-      }
-      if (!raf) render();
-    },
     dispose() {
       if (raf) cancelAnimationFrame(raf);
       ro.disconnect();
@@ -385,7 +431,9 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       canvas.removeEventListener('pointermove', onMove);
       canvas.removeEventListener('pointerup', onUp);
       canvas.removeEventListener('pointercancel', onUp);
-      composer?.dispose();
+      canvas.removeEventListener('pointerleave', onLeave);
+      canvas.removeEventListener('wheel', onWheel);
+      canvas.removeEventListener('dblclick', onDouble);
       for (const o of owned) o.dispose();
       renderer.dispose();
     },

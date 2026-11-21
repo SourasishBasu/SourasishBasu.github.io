@@ -349,7 +349,7 @@ const atlan = stickers[0];
     const cells = [...board.querySelectorAll<HTMLElement>('.status .mini')];
     const CHIPS = ['chip-red', 'chip-orange', 'chip-yellow', 'chip-green', 'chip-blue', 'chip-white'];
     const time = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' });
-    const messages = () => ['PLATFORM @ ATLAN', 'GO · TEMPORAL · K8S', `LOCAL TIME ${time.format(new Date())} IST`, 'OPEN TO A CHAT'];
+    const messages = () => ['PLATFORM @ ATLAN', `LOCAL TIME ${time.format(new Date())} IST`, 'OPEN TO A CHAT'];
     const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
 
     const flick = (el: HTMLElement, delay = 0) => {

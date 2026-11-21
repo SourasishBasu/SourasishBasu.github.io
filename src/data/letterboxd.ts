@@ -21,8 +21,21 @@ export interface DiaryEntry {
 export interface RecentFilm extends DiaryEntry {
   /** Landscape still from the film page (1200×675), or null. */
   still: string | null;
+  /** The same still at 1920×1080, for cropping disc art, or null. */
+  backdrop?: string | null;
+  /** TheMovieDB id, for disc art lookups. */
+  tmdb?: number | null;
+  imdb?: string | null;
   director: string | null;
   href: string;
+}
+
+export interface FilmPage {
+  still: string | null;
+  backdrop: string | null;
+  director: string | null;
+  tmdb: number | null;
+  imdb: string | null;
 }
 
 const decode = (s: string) =>
@@ -74,11 +87,20 @@ export function pickRecent(entries: DiaryEntry[], min = 3.5, count = 12): DiaryE
     .slice(0, count);
 }
 
-/** A film page's og:image (a landscape still) and director(s) from its JSON-LD. */
-export function parseFilmPage(html: string): { still: string | null; director: string | null } {
+/**
+ * A film page's og:image (a landscape still), its 1920×1080 backdrop, director(s) from the JSON-LD,
+ * and the TMDB and IMDb ids (from the body's data attributes and the IMDb link).
+ */
+export function parseFilmPage(html: string): FilmPage {
   const og = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1] ?? null;
   // Only landscape stills: some films have no backdrop and fall back to the poster.
   const still = og && /-1200-1200-675-675-/.test(og) ? decode(og) : null;
+  const big = html.match(/data-backdrop2x="([^"]+)"/)?.[1] ?? null;
+  const backdrop = big ? decode(big) : null;
+  const tmdbType = html.match(/data-tmdb-type="([^"]+)"/)?.[1];
+  const tmdbId = html.match(/data-tmdb-id="(\d+)"/)?.[1];
+  const tmdb = tmdbType === 'movie' && tmdbId ? Number(tmdbId) : null;
+  const imdb = html.match(/imdb\.com\/title\/(tt\d+)/)?.[1] ?? null;
   let director: string | null = null;
   const ld = html.match(/<script type="application\/ld\+json">\s*(?:\/\*[\s\S]*?\*\/)?\s*(\{[\s\S]*?\})\s*(?:\/\*[\s\S]*?\*\/)?\s*<\/script>/);
   if (ld) {
@@ -90,7 +112,7 @@ export function parseFilmPage(html: string): { still: string | null; director: s
       // leave director empty
     }
   }
-  return { still, director };
+  return { still, backdrop, director, tmdb, imdb };
 }
 
 /** "★★★½" for 3.5 */
@@ -120,7 +142,7 @@ export async function fetchRecentFilms(profile: string, { min = 3.5, count = 12 
       batch.map((e) =>
         get(`https://letterboxd.com/film/${e.slug}/`, 8000)
           .then(parseFilmPage)
-          .catch(() => ({ still: null, director: null })),
+          .catch((): FilmPage => ({ still: null, backdrop: null, director: null, tmdb: null, imdb: null })),
       ),
     );
     batch.forEach((e, k) => out.push({ ...e, ...pages[k], href: `https://letterboxd.com/film/${e.slug}/` }));
