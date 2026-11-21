@@ -83,3 +83,31 @@ test('stars formats halves', async () => {
   assert.equal(stars(3.5), '★★★½');
   assert.equal(stars(5), '★★★★★');
 });
+
+test('dynames model: feet on the floor, about kit height, drive on the back, pairs reflected', async () => {
+  const THREE = await import('three');
+  const { buildDynames } = await import('../src/components/off/gunpla/dynames.ts');
+  const m = buildDynames();
+  assert.ok(m.meshCount > 120, `${m.meshCount} parts`);
+  assert.ok(m.size.height > 17 && m.size.height < 20, `height ${m.size.height}`);
+  const box = new THREE.Box3().setFromObject(m.root);
+  assert.ok(Math.abs(box.min.y) < 0.05, `lowest point ${box.min.y}`);
+  // The rifle reaches out to the right (-x), the left shield sets the other side: both sides within the turntable.
+  assert.ok(m.size.radius < 7.5, `radius ${m.size.radius}`);
+  const drive = m.emitter.getWorldPosition(new THREE.Vector3());
+  assert.ok(drive.z < -2.5 && drive.y > 12 && Math.abs(drive.x) < 0.01, `drive at ${drive.toArray()}`);
+  // Right-hand copies are reflections (negative determinant), never rotations.
+  const mirrored: number[] = [];
+  m.root.traverse((o: any) => o.isMesh && mirrored.push(o.matrixWorld.determinant() < 0 ? 1 : 0));
+  const right = mirrored.filter(Boolean).length;
+  assert.ok(right > 30 && right < mirrored.length / 2, `${right} of ${mirrored.length} reflected`);
+  m.dispose();
+});
+
+test('kits: built ones first, only the Dynames has a model', async () => {
+  const { kits } = await import('../src/data/kits.ts');
+  const built = kits.map((k) => k.built);
+  assert.deepEqual(built, [...built].sort((a, b) => Number(b) - Number(a)));
+  assert.deepEqual(kits.filter((k) => k.model).map((k) => k.id), ['dynames']);
+  for (const k of kits) assert.equal(k.whenLabel, k.built ? 'Built' : 'Status');
+});

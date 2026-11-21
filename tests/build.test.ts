@@ -221,3 +221,21 @@ test('films: recent rated discs, only nearby ones drawn and loaded, counts shown
   assert.equal(tags(films, 'a', /href="https:\/\/letterboxd\.com\/sasquatch06\/"/).length, 1);
   assert.doesNotMatch(off, /class="hero-side/);
 });
+
+test('gunpla: kit tabs, Dynames first, a canvas for the model, details per kit', () => {
+  const off = html('off-the-clock/index.html');
+  const g = off.slice(off.indexOf('class="band gunpla'));
+  const tabs = tags(g, 'button', /role="tab"/);
+  assert.equal(tabs.length, 4);
+  assert.match(tabs[0], /aria-selected="true"/);
+  assert.match(tabs[0], /data-has-model/);
+  tabs.slice(1).forEach((t) => assert.doesNotMatch(t, /data-has-model/));
+  assert.equal(tags(g, 'canvas', /data-model/, /role="img"/).length, 1);
+  const panels = tags(g, 'div', /role="tabpanel"/);
+  assert.equal(panels.length, 4);
+  panels.forEach((p, i) => assert.equal(/\shidden/.test(p), i > 0));
+  assert.equal(tags(g, 'div', /class="mruler/).length, 2);
+  // three.js is loaded on demand, not with the page.
+  const entry = [...off.matchAll(/<script type="module" src="([^"]+)"/g)].map((m) => m[1]);
+  for (const src of entry) assert.doesNotMatch(readFileSync(dist(src.replace(/^\//, '')), 'utf8'), /WebGLRenderer/);
+});

@@ -1,18 +1,186 @@
 ---
-// Phase 3 fills this in: the cutting-mat stage, the kit viewer and the kit list.
+import { kits } from '../../data/kits';
+
+// The bench: a green cutting mat with rulers. Kits with a model (the Dynames) show it in 3D on a turntable,
+// loaded only when the section comes near the screen. Until then, and for kits without one, the artboard's
+// figure stands in: dotted for a built kit, a dashed outline for one that's still in the box.
+// The kit list on the right is a set of tabs; each one shows its kit on the bench and its details below.
+const first = kits[0];
+const parts = [
+  'left:60px;top:0;width:40px;height:38px;border-radius:12px 12px 10px 10px',
+  'left:72px;top:-14px;width:16px;height:16px;border-radius:3px|acc',
+  'left:30px;top:44px;width:100px;height:86px;border-radius:14px 14px 24px 24px',
+  'left:58px;top:58px;width:44px;height:26px;border-radius:6px|acc2',
+  'left:0;top:44px;width:36px;height:36px;border-radius:10px',
+  'left:124px;top:44px;width:36px;height:36px;border-radius:10px',
+  'left:6px;top:84px;width:24px;height:98px;border-radius:10px',
+  'left:130px;top:84px;width:24px;height:98px;border-radius:10px',
+  'left:48px;top:134px;width:64px;height:34px;border-radius:8px',
+  'left:42px;top:172px;width:34px;height:116px;border-radius:10px',
+  'left:84px;top:172px;width:34px;height:116px;border-radius:10px',
+  'left:34px;top:288px;width:46px;height:18px;border-radius:6px|acc',
+  'left:80px;top:288px;width:46px;height:18px;border-radius:6px|acc',
+].map((p) => {
+  const [style, cls] = p.split('|');
+  return { style, cls };
+});
 ---
 
-<section class="band gunpla">
-  <div>
-    <div class="bench" aria-hidden="true"></div>
+<section class="band gunpla" data-gunpla>
+  <div class="stage">
+    <div class="bench" data-bench>
+      <span class="lamp" aria-hidden="true"></span>
+      <div class="stand" data-stand data-mode={first.built ? 'built' : 'ghost'} aria-hidden="true">
+        <span class="disc"><span class="plane"><span class="ticks"></span></span></span>
+        <div class="mech">
+          {parts.map((p) => <span class:list={['pt', p.cls]} style={p.style} />)}
+        </div>
+      </div>
+      <canvas class="model" data-model role="img" aria-label="Gundam Dynames, a 3D model turning on the bench. Drag sideways to turn it."
+      ></canvas>
+      <button class="dither" type="button" data-dither aria-pressed="false" hidden>Dither</button>
+      <div class="mruler top" aria-hidden="true"></div>
+      <div class="mruler left" aria-hidden="true"></div>
+    </div>
+    {
+      kits.map((k) => (
+        <div class="card" role="tabpanel" id={`kit-${k.id}`} aria-labelledby={`kit-tab-${k.id}`} hidden={k.id !== first.id}>
+          <div class="card-head">
+            <div class="card-title">
+              <span class="code">{k.code}</span>
+              <span class="display name">{k.name}</span>
+            </div>
+            <span class:list={['pill', k.built ? 'p-built' : 'p-next']}>{k.built ? 'Built' : 'Up next'}</span>
+          </div>
+          <div>
+            <div class="eyebrow">Grade</div>
+            <div class="val">{k.grade}</div>
+          </div>
+          <div>
+            <div class="eyebrow">Series</div>
+            <div class="val">{k.series}</div>
+          </div>
+          <div>
+            <div class="eyebrow">{k.whenLabel}</div>
+            <div class="val">{k.when}</div>
+          </div>
+        </div>
+      ))
+    }
   </div>
   <div class="intro vline">
     <span class="eyebrow">Gunpla</span>
     <h2 class="display h2">Kits I've built</h2>
     <p class="muted">Master Grades, mostly. The finished ones are on my shelf, the rest are next in line.</p>
+    <div class="kits" role="tablist" aria-label="Kits" aria-orientation="vertical">
+      {
+        kits.map((k) => (
+          <button
+            type="button"
+            role="tab"
+            id={`kit-tab-${k.id}`}
+            class:list={['krow', { sel: k.id === first.id }]}
+            aria-selected={k.id === first.id ? 'true' : 'false'}
+            aria-controls={`kit-${k.id}`}
+            tabindex={k.id === first.id ? 0 : -1}
+            data-kit={k.id}
+            data-built={k.built ? '' : undefined}
+            data-has-model={k.model ? '' : undefined}
+          >
+            <span class="ktext">
+              <span class="kname">{k.name}</span>
+              <span class="kmeta">
+                {k.code} · {k.grade}
+              </span>
+            </span>
+            <span class:list={['kkind', k.built ? 'built' : 'next']}>{k.built ? 'Built' : 'Up next'}</span>
+            <svg class="arrow" aria-hidden="true" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
+          </button>
+        ))
+      }
+    </div>
   </div>
   <span class="cross cl"></span><span class="cross cr"></span>
 </section>
+
+<script>
+  import type { BenchViewer } from './gunpla/viewer';
+
+  const root = document.querySelector<HTMLElement>('[data-gunpla]');
+  const bench = root?.querySelector<HTMLElement>('[data-bench]');
+  const stand = root?.querySelector<HTMLElement>('[data-stand]');
+  const canvas = root?.querySelector<HTMLCanvasElement>('[data-model]');
+  const ditherBtn = root?.querySelector<HTMLButtonElement>('[data-dither]');
+  const list = root?.querySelector<HTMLElement>('[role="tablist"]');
+
+  if (root && bench && stand && canvas && ditherBtn && list) {
+    const tabs = [...list.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let viewer: BenchViewer | null = null;
+    let current = tabs.find((t) => t.getAttribute('aria-selected') === 'true') ?? tabs[0];
+    let onScreen = false;
+
+    // Show the selected kit on the bench: the 3D model once it's ready, the stand-in figure otherwise.
+    const show = () => {
+      const model = current.dataset.hasModel !== undefined && viewer !== null;
+      root.dataset.view = model ? 'model' : 'figure';
+      stand.dataset.mode = current.dataset.built !== undefined ? 'built' : 'ghost';
+      ditherBtn.hidden = !model;
+      viewer?.setActive(model && onScreen && !document.hidden);
+    };
+
+    const select = (tab: HTMLButtonElement, focus = false) => {
+      current = tab;
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        t.classList.toggle('sel', on);
+        const panel = document.getElementById(t.getAttribute('aria-controls') ?? '');
+        if (panel) panel.hidden = !on;
+      }
+      if (focus) tab.focus();
+      show();
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (e) => {
+        const last = tabs.length - 1;
+        const to = { ArrowDown: i + 1, ArrowRight: i + 1, ArrowUp: i - 1, ArrowLeft: i - 1, Home: 0, End: last }[e.key];
+        if (to === undefined) return;
+        e.preventDefault();
+        select(tabs[(to + tabs.length) % tabs.length], true);
+      });
+    });
+
+    ditherBtn.addEventListener('click', () => {
+      const on = ditherBtn.getAttribute('aria-pressed') !== 'true';
+      ditherBtn.setAttribute('aria-pressed', String(on));
+      viewer?.setDither(on);
+    });
+
+    // Load three.js and the model when the bench is within a screen or so of view; run it only while visible.
+    let loading = false;
+    const load = () => {
+      if (loading) return;
+      loading = true;
+      import('./gunpla/viewer')
+        .then(({ mountViewer }) => {
+          viewer = mountViewer(canvas, { reducedMotion: reduced });
+          show();
+        })
+        .catch(() => {
+          // No WebGL (or the chunk failed): the stand-in figure stays.
+        });
+    };
+    new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && load(), { rootMargin: '800px 0px' }).observe(bench);
+    new IntersectionObserver((entries) => {
+      onScreen = entries[entries.length - 1].isIntersecting;
+      show();
+    }).observe(bench);
+    document.addEventListener('visibilitychange', show);
+  }
+</script>
 
 <style>
   .gunpla {
@@ -20,11 +188,17 @@
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   }
 
-  .intro {
-    padding: 64px 40px;
+  .stage {
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    min-width: 0;
+  }
+
+  .intro {
+    padding: 64px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
 
   .muted {
@@ -35,8 +209,11 @@
     color: var(--ink-muted);
   }
 
+  /* ── The bench: cutting mat, rulers, lamp ── */
   .bench {
+    position: relative;
     height: 520px;
+    overflow: hidden;
     background-color: #22684b;
     background-image:
       linear-gradient(rgba(240, 248, 222, 0.62) 1.5px, transparent 1.5px),
@@ -56,6 +233,381 @@
     box-shadow:
       inset 0 0 0 1px rgba(0, 0, 0, 0.3),
       inset 0 0 80px rgba(0, 0, 0, 0.25);
+  }
+
+  .lamp {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(50% 60% at 55% 35%, rgba(255, 250, 230, 0.12), rgba(0, 0, 0, 0) 70%);
+  }
+
+  .mruler {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .mruler.top {
+    left: 30px;
+    right: 0;
+    top: 0;
+    height: 30px;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(243, 237, 176, 0.8) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(90deg, rgba(243, 237, 176, 0.5) 0 1px, transparent 1px 11px);
+    background-size:
+      100% 9px,
+      100% 5px;
+    background-repeat: no-repeat;
+    background-position:
+      0 100%,
+      0 100%;
+  }
+
+  .mruler.left {
+    top: 30px;
+    bottom: 0;
+    left: 0;
+    width: 30px;
+    background-image:
+      repeating-linear-gradient(180deg, rgba(243, 237, 176, 0.8) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(180deg, rgba(243, 237, 176, 0.5) 0 1px, transparent 1px 11px);
+    background-size:
+      9px 100%,
+      5px 100%;
+    background-repeat: no-repeat;
+    background-position:
+      100% 0,
+      100% 0;
+  }
+
+  /* ── The 3D model ── */
+  .model {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    cursor: grab;
+    touch-action: pan-y;
+    transition:
+      opacity 0.6s ease,
+      visibility 0s linear 0.6s;
+  }
+
+  .model[data-dragging] {
+    cursor: grabbing;
+  }
+
+  [data-view='model'] .model {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.6s ease;
+  }
+
+  [data-view='model'] .stand {
+    opacity: 0;
+  }
+
+  .dither {
+    all: unset;
+    position: absolute;
+    z-index: 3;
+    right: 16px;
+    top: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 9px;
+    border-radius: 4px;
+    font: 500 11px/1 var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #e4ead8;
+    background: rgba(10, 24, 17, 0.85);
+    box-shadow: inset 0 0 0 1px rgba(240, 248, 222, 0.25);
+    cursor: pointer;
+  }
+
+  .dither::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px rgba(228, 234, 216, 0.6);
+  }
+
+  .dither[aria-pressed='true']::before {
+    background: #9fe0b4;
+    box-shadow: 0 0 6px #9fe0b4;
+  }
+
+  .dither:hover {
+    box-shadow: inset 0 0 0 1px rgba(240, 248, 222, 0.6);
+  }
+
+  .dither:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .dither[hidden] {
+    display: none;
+  }
+
+  /* ── The stand-in figure (artboard): a turntable disc and a figure of rounded parts ── */
+  .stand {
+    position: absolute;
+    inset: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .disc {
+    position: absolute;
+    left: 52%;
+    bottom: 9%;
+    width: 50%;
+    aspect-ratio: 3.6 / 1;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: #1c1f1e;
+    box-shadow:
+      inset 0 -6px 0 #0d0f0e,
+      0 0 0 1px #3d4441,
+      0 18px 30px -10px rgba(0, 0, 0, 0.6);
+  }
+
+  /* The ticks turn in a square plane, squashed to the disc's ellipse, so they stay on the rim as they spin. */
+  .plane {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 50%;
+    aspect-ratio: 1;
+    transform: translateY(-50%) scaleY(calc(1 / 3.6));
+  }
+
+  .ticks {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: repeating-conic-gradient(#8a918d 0 1.5deg, transparent 1.5deg 15deg);
+    mask-image: radial-gradient(closest-side, transparent 82%, #000 84%);
+    animation: spin 12s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+
+  .mech {
+    position: absolute;
+    left: 52%;
+    bottom: 15%;
+    width: 160px;
+    height: 306px;
+    margin-left: -80px;
+    transform-style: preserve-3d;
+  }
+
+  [data-mode='built'] .mech {
+    animation: sway 7s ease-in-out infinite;
+  }
+
+  @keyframes sway {
+    0%,
+    100% {
+      transform: perspective(700px) rotateY(-18deg);
+    }
+    50% {
+      transform: perspective(700px) rotateY(18deg);
+    }
+  }
+
+  .pt {
+    position: absolute;
+    box-sizing: border-box;
+  }
+
+  [data-mode='built'] .pt {
+    background-image: radial-gradient(circle, rgba(236, 234, 228, 0.9) 1.15px, transparent 1.45px);
+    background-size: 5px 5px;
+    box-shadow: inset 0 0 0 1.5px rgba(236, 234, 228, 0.55);
+    mask-image: linear-gradient(100deg, rgba(0, 0, 0, 0.45), #000 45%, rgba(0, 0, 0, 0.6));
+  }
+
+  [data-mode='built'] .pt.acc {
+    background-image: radial-gradient(circle, rgba(242, 193, 46, 0.95) 1.15px, transparent 1.45px);
+  }
+
+  [data-mode='built'] .pt.acc2 {
+    background-image: radial-gradient(circle, rgba(120, 170, 255, 0.95) 1.15px, transparent 1.45px);
+  }
+
+  [data-mode='ghost'] .pt {
+    border: 1.5px dashed rgba(236, 234, 228, 0.45);
+    background-image: radial-gradient(circle, rgba(236, 234, 228, 0.22) 0.8px, transparent 1.1px);
+    background-size: 7px 7px;
+  }
+
+  /* ── Kit details under the bench ── */
+  .card {
+    padding: 22px 28px 26px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .card[hidden] {
+    display: none;
+  }
+
+  .card-head {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .card-title {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .code {
+    font: 500 12px/1.2 var(--font-mono);
+    color: var(--ink-muted);
+  }
+
+  .name {
+    font-size: 28px;
+    font-stretch: 112%;
+  }
+
+  .card .eyebrow {
+    font-size: 10.5px;
+  }
+
+  .val {
+    margin-top: 6px;
+    font-size: 15px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font: 500 10.5px/1 var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .p-built {
+    background: #1c2b55;
+    color: #b9c8ff;
+  }
+
+  .p-next {
+    background: #3a3218;
+    color: #f2d27a;
+  }
+
+  /* ── Kit list ── */
+  .kits {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .krow {
+    all: unset;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 22px;
+    gap: 16px;
+    align-items: center;
+    width: 100%;
+    padding: 18px 14px 18px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: background 0.2s;
+  }
+
+  .krow:hover {
+    background: var(--tint-hover);
+  }
+
+  .krow.sel {
+    background: var(--tint);
+  }
+
+  .krow:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+  }
+
+  .ktext {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kname {
+    font: 500 17px/1.3 var(--font-sans);
+  }
+
+  .kmeta {
+    font: 400 14px/1.45 var(--font-sans);
+    color: var(--ink-muted);
+    margin-top: 3px;
+  }
+
+  .kkind {
+    font: 500 11px/1 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .kkind.built {
+    color: #b9c8ff;
+  }
+
+  .kkind.next {
+    color: #f2d27a;
+  }
+
+  .krow .arrow {
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity 0.2s,
+      transform 0.2s;
+  }
+
+  .krow.sel .arrow {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticks,
+    [data-mode='built'] .mech {
+      animation: none;
+    }
   }
 
   @media (max-width: 1023px) {
@@ -79,7 +631,21 @@
     }
 
     .bench {
-      height: 380px;
+      height: 420px;
+    }
+
+    .card {
+      padding: 20px 16px 24px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .card > div:last-child {
+      grid-column: 1 / -1;
+    }
+
+    .mech {
+      transform-origin: 50% 100%;
+      scale: 0.8;
     }
   }
 </style>

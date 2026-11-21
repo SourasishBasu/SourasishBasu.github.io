@@ -79,3 +79,8 @@ SOFTWARE.
 - `anonymous-digital-mark.png`: Anonymous Digital's site icon (https://www.anonymousdigital.com/).
 
 Both are trademarks of their owners, shown to name my employers.
+
+## Gunpla viewer (`src/components/off/gunpla/`)
+
+- **three.js** 0.187.0 (https://threejs.org), MIT License, Copyright © 2010-2026 three.js authors. Loaded on demand with the viewer, including the addons `RoomEnvironment`, `EffectComposer`, `RenderPass`, `ShaderPass` and `OutputPass`.
+- The **Gundam Dynames** model is built in code from primitives (`dynames.ts`) after photos of the Bandai MG 1/100 kit; no third-party mesh, scan or line art is used. Gundam and its mobile suit designs are © Sotsu·Sunrise; Gunpla is a trademark of Bandai Spirits.
