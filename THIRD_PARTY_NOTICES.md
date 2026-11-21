@@ -13,8 +13,8 @@ OFL 1.1: https://openfontlicense.org
 
 Brand marks belong to their owners and are shown only to say which tools I use.
 
-- **simple-icons** 16.37.0 (https://simpleicons.org), released under CC0 1.0. Files: `ansible`, `claude`, `cursor`, `docker`, `ghostty`, `githubactions`, `gnubash`, `go`, `googlecloud`, `grafana`, `kubernetes`, `modelcontextprotocol`, `opencode`, `opentelemetry`, `postgresql`, `prometheus`, `python`, `snowflake`, `temporal`, `terraform`, `typescript`, `victoriametrics`.
-- **devicon** 2.18.0 (https://devicon.dev). Files: `aws`, `azure`, `argocd`, `loki`.
+- **simple-icons** 16.37.0 (https://simpleicons.org), released under CC0 1.0. Files: `ansible`, `claude`, `cursor`, `docker`, `ghostty`, `githubactions`, `gnubash`, `go`, `googlecloud`, `grafana`, `kubernetes`, `obsidian`, `opencode`, `opentelemetry`, `podman`, `postgresql`, `prometheus`, `python`, `snowflake`, `temporal`, `terraform`, `victoriametrics`.
+- **devicon** 2.18.0 (https://devicon.dev). Files: `aws` (the multi-colour `amazonwebservices-original`), `azure`, `argocd`, `loki`.
 
 ```
 MIT License

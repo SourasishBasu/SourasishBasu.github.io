@@ -12,6 +12,10 @@ export interface Metric {
 export interface Job {
   id: 'atlan' | 'adm';
   company: string;
+  /** Name in the switcher. */
+  shortName: string;
+  /** Years in the switcher. */
+  years: string;
   initials: string;
   /** Square brand mark in public/logos/ (the company's own file). */
   logo?: string;
@@ -32,6 +36,8 @@ export const jobs: Job[] = [
   {
     id: 'atlan',
     company: 'Atlan',
+    shortName: 'Atlan',
+    years: '2025–now',
     initials: 'At',
     logo: '/logos/atlan-mark.png',
     logoFramed: true,
@@ -67,6 +73,8 @@ export const jobs: Job[] = [
   {
     id: 'adm',
     company: 'Anonymous Digital Marketing',
+    shortName: 'Anonymous Digital',
+    years: '2024',
     initials: 'AD',
     logo: '/logos/anonymous-digital-mark.png',
     role: 'Software Engineer Intern',

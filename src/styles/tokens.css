@@ -13,7 +13,7 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   --top-h: 56px;
-  --sheet-w: min(1312px, calc(100% - 48px));
+  --sheet-w: min(1376px, calc(100% - 32px));
 
   /* surfaces */
   --mat: #e8ece6;
@@ -24,8 +24,6 @@
   --rule: #daddd7;
   --tint: #eff1ec;
   --tint-hover: #f1f3ef;
-  --tick-major: #7f897d;
-  --tick-minor: #a9b2a7;
   --cross: #141619;
   --top-bg: rgba(251, 251, 249, 0.92);
 

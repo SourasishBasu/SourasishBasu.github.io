@@ -1,8 +1,8 @@
 ---
 import { jobs } from '../../data/experience';
 
-// Tabs: Atlan is selected in the HTML; the script below switches panels on
-// click and with the arrow keys, Home and End. On phones there are no tabs:
+// Tabs: a segmented control in the top bar's style. Atlan is selected in the
+// HTML; the script switches panels on click and with the arrow keys, Home and End. On phones there are no tabs:
 // both companies are shown one after the other (Phone.dc.html).
 const selected = 'atlan';
 const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red' } as const;
@@ -12,7 +12,7 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
   <div class="xp-side">
     <span class="eyebrow">Work experience</span>
     <h2 class="display h2">Where I've worked</h2>
-    <div role="tablist" aria-label="Where I've worked" aria-orientation="vertical" class="xp-tabs">
+    <div role="tablist" aria-label="Where I've worked" class="xp-seg">
       {
         jobs.map((j) => (
           <button
@@ -22,12 +22,12 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
             aria-controls={j.id}
             aria-selected={j.id === selected ? 'true' : 'false'}
             tabindex={j.id === selected ? 0 : -1}
-            class:list={['xbtn', { sel: j.id === selected }]}
+            class:list={['seg-tab', { sel: j.id === selected }]}
           >
-            <span class:list={['logo logo-sm', { 'has-img': j.logo, framed: j.logoFramed }]}>{j.logo ? <img src={j.logo} alt="" width="36" height="36" /> : j.initials}</span>
-            <span class="xbtn-text">
-              <span class="xbtn-name">{j.company}</span>
-              <span class="mono xbtn-meta">{j.short}</span>
+            <span class:list={['logo logo-xs', { 'has-img': j.logo, framed: j.logoFramed }]}>{j.logo ? <img src={j.logo} alt="" width="28" height="28" /> : j.initials}</span>
+            <span class="seg-text">
+              <span class="seg-name">{j.shortName}</span>
+              <span class="mono seg-years">{j.years}</span>
             </span>
           </button>
         ))
@@ -145,55 +145,76 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
     gap: 16px;
   }
 
-  .xp-tabs {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  /* A segmented control like the top bar's toggle: two companies side by side, the selected one in flap black. */
+  .xp-seg {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
     margin-top: 12px;
+    padding: 4px;
+    border-radius: 12px;
+    background: var(--seg-bg);
+    box-shadow: inset 0 0 0 1px var(--seg-ring);
   }
 
-  .xbtn {
+  .seg-tab {
     all: unset;
     box-sizing: border-box;
     display: flex;
     align-items: center;
-    gap: 14px;
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    color: var(--ink);
+    gap: 8px;
+    min-width: 0;
+    padding: 10px;
+    border-radius: 9px;
+    color: var(--seg-text);
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition:
+      background-color 0.2s,
+      color 0.2s;
   }
 
-  .xbtn:hover {
-    background: var(--tint-hover);
+  .seg-tab:not(.sel):hover {
+    color: var(--seg-hover-text);
+    background: var(--seg-hover-bg);
   }
 
-  .xbtn.sel {
-    background: var(--tint);
-    box-shadow: inset 3px 0 0 var(--ink);
+  .seg-tab.sel {
+    background: var(--seg-on);
+    color: var(--seg-on-text);
+    box-shadow: var(--seg-on-shadow);
   }
 
-  .xbtn:focus-visible {
+  .seg-tab:focus-visible {
     outline: 2px solid var(--focus);
-    outline-offset: 1px;
+    outline-offset: 2px;
   }
 
-  .xbtn-text {
+  .seg-text {
     display: flex;
     flex-direction: column;
     gap: 3px;
     min-width: 0;
   }
 
-  .xbtn-name {
-    font: 500 15.5px/1.2 var(--font-sans);
+  .seg-name {
+    font: 500 14px/1.2 var(--font-sans);
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .xbtn-meta {
-    font-size: 11.5px;
-    color: var(--graphite);
+  .seg-years {
+    font-size: 11px;
+    opacity: 0.75;
+  }
+
+  .seg-tab .logo.has-img {
+    outline-offset: 2px;
+  }
+
+  .seg-tab.sel .logo.has-img {
+    outline-color: rgba(255, 255, 255, 0.28);
   }
 
   .logo {
@@ -210,6 +231,8 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
   .logo.has-img {
     overflow: hidden;
     background: var(--paper);
+    outline: 1px solid var(--rail);
+    outline-offset: 3px;
   }
 
   .logo img {
@@ -224,9 +247,10 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
     height: 100%;
   }
 
-  .logo-sm {
-    width: 36px;
-    height: 36px;
+  .logo-xs {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
   }
 
   .logo-lg {
@@ -375,18 +399,9 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
       padding: 56px 40px 24px;
     }
 
-    .xp-tabs {
-      flex-direction: row;
+    .xp-seg {
+      max-width: 480px;
       margin-top: 8px;
-    }
-
-    .xbtn {
-      flex: 1 1 0;
-      min-width: 0;
-    }
-
-    .xbtn.sel {
-      box-shadow: inset 0 -3px 0 var(--ink);
     }
 
     .xp-detail {
@@ -418,7 +433,7 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
       gap: 8px;
     }
 
-    .xp-tabs {
+    .xp-seg {
       display: none;
     }
 

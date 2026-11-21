@@ -3,7 +3,7 @@
  * via the Wayback Machine): every disc lies tilted back at the same angle, and
  * the row climbs diagonally to the right, nearer and larger toward the right.
  * Distances are in disc steps (0 = the disc in focus); px values are at the
- * desktop disc size and CSS scales them with --u.
+ * desktop disc size and get multiplied by the stage's unit for smaller discs.
  */
 
 export interface DiscPose {
@@ -18,9 +18,13 @@ export interface DiscPose {
   visible: boolean;
 }
 
-export const STEP_X = 300;
-export const STEP_Y = 92;
-export const STEP_Z = 110;
+export const STEP_X = 290;
+export const STEP_Y = 86;
+export const STEP_Z = 100;
+/** Discs this many steps or more from the focus aren't drawn. Discs between 2.5 and this are drawn but transparent, so they're already rasterised when they slide in. */
+export const RENDER_RADIUS = 4;
+/** Posters load for discs within this many steps, so the next ones are ready. */
+export const LOAD_RADIUS = 5;
 
 /** Pose of a disc `d` steps from the focus (negative = left, farther). */
 export function discPose(d: number): DiscPose {
@@ -37,8 +41,8 @@ export function discPose(d: number): DiscPose {
   };
 }
 
-/** Which disc a pinned scroll has reached: `scrolled` px into a track of `step` px per disc, as a fraction. */
-export function positionFromScroll(scrolled: number, step: number, count: number) {
-  if (count < 2 || step <= 0) return 0;
-  return Math.max(0, Math.min(count - 1, scrolled / step));
+/** The CSS transform for a disc `d` steps away, at `unit` (1 = desktop disc size). */
+export function discTransform(d: number, unit: number) {
+  const p = discPose(d);
+  return `translate3d(${(p.x * unit).toFixed(1)}px,${(p.y * unit).toFixed(1)}px,${(p.z * unit).toFixed(1)}px) scale(${p.scale.toFixed(3)})`;
 }

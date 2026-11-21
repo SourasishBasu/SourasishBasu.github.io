@@ -23,6 +23,7 @@ Node 26.13.1 LTS (see `.node-version` / `.nvmrc`; `nvm use` picks it up).
 | `npm run preview` | Serve `dist/` locally |
 | `npm run check` | Type-check `.astro` and `.ts` files |
 | `npm test` | Unit tests plus checks on the built site (run `npm run build` first) |
+| `npm run films:refresh` | Refresh the committed Letterboxd snapshot used when a build can't reach Letterboxd |
 
 ## Layout
 
@@ -40,6 +41,10 @@ public/        favicon, tool icons, legacy policy pages and sitemap (kept at the
 tests/         unit.test.ts, build.test.ts
 ```
 
+## Letterboxd
+
+The film shelf on Off the clock is read at build time from the public diary RSS (`src/data/letterboxd.ts`): the latest films rated 3.5+ (12 of them), each with its still and director from its film page. If Letterboxd can't be reached, the build uses `src/data/recent-films.snapshot.json`. The all-time and this-year counts live behind a bot check on the profile page, so the build tries once and otherwise uses the stored numbers in `src/data/films.ts`. A scheduled rebuild keeps it fresh (see Deploy).
+
 ## Deploy
 
 Cloudflare Pages, connected to this repository:
@@ -47,6 +52,7 @@ Cloudflare Pages, connected to this repository:
 - Build command: `npm run build`
 - Output directory: `dist`
 - Node version: from `.node-version`
+- Freshness: a daily rebuild through a Pages deploy hook (triggered by a scheduled Cloudflare Worker) refreshes the Letterboxd shelf
 
 ## Credits
 

@@ -8,6 +8,8 @@ export interface Tool {
   icon: string;
   /** Brand colour the logo is drawn in. */
   color: string;
+  /** Show the file's own colours (a multi-colour logo) instead of a one-colour mask. */
+  full?: boolean;
 }
 
 export interface ToolGroup {
@@ -21,7 +23,7 @@ export const groups: ToolGroup[] = [
   {
     title: 'Cloud and clusters',
     tools: [
-      { name: 'AWS', icon: 'aws', color: '#FF9900' },
+      { name: 'AWS', icon: 'aws', color: '#FF9900', full: true },
       { name: 'Azure', icon: 'azure', color: '#0089D6' },
       { name: 'Google Cloud', icon: 'googlecloud', color: '#4285F4' },
       { name: 'Kubernetes', icon: 'kubernetes', color: '#326CE5' },
@@ -36,6 +38,7 @@ export const groups: ToolGroup[] = [
       { name: 'Temporal', icon: 'temporal', color: '#141619' },
       { name: 'GitHub Actions', icon: 'githubactions', color: '#2088FF' },
       { name: 'Docker', icon: 'docker', color: '#2496ED' },
+      { name: 'Podman', icon: 'podman', color: '#892CA0' },
     ],
   },
   {
@@ -54,7 +57,6 @@ export const groups: ToolGroup[] = [
     tools: [
       { name: 'Go', icon: 'go', color: '#00ADD8' },
       { name: 'Python', icon: 'python', color: '#3776AB' },
-      { name: 'TypeScript', icon: 'typescript', color: '#3178C6' },
       { name: 'Bash', icon: 'gnubash', color: '#4EAA25' },
       { name: 'PostgreSQL', icon: 'postgresql', color: '#4169E1' },
     ],
@@ -67,7 +69,7 @@ export const groups: ToolGroup[] = [
       { name: 'opencode', icon: 'opencode', color: '#FFFFFF' },
       { name: 'Cursor', icon: 'cursor', color: '#FFFFFF' },
       { name: 'Ghostty', icon: 'ghostty', color: '#8A9BFF' },
-      { name: 'Model Context Protocol', icon: 'modelcontextprotocol', color: '#FFFFFF' },
+      { name: 'Obsidian', icon: 'obsidian', color: '#7C3AED' },
     ],
   },
 ];

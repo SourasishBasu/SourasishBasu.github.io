@@ -45,14 +45,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <a class="skip" href="#main">Skip to content</a>
     <div class="mat">
     <div class="sheet">
-      {
-        theme === 'light' && (
-          <>
-            <div class="ruler l" aria-hidden="true" />
-            <div class="ruler r" aria-hidden="true" />
-          </>
-        )
-      }
       <TopBar page={page} />
       <main id="main">
         <slot />

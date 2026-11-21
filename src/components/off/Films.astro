@@ -1,40 +1,60 @@
 ---
-import { fiveStar, filmsLogged, letterboxd } from '../../data/films';
-import { discPose } from './discs';
+import { letterboxd } from '../../data/films';
+import { getFilmStats } from '../../data/film-stats';
+import { getRecentFilms, MIN_RATING } from '../../data/recent-films';
+import { stars, type RecentFilm } from '../../data/letterboxd';
+import { discPose, RENDER_RADIUS, LOAD_RADIUS } from './discs';
 
-// Films: the five-star Letterboxd films as CDs, after Ravi Klaassens' A24
-// concept site. Each disc lies tilted back with a silver edge, a clear hub and
-// a credit ring; the row climbs diagonally to the right. The section pins
-// while you scroll through it and the scroll carries the row along (on phones
-// a normal swipe does it). Arrows, keys, a click on a disc, a drag or a
-// sideways swipe also move it. The layout renders server-side, so it reads
-// correctly before (or without) the script.
-const count = filmsLogged === null ? null : String(filmsLogged);
-const flaps = count ? [...count] : ['#', '#', '#', '#'];
-const first = fiveStar[0];
+// Films: the latest Letterboxd films rated 3.5+ as CDs, after Ravi Klaassens' A24
+// concept site. Each disc lies tilted back: a landscape still printed around a
+// clear hub (frosted ring, metallic ring, clear lip, in A24's proportions), the
+// title set on the art, a credit ring near the rim, a silver edge and a soft
+// strip-light gloss. Arrows, keys, a click on a disc, a drag or a sideways
+// swipe move the row. Only discs near the focus are drawn, and only those load
+// their art. The layout renders server-side, so it reads correctly before (or
+// without) the script.
+const stats = await getFilmStats();
+const { films } = await getRecentFilms();
+const flaps = [...String(stats.total)];
+const first = films[0];
 const pad = (n: number) => String(n).padStart(2, '0');
-const meta = fiveStar.map((f) => ({ title: f.title, year: f.year, director: f.director, href: letterboxd.film(f.slug) }));
-// The credit ring: repeated to roughly fill the circle (~130 characters at this size), then
-// fitted exactly with textLength so the end meets the start without overlapping.
-const RING = 2 * Math.PI * 44;
-const ring = (f: (typeof fiveStar)[number]) => {
-  const one = `Directed by ${f.director} · ${f.year} · ★★★★★ · ${letterboxd.user} · `.toUpperCase();
-  return one.repeat(Math.max(1, Math.round(130 / one.length)));
+const day = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const meta = films.map((f) => ({
+  title: f.title,
+  director: f.director,
+  href: f.href,
+  stars: stars(f.rating ?? 0),
+  rating: f.rating,
+  watched: day(f.watched),
+}));
+
+// The credit ring is a static SVG image, not live text: text on a path re-lays out whenever the
+// disc's styles change, which is what made the first version stutter.
+const RING_R = 44;
+const ringFor = (f: RecentFilm) => {
+  const one = `${f.title} · ${f.director ? `Directed by ${f.director} · ` : ''}${f.year} · `.toUpperCase();
+  const text = one.repeat(Math.max(1, Math.round(120 / one.length))).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const C = (2 * Math.PI * RING_R).toFixed(1);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><path id="r" d="M50,50 m-${RING_R},0 a${RING_R},${RING_R} 0 1,1 ${2 * RING_R},0 a${RING_R},${RING_R} 0 1,1 -${2 * RING_R},0"/></defs><text font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="2.4" font-weight="600" letter-spacing=".45" fill="rgba(255,255,255,.86)" stroke="rgba(0,0,0,.45)" stroke-width=".3" paint-order="stroke"><textPath href="#r" textLength="${C}" lengthAdjust="spacing">${text}</textPath></text></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+};
+const ssrTransform = (d: number) => {
+  const p = discPose(d);
+  return `translate3d(calc(${p.x}px * var(--u)),calc(${p.y}px * var(--u)),calc(${p.z}px * var(--u))) scale(${p.scale})`;
 };
 ---
 
-<section class="band films" data-films={JSON.stringify(meta)} style={`--n:${fiveStar.length}`}>
+<section class="band films" data-films={JSON.stringify(meta)}>
   <div class="intro">
     <span class="eyebrow">Films</span>
     <h2 class="display h2">I watch a lot of films</h2>
-    <p class="muted">Every one gets logged and rated on Letterboxd. Spin through the ones that got five stars.</p>
+    <p class="muted">Every one gets logged and rated on Letterboxd. These are the latest that earned {MIN_RATING} stars or more.</p>
     <div class="counter">
       <span class="flap-row" aria-hidden="true">
         {flaps.map((ch) => <span class="flap count-flap">{ch}</span>)}
       </span>
-      <span class="mono count-label">
-        {count ? <span class="sr-only">{count} </span> : null}films logged, all time
-      </span>
+      <span class="mono count-label"><span class="sr-only">{stats.total} </span>films logged, all time</span>
+      {stats.thisYear !== null && <span class="this-year">{stats.thisYear} this year</span>}
     </div>
     <a class="lbx" href={letterboxd.profile}>
       <span class="dots" aria-hidden="true"><i class="o"></i><i class="g"></i><i class="b"></i></span>
@@ -42,72 +62,70 @@ const ring = (f: (typeof fiveStar)[number]) => {
     </a>
   </div>
 
-  <div class="track vline">
-    <div class="pin">
-      <div class="player" role="region" aria-roledescription="carousel" aria-label="Five-star films">
-        <svg class="grain" aria-hidden="true">
-          <filter id="films-grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch" /><feColorMatrix type="saturate" values="0" /></filter>
-          <rect width="100%" height="100%" filter="url(#films-grain)" />
-        </svg>
-        {
-          fiveStar.map((f, i) => {
-            const p = discPose(i);
-            return (
-              <button
-                type="button"
-                class:list={['cd', { focus: i === 0 }]}
-                data-i={i}
-                aria-label={`${f.title} (${f.year})`}
-                tabindex={i === 0 ? 0 : -1}
-                style={`--x:${p.x};--y:${p.y};--z:${p.z};--s:${p.scale};--d:${i};opacity:${p.opacity};z-index:${p.order};${p.visible ? '' : 'visibility:hidden;'}`}
-              >
-                <span class="disc">
-                  <span class="edge e4" />
-                  <span class="edge e3" />
-                  <span class="edge e2" />
-                  <span class="edge e1" />
-                  <span class="face">
-                    <span class="spin">
-                      <img class="art" src={f.poster} alt="" width="600" height="900" loading={i < 3 ? 'eager' : 'lazy'} decoding="async" referrerpolicy="no-referrer" draggable="false" />
-                      <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
-                        <defs>
-                          <path id={`ring-${i}`} d="M50,50 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" />
-                        </defs>
-                        <text>
-                          <textPath href={`#ring-${i}`} textLength={RING.toFixed(1)} lengthAdjust="spacing">{ring(f)}</textPath>
-                        </text>
-                      </svg>
-                    </span>
-                    <span class="tone" />
-                    <span class="sheen" />
-                    <span class="hub" />
+  <div class="stage vline">
+    <div class="player" role="region" aria-roledescription="carousel" aria-label="Recently rated films">
+      {
+        films.map((f, i) => {
+          const p = discPose(i);
+          const load = i <= LOAD_RADIUS;
+          return (
+            <button
+              type="button"
+              class:list={['cd', { focus: i === 0 }]}
+              data-i={i}
+              aria-label={`${f.title} (${f.year})`}
+              tabindex={i === 0 ? 0 : -1}
+              hidden={i >= RENDER_RADIUS}
+              style={`transform:${ssrTransform(i)};opacity:${p.opacity};z-index:${p.order}`}
+            >
+              <span class="disc">
+                <span class="edge e2" />
+                <span class="edge e1" />
+                <span class="face">
+                  <span class="spin">
+                    <img
+                      class="art"
+                      src={load ? (f.still ?? f.poster ?? undefined) : undefined}
+                      data-src={f.still ?? f.poster ?? undefined}
+                      alt=""
+                      width="1200"
+                      height="675"
+                      loading={i < 3 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      referrerpolicy="no-referrer"
+                      draggable="false"
+                    />
+                    <span class="shade" />
+                    <span class="title">{f.title}</span>
+                    <img class="ring" src={ringFor(f)} alt="" draggable="false" />
                   </span>
-                  <span class="halo" />
+                  <span class="gloss" />
+                  <span class="matrix" />
+                  <span class="hub" />
                 </span>
-              </button>
-            );
-          })
-        }
+                <span class="halo" />
+              </span>
+            </button>
+          );
+        })
+      }
+    </div>
+    <div class="info">
+      <div class="now" aria-live="polite">
+        <a class="display now-title" href={meta[0].href} data-title>{first.title}</a>
+        <span class="now-meta" data-director-line hidden={!first.director}><span class="mono label">Directed by</span> <span data-director>{first.director}</span></span>
       </div>
-      <div class="info">
-        <div class="now" aria-live="polite">
-          <a class="display now-title" href={meta[0].href} data-title>{first.title}</a>
-          <span class="now-meta">
-            <span class="mono label">Directed by</span> <span data-director>{first.director}</span>
-          </span>
-        </div>
-        <div class="side">
-          <span class="mono now-pos">
-            <span data-year>{first.year}</span> · <span class="stars" aria-label="five stars">★★★★★</span> · <span data-pos>{pad(1)} / {pad(fiveStar.length)}</span>
-          </span>
-          <div class="ctrls">
-            <button type="button" class="ctrl" data-step="-1" aria-label="Previous film">
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5" /></svg>
-            </button>
-            <button type="button" class="ctrl" data-step="1" aria-label="Next film">
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5" /></svg>
-            </button>
-          </div>
+      <div class="side">
+        <span class="mono now-pos">
+          <span class="stars" data-stars aria-label={`${first.rating} stars`}>{meta[0].stars}</span> · <span data-watched>{meta[0].watched}</span> · <span data-pos>{pad(1)} / {pad(films.length)}</span>
+        </span>
+        <div class="ctrls">
+          <button type="button" class="ctrl" data-step="-1" aria-label="Previous film">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5" /></svg>
+          </button>
+          <button type="button" class="ctrl" data-step="1" aria-label="Next film">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5" /></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -117,16 +135,11 @@ const ring = (f: (typeof fiveStar)[number]) => {
 
 <style>
   .films {
-    --pin: calc(100svh - var(--top-h));
-    --step: 120px;
     display: grid;
     grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
-    align-items: start;
   }
 
   .intro {
-    position: sticky;
-    top: var(--top-h);
     padding: 64px 40px;
     display: flex;
     flex-direction: column;
@@ -157,6 +170,11 @@ const ring = (f: (typeof fiveStar)[number]) => {
   .count-label {
     font-size: 12px;
     color: var(--ink-muted);
+  }
+
+  .this-year {
+    font-size: 15px;
+    color: var(--ink-2);
   }
 
   .lbx {
@@ -205,29 +223,17 @@ const ring = (f: (typeof fiveStar)[number]) => {
     background: #40bcf4;
   }
 
-  /* The pinned stage. The track only grows tall once the script takes over the scroll. */
-  .track {
-    min-width: 0;
-  }
-
-  .films.scrub .track {
-    height: calc(var(--pin) + (var(--n) - 1) * var(--step));
-  }
-
-  .pin {
-    position: sticky;
-    top: var(--top-h);
-    height: var(--pin);
+  .stage {
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
 
   .player {
     --u: 1;
-    --disc: 380px;
+    --disc: 340px;
     position: relative;
-    flex: 1;
-    min-height: 0;
+    height: 540px;
     overflow: hidden;
     perspective: 1400px;
     background: radial-gradient(70% 70% at 50% 46%, #1b1d22, #0b0c0e 78%);
@@ -236,52 +242,47 @@ const ring = (f: (typeof fiveStar)[number]) => {
     user-select: none;
   }
 
-  .grain {
+  /* Paper-ish grain over the stage: a static texture, no blend mode, so it costs nothing per frame. */
+  .player::after {
+    content: '';
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.09;
-    mix-blend-mode: screen;
+    z-index: 200;
     pointer-events: none;
+    background: url('/textures/noise.png');
+    background-size: 128px 128px;
+    opacity: 0.7;
+  }
+
+  .player.dragging {
+    cursor: grabbing;
   }
 
   .cd {
     all: unset;
     position: absolute;
     left: 50%;
-    top: 46%;
+    top: 48%;
     width: var(--disc);
     height: var(--disc);
     margin: calc(var(--disc) / -2) 0 0 calc(var(--disc) / -2);
     border-radius: 50%;
     cursor: pointer;
-    transform: translate3d(calc(var(--x, 0) * var(--u) * 1px), calc(var(--y, 0) * var(--u) * 1px), calc(var(--z, 0) * var(--u) * 1px))
-      scale(var(--s, 1));
     transition:
       transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
       opacity 0.4s ease;
   }
 
-  .player.live .cd {
+  .cd[hidden] {
+    display: none;
+  }
+
+  .player.dragging .cd {
     transition: none;
   }
 
   .cd:focus-visible {
     outline: none;
-  }
-
-  /* The face is masked (for the hole), which would clip an outline, so focus gets its own ring. */
-  .halo {
-    position: absolute;
-    inset: -8px;
-    border-radius: 50%;
-    transform: translateZ(1px);
-    pointer-events: none;
-  }
-
-  .cd:focus-visible .halo {
-    box-shadow: 0 0 0 2px var(--focus);
   }
 
   /* Every disc lies back at the same angle; the edge layers sit under the face for thickness. */
@@ -297,39 +298,27 @@ const ring = (f: (typeof fiveStar)[number]) => {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    -webkit-mask-image: radial-gradient(circle, transparent 0 8%, #000 8.4%);
-    mask-image: radial-gradient(circle, transparent 0 8%, #000 8.4%);
+    -webkit-mask-image: radial-gradient(circle closest-side, transparent 0 14%, #000 calc(14% + 0.6px));
+    mask-image: radial-gradient(circle closest-side, transparent 0 14%, #000 calc(14% + 0.6px));
   }
 
+  /* A mirror-like silver edge: light and dark bands as the rim turns away from the light. */
   .edge {
-    background: radial-gradient(circle, #9aa0aa 0 60%, #d6dae1 92%, #8b919b);
+    background: conic-gradient(from 200deg, #f4f6f9, #9aa1ab 18%, #e9ecf0 32%, #7f8792 50%, #f1f3f6 68%, #a3aab3 84%, #f4f6f9);
   }
 
   .e1 {
-    transform: translateZ(-1.5px);
+    transform: translateZ(-2px);
   }
 
   .e2 {
-    transform: translateZ(-3px);
-    filter: brightness(0.9);
-  }
-
-  .e3 {
-    transform: translateZ(-4.5px);
-    filter: brightness(0.8);
-  }
-
-  .e4 {
-    transform: translateZ(-6px);
-    filter: brightness(0.6);
+    transform: translateZ(-4px);
+    filter: brightness(0.62);
   }
 
   .face {
     overflow: hidden;
-    background: #15171b;
-    box-shadow:
-      inset 0 0 0 1.5px rgba(255, 255, 255, 0.35),
-      inset 0 0 0 7px rgba(255, 255, 255, 0.05);
+    background: #0c0c0e;
   }
 
   .spin {
@@ -338,7 +327,8 @@ const ring = (f: (typeof fiveStar)[number]) => {
   }
 
   .cd.focus .spin {
-    animation: spin 24s linear infinite;
+    animation: spin 28s linear infinite;
+    will-change: transform;
   }
 
   .art {
@@ -346,8 +336,30 @@ const ring = (f: (typeof fiveStar)[number]) => {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 50% 35%;
+    filter: saturate(1.05) contrast(1.06) brightness(0.94);
     pointer-events: none;
+  }
+
+  /* A gentle darkening behind the title so it reads on bright stills. */
+  .shade {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(80% 45% at 50% 22%, rgba(0, 0, 0, 0.42), transparent 70%);
+  }
+
+  .title {
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    top: 15%;
+    text-align: center;
+    font: 700 calc(var(--disc) * 0.068) / 0.95 var(--font-display);
+    font-stretch: 75%;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: #fff;
+    text-wrap: balance;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
   }
 
   .ring {
@@ -355,59 +367,62 @@ const ring = (f: (typeof fiveStar)[number]) => {
     inset: 0;
     width: 100%;
     height: 100%;
-    overflow: visible;
   }
 
-  .ring text {
-    font: 500 2.6px var(--font-mono);
-    letter-spacing: 0.55px;
-    fill: rgba(255, 255, 255, 0.82);
-    stroke: rgba(0, 0, 0, 0.45);
-    stroke-width: 0.35px;
-    paint-order: stroke;
-  }
-
-  .tone {
+  /*
+   * Gloss: the soft strip-light highlight across the printed face (A24 lights the disc with a
+   * long top strip), a faint clear band at the very rim, and print texture.
+   */
+  .gloss {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(circle, rgba(10, 11, 13, 0.5) 1.1px, transparent 1.4px);
-    background-size: 5px 5px;
-    -webkit-mask-image: linear-gradient(160deg, transparent 45%, #000 85%);
-    mask-image: linear-gradient(160deg, transparent 45%, #000 85%);
+    background:
+      radial-gradient(circle closest-side, transparent 96.4%, rgba(255, 255, 255, 0.26) 97.4%, rgba(255, 255, 255, 0.08) 100%),
+      linear-gradient(118deg, transparent 30%, rgba(255, 255, 255, 0.15) 43%, rgba(255, 255, 255, 0.05) 50%, transparent 60%),
+      url('/textures/noise.png');
+    background-size:
+      100% 100%,
+      100% 100%,
+      128px 128px;
+    opacity: 0.95;
   }
 
-  /* Iridescence: the rainbow turns as the disc moves along the row. */
-  .sheen {
+  /* The metallic "matrix" ring of the hub, brushed silver. */
+  .matrix {
     position: absolute;
     inset: 0;
-    mix-blend-mode: screen;
-    opacity: 0.45;
-    transform: rotate(calc(var(--phase, 0) * 1deg));
-    background: conic-gradient(
-      from 20deg,
-      rgba(255, 255, 255, 0),
-      rgba(255, 255, 255, 0.35) 6%,
-      rgba(150, 200, 255, 0.22) 12%,
-      rgba(255, 255, 255, 0) 22%,
-      rgba(255, 170, 220, 0.25) 52%,
-      rgba(255, 255, 255, 0.3) 58%,
-      rgba(255, 255, 255, 0) 70%
-    );
+    background: conic-gradient(from 30deg, #cfd4db, #f4f6f9, #aeb4bd, #eef1f5, #b9bec7, #f1f3f6, #cfd4db);
+    -webkit-mask-image: radial-gradient(circle closest-side, transparent 0 17.4%, #000 17.6% 21.2%, transparent 21.4%);
+    mask-image: radial-gradient(circle closest-side, transparent 0 17.4%, #000 17.6% 21.2%, transparent 21.4%);
   }
 
-  /* The clear plastic hub: a frosted band with a bright inner ring around the hole. */
+  /* The clear hub around it: a frosted inner ring, then clear plastic with a bright lip. */
   .hub {
     position: absolute;
     inset: 0;
     background: radial-gradient(
-      circle,
-      rgba(0, 0, 0, 0.35) 0 8.6%,
-      rgba(236, 239, 244, 0.92) 9% 10.4%,
-      rgba(206, 211, 219, 0.78) 10.8% 15.6%,
-      rgba(255, 255, 255, 0.9) 16% 16.6%,
-      rgba(150, 156, 166, 0.55) 17% 18.2%,
-      transparent 18.6%
+      circle closest-side,
+      transparent 0 14%,
+      rgba(238, 240, 245, 0.88) 14.1% 17.4%,
+      transparent 17.5% 21.4%,
+      rgba(255, 255, 255, 0.16) 21.5% 23.4%,
+      rgba(255, 255, 255, 0.6) 23.5% 24.1%,
+      rgba(0, 0, 0, 0.25) 24.2% 24.5%,
+      transparent 24.7%
     );
+  }
+
+  /* The face is masked (for the hole), which would clip an outline, so focus gets its own ring. */
+  .halo {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    transform: translateZ(1px);
+    pointer-events: none;
+  }
+
+  .cd:focus-visible .halo {
+    box-shadow: 0 0 0 2px var(--focus);
   }
 
   @keyframes spin {
@@ -423,7 +438,6 @@ const ring = (f: (typeof fiveStar)[number]) => {
     justify-content: space-between;
     gap: 16px;
     border-top: 1px solid var(--rule);
-    background: var(--paper);
   }
 
   .now {
@@ -517,30 +531,25 @@ const ring = (f: (typeof fiveStar)[number]) => {
     }
 
     .intro {
-      position: static;
       padding-bottom: 32px;
     }
 
-    .track {
+    .stage {
       border-left: 0;
       border-top: 1px solid var(--rule);
     }
   }
 
   @media (max-width: 760px) {
-    .films {
-      --pin: calc(100svh - var(--top-h));
-      --step: 100px;
-    }
-
     .intro {
       padding: 40px 16px 28px;
       gap: 16px;
     }
 
     .player {
-      --u: 0.7;
-      --disc: 266px;
+      --u: 0.68;
+      --disc: 232px;
+      height: 380px;
     }
 
     .info {
@@ -560,116 +569,117 @@ const ring = (f: (typeof fiveStar)[number]) => {
 </style>
 
 <script>
-  import { discPose, positionFromScroll } from './discs';
+  import { discPose, discTransform, RENDER_RADIUS, LOAD_RADIUS, STEP_X } from './discs';
 
-  type Meta = { title: string; year: number; director: string; href: string };
+  type Meta = { title: string; director: string | null; href: string; stars: string; rating: number | null; watched: string };
   const root = document.querySelector<HTMLElement>('[data-films]');
   if (root) {
     const films: Meta[] = JSON.parse(root.dataset.films ?? '[]');
-    const track = root.querySelector<HTMLElement>('.track')!;
     const player = root.querySelector<HTMLElement>('.player')!;
     const discs = [...root.querySelectorAll<HTMLButtonElement>('.cd')];
+    const arts = discs.map((d) => d.querySelector<HTMLImageElement>('.art')!);
     const title = root.querySelector<HTMLAnchorElement>('[data-title]')!;
     const director = root.querySelector<HTMLElement>('[data-director]')!;
-    const year = root.querySelector<HTMLElement>('[data-year]')!;
+    const directorLine = root.querySelector<HTMLElement>('[data-director-line]')!;
+    const starsEl = root.querySelector<HTMLElement>('[data-stars]')!;
+    const watched = root.querySelector<HTMLElement>('[data-watched]')!;
     const pos = root.querySelector<HTMLElement>('[data-pos]')!;
     const steps = [...root.querySelectorAll<HTMLButtonElement>('[data-step]')];
     const n = discs.length;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     const pad = (v: number) => String(v).padStart(2, '0');
+    let unit = 1;
+    let focus = 0;
 
-    root.classList.add('scrub');
+    const readUnit = () => {
+      unit = parseFloat(getComputedStyle(player).getPropertyValue('--u')) || 1;
+    };
 
-    const cssPx = (name: string) => parseFloat(getComputedStyle(root).getPropertyValue(name)) || 0;
-    const topBar = () => cssPx('--top-h') || 56;
-    const step = () => cssPx('--step') || 120;
-    /** Page scroll offset at which disc i sits in focus. */
-    const offsetFor = (i: number) => track.getBoundingClientRect().top + window.scrollY - topBar() + i * step();
-
-    let shown = 0;
-    let target = 0;
-    let focus = -1;
-    let raf = 0;
-
-    const layout = (at: number) => {
+    /** Lay out the discs around a (possibly fractional) position. Far discs aren't drawn at all. */
+    const render = (at: number) => {
       discs.forEach((el, i) => {
-        const p = discPose(i - at);
-        el.style.setProperty('--x', p.x.toFixed(1));
-        el.style.setProperty('--y', p.y.toFixed(1));
-        el.style.setProperty('--z', p.z.toFixed(1));
-        el.style.setProperty('--s', p.scale.toFixed(3));
-        el.style.setProperty('--phase', ((i - at) * 40).toFixed(1));
+        const d = i - at;
+        const far = Math.abs(d) >= RENDER_RADIUS;
+        if (el.hidden !== far) el.hidden = far;
+        if (far) return;
+        const p = discPose(d);
+        el.style.transform = discTransform(d, unit);
         el.style.opacity = p.opacity.toFixed(3);
         el.style.zIndex = String(p.order);
-        el.style.visibility = p.visible ? '' : 'hidden';
+        el.style.pointerEvents = p.visible ? '' : 'none';
       });
-      const now = Math.round(at);
-      if (now !== focus) {
-        focus = now;
-        discs.forEach((el, k) => {
-          el.classList.toggle('focus', k === focus);
-          el.tabIndex = k === focus ? 0 : -1;
-        });
-        const f = films[focus];
-        title.textContent = f.title;
-        title.href = f.href;
-        director.textContent = f.director;
-        year.textContent = String(f.year);
-        pos.textContent = `${pad(focus + 1)} / ${pad(n)}`;
-        steps[0].setAttribute('aria-disabled', String(focus === 0));
-        steps[1].setAttribute('aria-disabled', String(focus === n - 1));
-      }
     };
 
-    // Ease the row toward where the scroll says it should be, for a little inertia.
-    const tick = () => {
-      raf = 0;
-      const k = reduced.matches ? 1 : 0.18;
-      shown += (target - shown) * k;
-      if (Math.abs(target - shown) < 0.001) shown = target;
-      layout(shown);
-      if (shown !== target) raf = requestAnimationFrame(tick);
-    };
-    const read = () => {
-      const scrolled = window.scrollY - offsetFor(0);
-      target = positionFromScroll(scrolled, step(), n);
-      player.classList.add('live');
-      if (!raf) raf = requestAnimationFrame(tick);
+    /** Load the art for discs near the focus, so the next few are ready and the rest stay unfetched. */
+    const loadNear = () => {
+      arts.forEach((img, i) => {
+        if (Math.abs(i - focus) <= LOAD_RADIUS && !img.getAttribute('src') && img.dataset.src) img.src = img.dataset.src;
+      });
     };
 
-    const goTo = (i: number) => {
-      const to = Math.min(n - 1, Math.max(0, i));
-      window.scrollTo({ top: offsetFor(to), behavior: reduced.matches ? 'auto' : 'smooth' });
+    const go = (i: number, moveFocus = false) => {
+      focus = Math.min(n - 1, Math.max(0, i));
+      player.classList.remove('dragging');
+      render(focus);
+      loadNear();
+      discs.forEach((el, k) => {
+        el.classList.toggle('focus', k === focus);
+        el.tabIndex = k === focus ? 0 : -1;
+      });
+      const f = films[focus];
+      title.textContent = f.title;
+      title.href = f.href;
+      director.textContent = f.director ?? '';
+      directorLine.hidden = !f.director;
+      starsEl.textContent = f.stars;
+      starsEl.setAttribute('aria-label', `${f.rating} stars`);
+      watched.textContent = f.watched;
+      pos.textContent = `${pad(focus + 1)} / ${pad(n)}`;
+      steps[0].setAttribute('aria-disabled', String(focus === 0));
+      steps[1].setAttribute('aria-disabled', String(focus === n - 1));
+      if (moveFocus) discs[focus].focus({ preventScroll: true });
     };
 
-    window.addEventListener('scroll', read, { passive: true });
-    window.addEventListener('resize', read);
-    steps.forEach((b) => b.addEventListener('click', () => goTo(focus + Number(b.dataset.step))));
+    steps.forEach((b) => b.addEventListener('click', () => go(focus + Number(b.dataset.step))));
 
-    // A horizontal drag moves along the row too; a press that barely moves is a click.
+    // Drag or flick along the row; a press that barely moves is a click.
     let dragging = false;
     let moved = false;
+    let startX = 0;
+    let at = 0;
     let lastX = 0;
+    let lastT = 0;
+    let velocity = 0;
+    let frame = 0;
     player.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || e.pointerType === 'touch') return;
+      if (e.button !== 0) return;
       dragging = true;
       moved = false;
-      lastX = e.clientX;
+      startX = lastX = e.clientX;
+      at = focus;
+      lastT = performance.now();
+      velocity = 0;
     });
     player.addEventListener('pointermove', (e) => {
       if (!dragging) return;
-      const dx = e.clientX - lastX;
+      const dx = e.clientX - startX;
       if (!moved && Math.abs(dx) < 6) return;
       if (!moved) {
         moved = true;
         player.setPointerCapture(e.pointerId);
+        player.classList.add('dragging');
       }
+      const step = STEP_X * unit;
+      at = Math.min(n - 0.6, Math.max(-0.4, focus - dx / step));
+      const now = performance.now();
+      velocity = 0.7 * velocity + 0.3 * (-(e.clientX - lastX) / step / (Math.max(1, now - lastT) / 1000));
       lastX = e.clientX;
-      const perPx = step() / (300 * (parseFloat(getComputedStyle(player).getPropertyValue('--u')) || 1));
-      window.scrollBy(0, -dx * perPx);
+      lastT = now;
+      if (!frame) frame = requestAnimationFrame(() => ((frame = 0), render(at)));
     });
     const release = () => {
+      if (!dragging) return;
       dragging = false;
+      if (moved) go(Math.round(Math.min(n - 1, Math.max(0, at + velocity * 0.18))));
     };
     player.addEventListener('pointerup', release);
     player.addEventListener('pointercancel', release);
@@ -681,44 +691,37 @@ const ring = (f: (typeof fiveStar)[number]) => {
           moved = false;
           return;
         }
-        if (i !== focus) goTo(i);
+        if (i !== focus) go(i);
       });
       el.addEventListener('keydown', (e) => {
         const to = { ArrowLeft: focus - 1, ArrowRight: focus + 1, Home: 0, End: n - 1 }[e.key];
         if (to === undefined) return;
         e.preventDefault();
-        goTo(to);
-        requestAnimationFrame(() => discs[Math.min(n - 1, Math.max(0, to))].focus({ preventScroll: true }));
+        go(to, true);
       });
     });
 
-    // A sideways trackpad swipe also moves along the row.
+    // A sideways trackpad swipe (or shift + wheel) steps through; vertical scrolling stays with the page.
+    let lastWheel = 0;
     player.addEventListener(
       'wheel',
       (e) => {
-        if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+        const sideways = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.shiftKey ? e.deltaY : 0;
+        if (!sideways) return;
         e.preventDefault();
-        window.scrollBy(0, e.deltaX * (step() / 120));
+        const now = performance.now();
+        if (now - lastWheel < 380 || Math.abs(sideways) < 8) return;
+        lastWheel = now;
+        go(focus + (sideways > 0 ? 1 : -1));
       },
       { passive: false },
     );
 
-    // Fetch and decode every poster once the section is near, so a fast scrub never shows a blank disc.
-    const warm = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        warm.disconnect();
-        root.querySelectorAll<HTMLImageElement>('.art').forEach((img) => {
-          img.loading = 'eager';
-          img.decode?.().catch(() => {});
-        });
-      },
-      { rootMargin: '800px 0px' },
-    );
-    warm.observe(root);
-
-    read();
-    shown = target;
-    layout(shown);
+    window.addEventListener('resize', () => {
+      readUnit();
+      render(focus);
+    });
+    readUnit();
+    go(0);
   }
 </script>

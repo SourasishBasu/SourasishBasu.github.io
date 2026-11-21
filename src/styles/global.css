@@ -161,32 +161,6 @@ a:hover {
   right: -6px;
 }
 
-/* tick strips on the outside of the sheet edges (light theme only) */
-.ruler {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 12px;
-  pointer-events: none;
-  background-image:
-    repeating-linear-gradient(to bottom, var(--tick-major) 0 1px, transparent 1px 80px),
-    repeating-linear-gradient(to bottom, var(--tick-minor) 0 1px, transparent 1px 16px);
-  background-size:
-    12px 100%,
-    6px 100%;
-  background-repeat: no-repeat;
-}
-
-.ruler.l {
-  left: -13px;
-  background-position: right top;
-}
-
-.ruler.r {
-  right: -13px;
-  background-position: left top;
-}
-
 .vline {
   border-left: 1px solid var(--rule);
 }
@@ -198,7 +172,6 @@ a:hover {
     border-right: 0;
   }
 
-  .ruler,
   .cross {
     display: none;
   }

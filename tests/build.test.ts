@@ -30,6 +30,7 @@ export function tags(src: string, name: string, ...patterns: RegExp[]): string[]
 
 test('work route is light, with Work as the current page', () => {
   const page = html('index.html');
+  assert.doesNotMatch(page, /class="ruler/);
   assert.match(page, /<html[^>]*data-theme="light"/);
   assert.equal(tags(page, 'a', /href="\/"/, /aria-current="page"/).length, 1);
   assert.equal(tags(page, 'a', /href="\/off-the-clock\/"/).length, 1);
@@ -41,7 +42,6 @@ test('off the clock route is dark, with its own current page', () => {
   assert.match(page, /<html[^>]*data-theme="dark"/);
   assert.equal(tags(page, 'a', /href="\/off-the-clock\/"/, /aria-current="page"/).length, 1);
   assert.match(page, /<h1[^>]*>Away from the terminal<\/h1>/);
-  assert.doesNotMatch(page, /class="ruler/);
 });
 
 test('the two critical fonts are preloaded', () => {
@@ -156,14 +156,15 @@ test('tools: 26 logo tiles in five groups, icons present', () => {
   const tools = section(page, 'class="band tools');
   const tiles = tags(tools, 'span', /class="ti\b/);
   assert.equal(tiles.length, 26);
-  assert.ok(!tiles.some((t) => /Argo Workflows/.test(t)));
   for (const t of tiles) {
     assert.match(t, /role="img"/);
     assert.match(t, /tabindex="0"/);
   }
   const labels = tiles.map((t) => t.match(/aria-label="([^"]+)"/)![1]);
   assert.equal(labels[0], 'AWS');
-  assert.equal(labels.at(-1), 'Model Context Protocol');
+  assert.equal(labels.at(-1), 'Obsidian');
+  for (const gone of ['Argo Workflows', 'TypeScript', 'Model Context Protocol']) assert.ok(!labels.includes(gone), gone);
+  for (const added of ['Podman', 'Obsidian']) assert.ok(labels.includes(added), added);
   assert.equal(tiles.filter((t) => /class="ti dk/.test(t)).length, 5);
   for (const g of ['Cloud and clusters', 'Delivery and orchestration', 'Observability and data', 'Languages', 'Daily drivers']) assert.ok(tools.includes(g), g);
   for (const t of tiles) {
@@ -190,23 +191,32 @@ test('projects: five rows in order, first selected, spec sheet for the AMD stack
   assert.match(spec, /Open the repository ↗/);
 });
 
-test('films: thirteen five-star discs, first in focus, posters linked back to Letterboxd', () => {
+test('films: recent rated discs, only nearby ones drawn and loaded, counts shown', () => {
   const off = html('off-the-clock/index.html');
   const films = off.slice(off.indexOf('class="band films'), off.indexOf('class="band gunpla'));
   const discs = tags(films, 'button', /class="cd/);
-  assert.equal(discs.length, 13);
+  assert.ok(discs.length >= 1 && discs.length <= 12, `${discs.length} discs`);
   assert.match(discs[0], /class="cd focus/);
   assert.match(discs[0], /tabindex="0"/);
-  discs.slice(1).forEach((d) => assert.match(d, /tabindex="-1"/));
-  const imgs = tags(films, 'img', /class="art/);
-  assert.equal(imgs.length, 13);
-  imgs.forEach((i) => {
-    assert.match(i, /src="https:\/\/a\.ltrbxd\.com\/resized\//);
-    assert.match(i, /referrerpolicy="no-referrer"/);
-    assert.match(i, /alt=""/);
+  discs.forEach((d, i) => assert.equal(/\shidden/.test(d), i >= 4, `disc ${i} hidden`));
+  const arts = tags(films, 'img', /class="art/);
+  assert.equal(arts.length, discs.length);
+  arts.forEach((img, i) => {
+    assert.match(img, /data-src="https:\/\/a\.ltrbxd\.com\/resized\//);
+    assert.match(img, /referrerpolicy="no-referrer"/);
+    assert.equal(/\ssrc="https/.test(img), i <= 5, `art ${i} loads up front`);
   });
-  assert.equal(tags(films, 'a', /href="https:\/\/letterboxd\.com\/film\/city-of-god\/"/, /data-title/).length, 1);
+  const rings = tags(films, 'img', /class="ring/);
+  assert.equal(rings.length, discs.length);
+  rings.forEach((r) => {
+    const svg = decodeURIComponent(r.match(/src="data:image\/svg\+xml;charset=utf-8,([^"]+)"/)![1]);
+    assert.doesNotMatch(svg, /★|½|SASQUATCH06/i);
+  });
+  assert.doesNotMatch(films, /<textPath/);
+  const flaps = [...films.matchAll(/<span class="flap count-flap"[^>]*>([^<]*)<\/span>/g)].map((m) => m[1]).join('');
+  assert.equal(flaps, '1140');
+  assert.match(films, /195 this year/);
+  assert.equal(tags(films, 'a', /href="https:\/\/letterboxd\.com\/film\/[^"]+\/"/, /data-title/).length, 1);
   assert.equal(tags(films, 'a', /href="https:\/\/letterboxd\.com\/sasquatch06\/"/).length, 1);
-  assert.match(films, /Fernando Meirelles/);
   assert.doesNotMatch(off, /class="hero-side/);
 });
