@@ -1,0 +1,231 @@
+---
+import NameBoard from './NameBoard.astro';
+import { site } from '../../data/site';
+---
+
+<section class="band hero">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="glow"></div>
+    <svg class="grain">
+      <filter id="hgrain">
+        <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch" />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+      <rect width="100%" height="100%" filter="url(#hgrain)" />
+    </svg>
+  </div>
+
+  <div class="hero-main">
+    <span class="eyebrow">Platform engineer · Atlan</span>
+    <h1 class="sr-only">{site.name}</h1>
+    <NameBoard />
+    <div class="actions">
+      <a href="#projects" class="pill-btn pill-btn--lg">
+        See projects
+        <svg class="arr" aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9l4 4 4-4" /></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-side vline">
+    <div class="cell hello">
+      <span class="eyebrow">Hello</span>
+      <p class="display hello-line">I'm Sourasish, a platform engineer at Atlan.</p>
+      <p class="body muted">I work on the systems other engineers ship on, and I like them boring, cheap and well watched.</p>
+    </div>
+    <div class="cell grow">
+      <span class="eyebrow">Day job</span>
+      <p class="body">
+        Cloud cost and observability across a multi-cloud Kubernetes fleet: finding where the money goes, dashboards people actually open, alerting that runs on Temporal, and upgrades rolled out cluster by cluster.
+      </p>
+    </div>
+    <div class="cell">
+      <span class="eyebrow">Also into</span>
+      <p class="body">
+        Hardware I can hold: a Pwnagotchi on a Pi Zero W, a keystroke injector on a Pico W, a voice assistant on a Pi 4. And building AI-native: MCP servers, agent environments, and agents in my own daily loop.
+      </p>
+    </div>
+  </div>
+  <span class="cross cl"></span><span class="cross cr"></span>
+</section>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .glow {
+    position: absolute;
+    left: 64%;
+    top: 6%;
+    width: 780px;
+    height: 780px;
+    margin: -390px 0 0 -390px;
+    border-radius: 50%;
+    opacity: 0.55;
+    background: radial-gradient(closest-side, #ffc94d, rgba(255, 255, 255, 0));
+  }
+
+  .grain {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.22;
+    mix-blend-mode: multiply;
+  }
+
+  .hero-main {
+    position: relative;
+    container-type: inline-size;
+    padding: 80px 40px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .hero-side {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cell {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cell + .cell {
+    border-top: 1px solid var(--rule);
+  }
+
+  .hello {
+    padding-top: 40px;
+  }
+
+  .cell:last-child {
+    padding-bottom: 36px;
+  }
+
+  .grow {
+    flex-grow: 1;
+  }
+
+  .hello-line {
+    margin: 0;
+    font-size: 24px;
+    font-stretch: 112%;
+    line-height: 1.25;
+  }
+
+  .body {
+    margin: 0;
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+
+  .body.muted {
+    color: var(--muted);
+  }
+
+  /* tablet: the board takes the full width, the three cells sit in a row below */
+  @media (max-width: 1023px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .hero-main {
+      padding: 64px 40px 40px;
+    }
+
+    .hero-side {
+      flex-direction: row;
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+
+    .cell {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 28px 24px 32px;
+    }
+
+    .cell + .cell {
+      border-top: 0;
+      border-left: 1px solid var(--rule);
+    }
+
+    .hello-line {
+      font-size: 20px;
+    }
+  }
+
+  /* phone (Phone.dc.html) */
+  @media (max-width: 760px) {
+    .glow {
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      border-radius: 0;
+      opacity: 1;
+      background: radial-gradient(420px 300px at 80% 0%, rgba(255, 201, 77, 0.4), rgba(251, 251, 249, 0));
+    }
+
+    .hero-main {
+      padding: 36px 16px 28px;
+      gap: 18px;
+    }
+
+    .actions .pill-btn {
+      height: 44px;
+      padding: 0 18px;
+      font-size: 14px;
+    }
+
+    .hero-side {
+      flex-direction: column;
+    }
+
+    .cell {
+      padding: 20px 16px;
+      gap: 8px;
+    }
+
+    .hello {
+      padding-top: 24px;
+    }
+
+    .cell + .cell {
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+
+    .hello-line {
+      font-size: 20px;
+    }
+
+    .body {
+      font-size: 14.5px;
+      line-height: 1.55;
+    }
+  }
+</style>

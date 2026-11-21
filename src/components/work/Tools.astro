@@ -1,0 +1,228 @@
+---
+import { groups } from '../../data/tools';
+
+const pairs = [groups.slice(0, 2), groups.slice(2, 4)];
+const drivers = groups[4];
+---
+
+<section class="band tools">
+  <div class="tools-side">
+    <span class="eyebrow">Tools</span>
+    <h2 class="display h2">What I reach for</h2>
+    <p class="lead">At work, on side projects, and the ones I open every morning.</p>
+  </div>
+  <div class="tools-grid vline">
+    {
+      pairs.map((pair) => (
+        <div class="pair">
+          {pair.map((g) => (
+            <div class="tgroup">
+              <span class="eyebrow">{g.title}</span>
+              <div class="tgrid">
+                {g.tools.map((t) => (
+                  <span class="ti" role="img" aria-label={t.name} tabindex="0" style={`--m:url(/icons/tools/${t.icon}.svg);--c:${t.color}`}>
+                    <i />
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ))
+    }
+    <div class="tgroup">
+      <span class="eyebrow">{drivers.title}</span>
+      <div class="tgrid">
+        {
+          drivers.tools.map((t) => (
+            <span class="ti dk" role="img" aria-label={t.name} tabindex="0" style={`--m:url(/icons/tools/${t.icon}.svg);--c:${t.color}`}>
+              <i />
+            </span>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+  <span class="cross cl"></span><span class="cross cr"></span>
+</section>
+
+<style>
+  .tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+
+  .tools-side {
+    padding: 64px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .tools-side .lead {
+    max-width: 320px;
+  }
+
+  .tools-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .pair .tgroup + .tgroup {
+    border-left: 1px solid var(--rule);
+  }
+
+  .tgroup {
+    padding: 24px 24px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .tgrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 16px;
+  }
+
+  .ti {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: #f4f4f0;
+    box-shadow: inset 0 0 0 1px var(--rule);
+    color: var(--ink-2);
+    cursor: default;
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s,
+      transform 0.25s cubic-bezier(0.2, 0.9, 0.25, 1.3);
+  }
+
+  .ti i {
+    display: block;
+    width: 28px;
+    height: 28px;
+    background-color: currentColor;
+    -webkit-mask: var(--m) center / contain no-repeat;
+    mask: var(--m) center / contain no-repeat;
+    transition: background-color 0.2s;
+  }
+
+  .ti:hover,
+  .ti:focus-visible {
+    background: var(--paper);
+    box-shadow: inset 0 0 0 1px var(--ink);
+    transform: translateY(-2px);
+  }
+
+  .ti:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  .ti:hover i,
+  .ti:focus-visible i {
+    background-color: var(--c);
+  }
+
+  .ti::after {
+    content: attr(aria-label);
+    position: absolute;
+    z-index: 4;
+    top: calc(100% + 6px);
+    left: 50%;
+    padding: 4px 6px;
+    border-radius: 4px;
+    background: var(--paper);
+    box-shadow: 0 0 0 1px var(--rule);
+    font: 500 10.5px/1 var(--font-mono);
+    color: var(--ink-2);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-3px);
+    transition:
+      opacity 0.18s,
+      transform 0.18s;
+  }
+
+  .ti:hover::after,
+  .ti:focus-visible::after {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+
+  .ti.dk {
+    background: #141619;
+    color: #c9cdd2;
+    box-shadow: none;
+  }
+
+  .ti.dk:hover,
+  .ti.dk:focus-visible {
+    background: #1e2125;
+    box-shadow: inset 0 0 0 1px #3a3f45;
+  }
+
+  @media (max-width: 1023px) {
+    .tools {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .tools-side {
+      padding: 56px 40px 32px;
+    }
+
+    .tools-grid {
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .tools-side {
+      padding: 32px 16px 24px;
+      gap: 8px;
+    }
+
+    .pair {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pair .tgroup + .tgroup {
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+
+    .tgroup {
+      padding: 20px 16px 18px;
+      gap: 12px;
+    }
+
+    .tgrid {
+      gap: 8px;
+    }
+
+    .ti {
+      width: 52px;
+      height: 52px;
+      border-radius: 10px;
+    }
+
+    .ti i {
+      width: 24px;
+      height: 24px;
+    }
+  }
+</style>

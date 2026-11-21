@@ -42,6 +42,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
+    <div class="mat">
     <div class="sheet">
       {
         theme === 'light' && (
@@ -58,6 +59,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       <Footer>
         <slot name="scene" slot="scene" />
       </Footer>
+    </div>
     </div>
   </body>
 </html>

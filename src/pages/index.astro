@@ -1,6 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import Ridges from '../components/work/Ridges.astro';
+import Hero from '../components/work/Hero.astro';
+import Experience from '../components/work/Experience.astro';
+import Tools from '../components/work/Tools.astro';
+import Projects from '../components/work/Projects.astro';
 ---
 
 <Base
@@ -9,5 +13,9 @@ import Ridges from '../components/work/Ridges.astro';
   theme="light"
   page="work"
 >
+  <Hero />
+  <Experience />
+  <Tools />
+  <Projects />
   <Ridges slot="scene" />
 </Base>

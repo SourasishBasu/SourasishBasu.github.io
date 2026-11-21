@@ -1,0 +1,286 @@
+---
+import { padCells } from '../../lib/flap';
+
+// The split-flap name board. Static in phase 2; phase 4 adds the colour flips
+// and cycles the status row. Stickers appear on hover (CSS only).
+type Art = 'dither-ink' | 'dither-blue' | 'dither-yellow' | 'dither-eink';
+type Sticker = { tile: number; rot: number; art: Art; icon: string; title: string; text: string };
+
+const LETTERS = 'SOURASISHBASU';
+const STATUS = 'PLATFORM @ ATLAN';
+
+const stickers: Sticker[] = [
+  { tile: 0, rot: -7, art: 'dither-ink', icon: 'layers', title: 'ATLAN', text: 'Platform engineer since June 2025.' },
+  { tile: 1, rot: 5, art: 'dither-blue', icon: 'sparkle', title: 'AI-NATIVE', text: 'MCP servers, agent environments, agents in my daily loop.' },
+  { tile: 3, rot: 6, art: 'dither-eink', icon: 'face', title: 'PWNAGOTCHI', text: 'Built one on a Raspberry Pi Zero W.' },
+  { tile: 5, rot: 4, art: 'dither-yellow', icon: 'mug', title: '3XCAFFEINE', text: 'The hackathon crew. The name checks out.' },
+  { tile: 9, rot: -6, art: 'dither-yellow', icon: 'film', title: 'LETTERBOXD', text: '13 films at five stars. City of God is one.' },
+  { tile: 10, rot: 5, art: 'dither-blue', icon: 'robot', title: 'GUNPLA', text: 'MG Dynames and MG Virtue built. Vidar is next.' },
+];
+const byTile = new Map(stickers.map((s) => [s.tile, s]));
+const letters = [...LETTERS];
+const row1 = letters.slice(0, 9).map((ch, i) => ({ ch, i }));
+const row2 = letters.slice(9).map((ch, i) => ({ ch, i: i + 9 }));
+const chips = ['chip-blue', 'chip-red', 'chip-yellow', 'chip-white', ''];
+const status = padCells(STATUS, 20);
+const atlan = stickers[0];
+---
+
+<div class="nameplate">
+{/* The pinned sticker only shows on phones, where there's no hover. */}
+<div class="pinned" aria-hidden="true">
+  <span class="sticker static" style={`--r:${atlan.rot + 2}deg`}>
+    <span class:list={['st-art', atlan.art]}>
+      <svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 5 4 11l12 6 12-6z" /><path d="M4 16l12 6 12-6M4 21l12 6 12-6" /></svg>
+    </span>
+    <span class="st-cap"><b>{atlan.title}</b>{atlan.text}</span>
+  </span>
+</div>
+
+<div class="board" aria-hidden="true">
+  {
+    [row1, row2].map((row, r) => (
+      <div class="row">
+        {row.map(({ ch, i }) => {
+          const s = byTile.get(i);
+          return (
+            <span class:list={['tile', { pin: i === 0 }]}>
+              <span class="glyph">{ch}</span>
+              {s && (
+                <span class="sticker" data-tile={s.tile} style={`--r:${s.rot}deg`}>
+                  <span class:list={['st-art', s.art]}>
+                    {s.icon === 'layers' && (
+                      <svg width="34" height="34" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 5 4 11l12 6 12-6z" /><path d="M4 16l12 6 12-6M4 21l12 6 12-6" /></svg>
+                    )}
+                    {s.icon === 'sparkle' && (
+                      <svg width="34" height="34" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4c1.2 6.5 3.5 8.8 10 10-6.5 1.2-8.8 3.5-10 10-1.2-6.5-3.5-8.8-10-10 6.5-1.2 8.8-3.5 10-10z" /><path d="M25 20c.5 2.6 1.4 3.5 4 4-2.6.5-3.5 1.4-4 4-.5-2.6-1.4-3.5-4-4 2.6-.5 3.5-1.4 4-4z" /></svg>
+                    )}
+                    {s.icon === 'face' && <span class="st-face">(◕‿‿◕)</span>}
+                    {s.icon === 'mug' && (
+                      <svg width="34" height="34" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h16v8a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6z" /><path d="M22 14h2a3 3 0 0 1 0 6h-2" /><path d="M11 4c-1 2 1 3 0 5M16 4c-1 2 1 3 0 5" /></svg>
+                    )}
+                    {s.icon === 'film' && (
+                      <svg width="34" height="34" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="6" width="22" height="20" rx="2" /><path d="M10 6v20M22 6v20M5 11h5M5 16h5M5 21h5M22 11h5M22 16h5M22 21h5" /></svg>
+                    )}
+                    {s.icon === 'robot' && (
+                      <svg width="34" height="34" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="4" width="12" height="9" rx="2" /><path d="M13 8.5h2M17 8.5h2M16 13v3M9 16h14l-2 7H11zM11 23l-2 5M21 23l2 5M9 16l-4 5M23 16l4 5" /></svg>
+                    )}
+                  </span>
+                  <span class="st-cap"><b>{s.title}</b>{s.text}</span>
+                </span>
+              )}
+            </span>
+          );
+        })}
+        {r === 1 && chips.map((c) => <span class:list={['tile', c]} />)}
+      </div>
+    ))
+  }
+  <div class="status">
+    {status.map((ch) => <span class="flap mini">{ch}</span>)}
+  </div>
+</div>
+<p class="sr-only">{STATUS}</p>
+</div>
+
+<style>
+  .nameplate {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .board {
+    --bp: 16px;
+    --bg: 6px;
+    --tw: clamp(24px, calc((100cqi - 2 * var(--bp) - 8 * var(--bg)) / 9), 76px);
+    --th: calc(var(--tw) * 100 / 76);
+    position: relative;
+    align-self: flex-start;
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--bg);
+    padding: var(--bp);
+    border-radius: 12px;
+    background: #141619;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 2px 0 #0b0c0d,
+      0 24px 48px -24px rgba(20, 22, 25, 0.65);
+  }
+
+  .row {
+    display: flex;
+    gap: var(--bg);
+  }
+
+  .tile {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--tw);
+    height: var(--th);
+    border-radius: 4px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+  }
+
+  /* chip tiles take their colour from the global .chip-* classes */
+  .tile:not([class*='chip-']) {
+    background: var(--flap-face);
+  }
+
+  .tile::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    margin-top: -1px;
+    background: var(--flap-seam);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glyph {
+    font-family: var(--font-display);
+    font-stretch: 100%;
+    font-weight: 500;
+    font-size: calc(var(--th) * 0.6);
+    line-height: 1;
+    color: var(--flap-ink);
+  }
+
+  .tile:hover .glyph {
+    animation: flick 0.38s ease;
+  }
+
+  .sticker {
+    position: absolute;
+    z-index: 10;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    width: 172px;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+    background: #fbfbf9;
+    box-shadow:
+      0 0 0 1px rgba(20, 22, 25, 0.08),
+      0 14px 28px -12px rgba(20, 22, 25, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(10px) rotate(var(--r)) scale(0.88);
+    transition:
+      opacity 0.2s ease,
+      transform 0.32s cubic-bezier(0.2, 0.9, 0.25, 1.25);
+  }
+
+  .tile:hover .sticker {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) rotate(var(--r)) scale(1);
+  }
+
+  .st-art {
+    height: 74px;
+    border-radius: 4px;
+    display: grid;
+    place-items: center;
+  }
+
+  .st-face {
+    font: 500 20px/1 var(--font-mono);
+  }
+
+  .st-cap {
+    padding: 0 4px 4px;
+    font: 400 11.5px/1.35 var(--font-sans);
+    color: #3a3f45;
+  }
+
+  .st-cap b {
+    display: block;
+    font: 500 10.5px/1.4 var(--font-mono);
+    letter-spacing: 0.08em;
+    color: #141619;
+  }
+
+  .status {
+    display: grid;
+    grid-template-columns: repeat(20, minmax(0, 1fr));
+    gap: 4px;
+    margin-top: var(--bg);
+    padding-top: 12px;
+    border-top: 1px solid #23262a;
+  }
+
+  .mini {
+    height: calc(var(--th) * 0.46);
+    font: 500 calc(var(--th) * 0.25) / 1 var(--font-mono);
+  }
+
+  .pinned {
+    display: none;
+  }
+
+  @media (max-width: 760px) {
+    .board {
+      --bp: 10px;
+      --bg: 4px;
+      border-radius: 10px;
+    }
+
+    .tile {
+      border-radius: 3px;
+    }
+
+    .tile .sticker {
+      display: none;
+    }
+
+    .tile.pin {
+      box-shadow: 0 0 0 2px var(--chip-yellow);
+    }
+
+    .status {
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+      gap: 3px;
+      padding-top: 8px;
+    }
+
+    .mini {
+      height: 22px;
+      font-size: 11px;
+    }
+
+    .pinned {
+      display: block;
+      position: relative;
+      width: 100%;
+      height: 96px;
+      z-index: 2;
+    }
+
+    .sticker.static {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: auto;
+      width: 150px;
+      opacity: 1;
+      transform: rotate(var(--r));
+    }
+
+    .sticker.static .st-art {
+      height: 60px;
+    }
+
+    .sticker.static .st-cap {
+      font-size: 11px;
+    }
+  }
+</style>

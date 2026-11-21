@@ -19,7 +19,6 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  overflow-x: clip;
   font-family: var(--font-sans);
   color: var(--ink);
   background-color: var(--mat);
@@ -90,6 +89,13 @@ a:hover {
 }
 
 /* ---------- sheet on the mat ---------- */
+
+/* Clips the rail lines that run out across the mat. Kept off <body>: body overflow
+   propagates to the viewport and would hide the sticky bar's scroll context. */
+.mat {
+  overflow-x: clip;
+  min-height: 100vh;
+}
 
 .sheet {
   position: relative;
