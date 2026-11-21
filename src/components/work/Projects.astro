@@ -7,15 +7,12 @@ const sel = projects[0];
 ---
 
 <section id="projects" class="band projects">
-  <div class="pj-head">
+  <div class="pj-body">
+    <div class="pj-main">
     <div class="pj-title">
       <span class="eyebrow">Selected projects</span>
       <h2 class="display h2">Things I've built</h2>
     </div>
-    <p class="lead pj-note">Dated from my first and last commits.</p>
-  </div>
-
-  <div class="pj-body">
     <div class="rows">
       {
         projects.map((p) => (
@@ -29,6 +26,7 @@ const sel = projects[0];
           </button>
         ))
       }
+    </div>
     </div>
 
     <aside class="spec-wrap" aria-label="Selected project">
@@ -61,25 +59,6 @@ const sel = projects[0];
     padding: 64px 40px 72px;
   }
 
-  .pj-head {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 24px;
-    align-items: end;
-    margin-bottom: 28px;
-  }
-
-  .pj-title {
-    grid-column: span 7;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .pj-note {
-    grid-column: span 5;
-  }
-
   .pj-body {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -87,8 +66,20 @@ const sel = projects[0];
     align-items: start;
   }
 
-  .rows {
+  .pj-main {
     grid-column: span 7;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .pj-title {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .rows {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -158,7 +149,6 @@ const sel = projects[0];
 
   .spec-wrap {
     grid-column: span 5;
-    align-self: stretch;
   }
 
   .spec {
@@ -173,7 +163,7 @@ const sel = projects[0];
   }
 
   .art {
-    height: 268px;
+    height: 220px;
     margin: 0;
     border-bottom: 1px solid var(--rule);
     overflow: hidden;
@@ -254,7 +244,7 @@ const sel = projects[0];
       gap: 24px;
     }
 
-    .rows,
+    .pj-main,
     .spec-wrap {
       grid-column: 1 / -1;
     }
@@ -269,15 +259,8 @@ const sel = projects[0];
       padding: 32px 16px 40px;
     }
 
-    .pj-head {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-
-    .pj-title,
-    .pj-note {
-      grid-column: 1 / -1;
+    .pj-main {
+      gap: 18px;
     }
 
     .pj-title {

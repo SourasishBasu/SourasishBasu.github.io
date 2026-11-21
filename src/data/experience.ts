@@ -16,6 +16,8 @@ export interface Job {
   shortName: string;
   /** Years in the switcher. */
   years: string;
+  /** Dates in the switcher, e.g. "Jun 2025 – Now". */
+  span: string;
   initials: string;
   /** Square brand mark in public/logos/ (the company's own file). */
   logo?: string;
@@ -38,10 +40,11 @@ export const jobs: Job[] = [
     company: 'Atlan',
     shortName: 'Atlan',
     years: '2025–now',
+    span: 'Jun 2025 – Now',
     initials: 'At',
     logo: '/logos/atlan-mark.png',
     logoFramed: true,
-    role: 'Platform Engineer Intern',
+    role: 'Platform Engineer',
     short: 'Platform · 2025–now',
     when: 'June 2025 – present',
     where: 'Remote',
@@ -75,6 +78,7 @@ export const jobs: Job[] = [
     company: 'Anonymous Digital Marketing',
     shortName: 'Anonymous Digital',
     years: '2024',
+    span: 'Jun – Oct 2024',
     initials: 'AD',
     logo: '/logos/anonymous-digital-mark.png',
     role: 'Software Engineer Intern',

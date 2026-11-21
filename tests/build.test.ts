@@ -144,9 +144,12 @@ test('experience: Atlan tab selected, both panels rendered', () => {
   assert.doesNotMatch(tags(xp, 'article', /id="atlan"/)[0], /hidden/);
   assert.match(tags(xp, 'article', /id="adm"/)[0], /hidden/);
   const atlan = text(xp.slice(xp.indexOf('id="atlan"'), xp.indexOf('id="adm"')));
-  for (const s of ['Cloud cost', 'Dashboards', 'Alerting', '[monthly cloud spend cut]', '[hours saved a month]', '[clusters upgraded]', '[dashboards in daily use]', 'Platform Engineer Intern', 'June 2025 – present · Remote'])
+  for (const s of ['Cloud cost', 'Dashboards', 'Alerting', '[monthly cloud spend cut]', '[hours saved a month]', '[clusters upgraded]', '[dashboards in daily use]', 'Platform Engineer', 'June 2025 – present · Remote'])
     assert.ok(atlan.includes(s), s);
   for (const t of ['Go', 'Temporal', 'Grafana', 'Sigma', 'VictoriaMetrics', 'Snowflake', 'Mixpanel']) assert.ok(atlan.includes(t), t);
+  assert.doesNotMatch(atlan, /Intern/);
+  const atlanHtml = xp.slice(xp.indexOf('id="atlan"'), xp.indexOf('id="adm"'));
+  assert.ok(atlanHtml.indexOf('class="tags') < atlanHtml.indexOf('class="metrics'), 'tags sit above the numbers');
   const adm = text(xp.slice(xp.indexOf('id="adm"')));
   for (const s of ['3 5 %', '6 0 %', '2 0 0 +', '9 9 . 9 %', 'National Restaurant Association of India', 'June – Oct 2024 · Kolkata']) assert.ok(adm.includes(s), s);
 });
@@ -206,12 +209,10 @@ test('films: recent rated discs, only nearby ones drawn and loaded, counts shown
     assert.match(img, /referrerpolicy="no-referrer"/);
     assert.equal(/\ssrc="https/.test(img), i <= 5, `art ${i} loads up front`);
   });
-  const rings = tags(films, 'img', /class="ring/);
-  assert.equal(rings.length, discs.length);
-  rings.forEach((r) => {
-    const svg = decodeURIComponent(r.match(/src="data:image\/svg\+xml;charset=utf-8,([^"]+)"/)![1]);
-    assert.doesNotMatch(svg, /★|½|SASQUATCH06/i);
-  });
+  // Plain discs: no title or credit text printed on them, and a metal rim.
+  assert.equal(tags(films, 'img', /class="ring/).length, 0);
+  assert.equal(tags(films, 'span', /class="title/).length, 0);
+  assert.equal(tags(films, 'span', /class="rim/).length, discs.length);
   assert.doesNotMatch(films, /<textPath/);
   const flaps = [...films.matchAll(/<span class="flap count-flap"[^>]*>([^<]*)<\/span>/g)].map((m) => m[1]).join('');
   assert.equal(flaps, '1140');

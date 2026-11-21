@@ -1,8 +1,8 @@
 ---
 import { jobs } from '../../data/experience';
 
-// Tabs: a segmented control in the top bar's style. Atlan is selected in the
-// HTML; the script switches panels on click and with the arrow keys, Home and End. On phones there are no tabs:
+// Tabs: role rows after danielsun.space's experience list. Atlan is selected in
+// the HTML; the script switches panels on click and with the arrow keys, Home and End. On phones there are no tabs:
 // both companies are shown one after the other (Phone.dc.html).
 const selected = 'atlan';
 const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red' } as const;
@@ -12,7 +12,7 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
   <div class="xp-side">
     <span class="eyebrow">Work experience</span>
     <h2 class="display h2">Where I've worked</h2>
-    <div role="tablist" aria-label="Where I've worked" class="xp-seg">
+    <div role="tablist" aria-label="Where I've worked" aria-orientation="vertical" class="xp-roles">
       {
         jobs.map((j) => (
           <button
@@ -22,13 +22,14 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
             aria-controls={j.id}
             aria-selected={j.id === selected ? 'true' : 'false'}
             tabindex={j.id === selected ? 0 : -1}
-            class:list={['seg-tab', { sel: j.id === selected }]}
+            class:list={['role-row', { sel: j.id === selected }]}
           >
-            <span class:list={['logo logo-xs', { 'has-img': j.logo, framed: j.logoFramed }]}>{j.logo ? <img src={j.logo} alt="" width="28" height="28" /> : j.initials}</span>
-            <span class="seg-text">
-              <span class="seg-name">{j.shortName}</span>
-              <span class="mono seg-years">{j.years}</span>
+            <span class:list={['logo logo-row', { 'has-img': j.logo, framed: j.logoFramed }]}>{j.logo ? <img src={j.logo} alt="" width="38" height="38" /> : j.initials}</span>
+            <span class="role-text">
+              <span class="role-title">{j.role}</span>
+              <span class="role-at">at {j.company}</span>
             </span>
+            <span class="role-span">{j.span}</span>
           </button>
         ))
       }
@@ -76,6 +77,13 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
             </div>
           )}
 
+          {j.tags && (
+            <div class="tags">
+              {j.tags.map((t) => (
+                <span class="tag">{t}</span>
+              ))}
+            </div>
+          )}
           <div class="metrics">
             {j.metrics.map((m) => (
               <div class="fcell mcell">
@@ -90,13 +98,6 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
             ))}
           </div>
 
-          {j.tags && (
-            <div class="tags">
-              {j.tags.map((t) => (
-                <span class="tag">{t}</span>
-              ))}
-            </div>
-          )}
         </article>
       ))
     }
@@ -145,76 +146,98 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
     gap: 16px;
   }
 
-  /* A segmented control like the top bar's toggle: two companies side by side, the selected one in flap black. */
-  .xp-seg {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 3px;
-    margin-top: 12px;
-    padding: 4px;
-    border-radius: 12px;
-    background: var(--seg-bg);
-    box-shadow: inset 0 0 0 1px var(--seg-ring);
+  /*
+   * Roles, after danielsun.space's experience list: round logo, role with "at company" under it,
+   * dates on the right, hairlines between rows. It sits as a detached inset panel rather than
+   * running to the column's edges, since there are only two rows.
+   */
+  .xp-roles {
+    display: flex;
+    flex-direction: column;
+    margin-top: 16px;
+    padding: 6px;
+    border-radius: 14px;
+    background: var(--paper);
+    box-shadow:
+      inset 0 0 0 1px var(--rule),
+      0 10px 24px -20px rgba(20, 22, 25, 0.5);
   }
 
-  .seg-tab {
+  .role-row {
     all: unset;
     box-sizing: border-box;
-    display: flex;
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 8px;
-    min-width: 0;
-    padding: 10px;
-    border-radius: 9px;
-    color: var(--seg-text);
+    gap: 14px;
+    padding: 14px 14px 14px 12px;
+    border-radius: 10px;
+    color: var(--ink-muted);
     cursor: pointer;
     transition:
       background-color 0.2s,
       color 0.2s;
   }
 
-  .seg-tab:not(.sel):hover {
-    color: var(--seg-hover-text);
-    background: var(--seg-hover-bg);
+  .role-row + .role-row::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 0;
+    height: 1px;
+    background: var(--rule);
   }
 
-  .seg-tab.sel {
-    background: var(--seg-on);
-    color: var(--seg-on-text);
-    box-shadow: var(--seg-on-shadow);
+  .role-row:hover {
+    color: var(--ink);
+    background: var(--tint-hover);
   }
 
-  .seg-tab:focus-visible {
+  .role-row.sel {
+    color: var(--ink);
+    background: var(--tint);
+  }
+
+  /* No hairline touching the selected row's tint. */
+  .role-row.sel::before,
+  .role-row.sel + .role-row::before {
+    opacity: 0;
+  }
+
+  .role-row:focus-visible {
     outline: 2px solid var(--focus);
-    outline-offset: 2px;
+    outline-offset: 1px;
   }
 
-  .seg-text {
+  .role-text {
     display: flex;
     flex-direction: column;
     gap: 3px;
     min-width: 0;
   }
 
-  .seg-name {
-    font: 500 14px/1.2 var(--font-sans);
-    letter-spacing: -0.005em;
+  .role-title {
+    font: 500 15px/1.25 var(--font-sans);
+    color: inherit;
+  }
+
+  .role-at {
+    font: 400 13.5px/1.3 var(--font-sans);
+    color: var(--graphite);
+  }
+
+  .role-span {
+    align-self: start;
+    padding-top: 2px;
+    font: 400 12px/1.3 var(--font-mono);
+    color: var(--graphite);
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
-  .seg-years {
-    font-size: 11px;
-    opacity: 0.75;
-  }
-
-  .seg-tab .logo.has-img {
-    outline-offset: 2px;
-  }
-
-  .seg-tab.sel .logo.has-img {
-    outline-color: rgba(255, 255, 255, 0.28);
+  .role-row:not(.sel) .logo {
+    filter: grayscale(0.6) opacity(0.8);
   }
 
   .logo {
@@ -247,10 +270,10 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
     height: 100%;
   }
 
-  .logo-xs {
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
+  .logo-row {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
   }
 
   .logo-lg {
@@ -399,8 +422,8 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
       padding: 56px 40px 24px;
     }
 
-    .xp-seg {
-      max-width: 480px;
+    .xp-roles {
+      max-width: 520px;
       margin-top: 8px;
     }
 
@@ -433,7 +456,7 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
       gap: 8px;
     }
 
-    .xp-seg {
+    .xp-roles {
       display: none;
     }
 

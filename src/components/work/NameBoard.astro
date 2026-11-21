@@ -1,8 +1,11 @@
 ---
 import { padCells } from '../../lib/flap';
 
-// The split-flap name board. Static in phase 2; phase 4 adds the colour flips
-// and cycles the status row. Stickers appear on hover (CSS only).
+// The split-flap name board. Every tile flips in once on load; after that a
+// letter now and then flips to a colour chip for under a second and back, so
+// the name stays readable, and the status row cycles its messages. Stickers
+// appear on hover (CSS only). Off-screen, in a hidden tab or under reduced
+// motion nothing flips.
 type Art = 'dither-ink' | 'dither-blue' | 'dither-yellow' | 'dither-eink';
 type Sticker = { tile: number; rot: number; art: Art; icon: string; title: string; text: string };
 
@@ -37,7 +40,7 @@ const atlan = stickers[0];
   </span>
 </div>
 
-<div class="board" aria-hidden="true">
+<div class="board" aria-hidden="true" data-board>
   {
     [row1, row2].map((row, r) => (
       <div class="row">
@@ -45,7 +48,7 @@ const atlan = stickers[0];
           const s = byTile.get(i);
           return (
             <span class:list={['tile', { pin: i === 0 }]}>
-              <span class="glyph">{ch}</span>
+              <span class="glyph" data-letter={ch}>{ch}</span>
               {s && (
                 <span class="sticker" data-tile={s.tile} style={`--r:${s.rot}deg`}>
                   <span class:list={['st-art', s.art]}>
@@ -154,6 +157,57 @@ const atlan = stickers[0];
 
   .tile:hover .glyph {
     animation: flick 0.38s ease;
+  }
+
+  /* Two alternating classes restart the flick each time a tile changes. */
+  .tile.fa {
+    animation: flick-a 0.44s ease;
+  }
+
+  .tile.fb {
+    animation: flick-b 0.44s ease;
+  }
+
+  .mini.fa {
+    animation: flick-a 0.4s ease both;
+  }
+
+  .mini.fb {
+    animation: flick-b 0.4s ease both;
+  }
+
+  @keyframes flick-a {
+    0% {
+      transform: perspective(240px) rotateX(0);
+    }
+    45% {
+      transform: perspective(240px) rotateX(-88deg);
+      filter: brightness(0.55);
+    }
+    46% {
+      transform: perspective(240px) rotateX(88deg);
+      filter: brightness(0.55);
+    }
+    100% {
+      transform: perspective(240px) rotateX(0);
+    }
+  }
+
+  @keyframes flick-b {
+    0% {
+      transform: perspective(240px) rotateX(0);
+    }
+    45% {
+      transform: perspective(240px) rotateX(-88deg);
+      filter: brightness(0.55);
+    }
+    46% {
+      transform: perspective(240px) rotateX(88deg);
+      filter: brightness(0.55);
+    }
+    100% {
+      transform: perspective(240px) rotateX(0);
+    }
   }
 
   .sticker {
@@ -284,3 +338,83 @@ const atlan = stickers[0];
     }
   }
 </style>
+
+<script>
+  import { padCells } from '../../lib/flap';
+
+  const board = document.querySelector<HTMLElement>('[data-board]');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (board && !reduced.matches) {
+    const tiles = [...board.querySelectorAll<HTMLElement>('.tile')].filter((t) => t.querySelector('[data-letter]'));
+    const cells = [...board.querySelectorAll<HTMLElement>('.status .mini')];
+    const CHIPS = ['chip-red', 'chip-orange', 'chip-yellow', 'chip-green', 'chip-blue', 'chip-white'];
+    const time = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' });
+    const messages = () => ['PLATFORM @ ATLAN', 'GO · TEMPORAL · K8S', `LOCAL TIME ${time.format(new Date())} IST`, 'OPEN TO A CHAT'];
+    const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
+
+    const flick = (el: HTMLElement, delay = 0) => {
+      const next = el.classList.contains('fa') ? 'fb' : 'fa';
+      el.classList.remove('fa', 'fb');
+      el.style.animationDelay = `${delay}ms`;
+      el.classList.add(next);
+    };
+
+    let visible = false;
+    let started = false;
+    let lastTile = -1;
+    let msg = 0;
+    const chipped = new Set<number>();
+
+    // One flip: a letter turns into a colour chip for under a second, then back.
+    const flipOne = () => {
+      if (chipped.size >= 2) return;
+      const free = tiles.map((_, i) => i).filter((i) => !chipped.has(i) && i !== lastTile);
+      const i = free[Math.floor(Math.random() * free.length)];
+      if (i === undefined) return;
+      lastTile = i;
+      const tile = tiles[i];
+      const glyph = tile.querySelector<HTMLElement>('[data-letter]')!;
+      const chip = CHIPS[Math.floor(Math.random() * CHIPS.length)];
+      chipped.add(i);
+      tile.classList.add(chip);
+      glyph.textContent = '';
+      flick(tile);
+      setTimeout(() => {
+        tile.classList.remove(chip);
+        glyph.textContent = glyph.dataset.letter ?? '';
+        flick(tile);
+        chipped.delete(i);
+      }, rand(650, 950));
+    };
+
+    const loopFlips = () => {
+      setTimeout(() => {
+        if (visible && !document.hidden) flipOne();
+        loopFlips();
+      }, rand(3500, 8000));
+    };
+
+    const nextMessage = () => {
+      if (visible && !document.hidden) {
+        msg = (msg + 1) % 4;
+        padCells(messages()[msg], cells.length).forEach((ch, k) => {
+          cells[k].textContent = ch;
+          flick(cells[k], k * 32);
+        });
+      }
+      setTimeout(nextMessage, 3600);
+    };
+
+    new IntersectionObserver(([entry]) => {
+      visible = !!entry?.isIntersecting;
+      if (visible && !started) {
+        started = true;
+        // Every tile flips in once, left to right.
+        tiles.forEach((t, k) => flick(t, k * 45));
+        cells.forEach((c, k) => flick(c, 300 + k * 32));
+        loopFlips();
+        setTimeout(nextMessage, 3600);
+      }
+    }).observe(board);
+  }
+</script>

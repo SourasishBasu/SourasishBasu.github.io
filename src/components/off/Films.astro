@@ -2,14 +2,14 @@
 import { letterboxd } from '../../data/films';
 import { getFilmStats } from '../../data/film-stats';
 import { getRecentFilms, MIN_RATING } from '../../data/recent-films';
-import { stars, type RecentFilm } from '../../data/letterboxd';
+import { stars } from '../../data/letterboxd';
 import { discPose, RENDER_RADIUS, LOAD_RADIUS } from './discs';
 
 // Films: the latest Letterboxd films rated 3.5+ as CDs, after Ravi Klaassens' A24
-// concept site. Each disc lies tilted back: a landscape still printed around a
-// clear hub (frosted ring, metallic ring, clear lip, in A24's proportions), the
-// title set on the art, a credit ring near the rim, a silver edge and a soft
-// strip-light gloss. Arrows, keys, a click on a disc, a drag or a sideways
+// concept site. Each disc turns three-quarters toward you: a landscape still
+// printed around a clear hub (frosted ring, metallic ring, clear lip, in A24's
+// proportions), a polished metal rim, a silver edge and a soft strip-light
+// gloss. Arrows, keys, a click on a disc, a drag or a sideways
 // swipe move the row. Only discs near the focus are drawn, and only those load
 // their art. The layout renders server-side, so it reads correctly before (or
 // without) the script.
@@ -28,16 +28,6 @@ const meta = films.map((f) => ({
   watched: day(f.watched),
 }));
 
-// The credit ring is a static SVG image, not live text: text on a path re-lays out whenever the
-// disc's styles change, which is what made the first version stutter.
-const RING_R = 44;
-const ringFor = (f: RecentFilm) => {
-  const one = `${f.title} · ${f.director ? `Directed by ${f.director} · ` : ''}${f.year} · `.toUpperCase();
-  const text = one.repeat(Math.max(1, Math.round(120 / one.length))).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  const C = (2 * Math.PI * RING_R).toFixed(1);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><path id="r" d="M50,50 m-${RING_R},0 a${RING_R},${RING_R} 0 1,1 ${2 * RING_R},0 a${RING_R},${RING_R} 0 1,1 -${2 * RING_R},0"/></defs><text font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="2.4" font-weight="600" letter-spacing=".45" fill="rgba(255,255,255,.86)" stroke="rgba(0,0,0,.45)" stroke-width=".3" paint-order="stroke"><textPath href="#r" textLength="${C}" lengthAdjust="spacing">${text}</textPath></text></svg>`;
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-};
 const ssrTransform = (d: number) => {
   const p = discPose(d);
   return `translate3d(calc(${p.x}px * var(--u)),calc(${p.y}px * var(--u)),calc(${p.z}px * var(--u))) scale(${p.scale})`;
@@ -95,11 +85,9 @@ const ssrTransform = (d: number) => {
                       referrerpolicy="no-referrer"
                       draggable="false"
                     />
-                    <span class="shade" />
-                    <span class="title">{f.title}</span>
-                    <img class="ring" src={ringFor(f)} alt="" draggable="false" />
                   </span>
                   <span class="gloss" />
+                  <span class="rim" />
                   <span class="matrix" />
                   <span class="hub" />
                 </span>
@@ -231,7 +219,7 @@ const ssrTransform = (d: number) => {
 
   .player {
     --u: 1;
-    --disc: 340px;
+    --disc: 410px;
     position: relative;
     height: 540px;
     overflow: hidden;
@@ -262,7 +250,7 @@ const ssrTransform = (d: number) => {
     all: unset;
     position: absolute;
     left: 50%;
-    top: 48%;
+    top: 52%;
     width: var(--disc);
     height: var(--disc);
     margin: calc(var(--disc) / -2) 0 0 calc(var(--disc) / -2);
@@ -285,12 +273,16 @@ const ssrTransform = (d: number) => {
     outline: none;
   }
 
-  /* Every disc lies back at the same angle; the edge layers sit under the face for thickness. */
+  /*
+   * Every disc turns three-quarters toward you at the same angle, as A24's gallery does
+   * (rotated −30° on X and Y): the top leans back a little and the right side comes forward.
+   * The edge layers sit behind the face for thickness.
+   */
   .disc {
     position: absolute;
     inset: 0;
     transform-style: preserve-3d;
-    transform: rotateZ(-20deg) rotateX(52deg);
+    transform: rotateX(30deg) rotateY(-30deg);
   }
 
   .edge,
@@ -308,12 +300,12 @@ const ssrTransform = (d: number) => {
   }
 
   .e1 {
-    transform: translateZ(-2px);
+    transform: translateZ(-3px);
   }
 
   .e2 {
-    transform: translateZ(-4px);
-    filter: brightness(0.62);
+    transform: translateZ(-6px);
+    filter: brightness(0.6);
   }
 
   .face {
@@ -340,35 +332,6 @@ const ssrTransform = (d: number) => {
     pointer-events: none;
   }
 
-  /* A gentle darkening behind the title so it reads on bright stills. */
-  .shade {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(80% 45% at 50% 22%, rgba(0, 0, 0, 0.42), transparent 70%);
-  }
-
-  .title {
-    position: absolute;
-    left: 18%;
-    right: 18%;
-    top: 15%;
-    text-align: center;
-    font: 700 calc(var(--disc) * 0.068) / 0.95 var(--font-display);
-    font-stretch: 75%;
-    letter-spacing: 0.01em;
-    text-transform: uppercase;
-    color: #fff;
-    text-wrap: balance;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
-  }
-
-  .ring {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
   /*
    * Gloss: the soft strip-light highlight across the printed face (A24 lights the disc with a
    * long top strip), a faint clear band at the very rim, and print texture.
@@ -377,14 +340,23 @@ const ssrTransform = (d: number) => {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(circle closest-side, transparent 96.4%, rgba(255, 255, 255, 0.26) 97.4%, rgba(255, 255, 255, 0.08) 100%),
       linear-gradient(118deg, transparent 30%, rgba(255, 255, 255, 0.15) 43%, rgba(255, 255, 255, 0.05) 50%, transparent 60%),
       url('/textures/noise.png');
     background-size:
       100% 100%,
-      100% 100%,
       128px 128px;
     opacity: 0.95;
+  }
+
+  /* The outer rim: a polished metal band around the printed face, brightest where it faces the light. */
+  .rim {
+    position: absolute;
+    inset: 0;
+    background: conic-gradient(from 210deg, #f7f8fa, #a9afb8 14%, #e6e9ee 28%, #858c97 46%, #f2f4f7 62%, #9da4ae 80%, #f7f8fa);
+    -webkit-mask-image: radial-gradient(circle closest-side, transparent 0 93.2%, #000 93.6% 99.6%, transparent 100%);
+    mask-image: radial-gradient(circle closest-side, transparent 0 93.2%, #000 93.6% 99.6%, transparent 100%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
   }
 
   /* The metallic "matrix" ring of the hub, brushed silver. */
@@ -548,7 +520,7 @@ const ssrTransform = (d: number) => {
 
     .player {
       --u: 0.68;
-      --disc: 232px;
+      --disc: 280px;
       height: 380px;
     }
 
