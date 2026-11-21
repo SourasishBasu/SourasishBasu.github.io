@@ -33,7 +33,7 @@
   --ink: #141619;
   --ink-2: #2b3036;
   --graphite: #4e545b;
-  --muted: #4e545b;
+  --ink-muted: #4e545b;
   --link: #2c4fb0;
   --link-hover: #1b3480;
   --focus: #2c4fb0;
@@ -103,7 +103,7 @@
   --ink: #eceae4;
   --ink-2: #c9cdd2;
   --graphite: #8d939b;
-  --muted: #9ca2aa;
+  --ink-muted: #9ca2aa;
   --link: #a9b8ff;
   --link-hover: #cbd4ff;
   --focus: #a9b8ff;
