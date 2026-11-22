@@ -19,7 +19,6 @@ const stats = await getFilmStats();
 const { films } = await getRecentFilms();
 const flaps = [...String(stats.total)];
 const first = films[0];
-const pad = (n: number) => String(n).padStart(2, '0');
 const day = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 const meta = films.map((f) => ({
   title: f.title,
@@ -52,12 +51,15 @@ const arts = await Promise.all(
     const logo = await logoImage(art.logo);
     try {
       const img = await getImage({ src: art.src, width: 720, height: 720, fit: 'cover', position: art.position, format: 'webp', quality: 80 });
-      return { kind: art.kind, src: img.src, logo };
+      return { kind: art.kind, src: img.src, logo, titled: art.titled };
     } catch {
-      return { kind: art.kind, src: art.src, logo };
+      return { kind: art.kind, src: art.src, logo, titled: art.titled };
     }
   }),
 );
+
+/** With no title logo, a print gets the title set in the display face, smaller for longer titles so it fits the band. */
+const titleSize = (title: string) => (title.length <= 12 ? 'short' : title.length <= 24 ? 'mid' : 'long');
 
 const ssrTransform = (d: number) => {
   const p = discPose(d);
@@ -116,6 +118,11 @@ const ssrTransform = (d: number) => {
                       referrerpolicy="no-referrer"
                       draggable="false"
                     />
+                    {arts[i] && !arts[i]!.titled && !arts[i]!.logo && (
+                      <span class:list={['title-print', titleSize(f.title)]} aria-hidden="true">
+                        {f.title}
+                      </span>
+                    )}
                     {arts[i]?.logo && (
                       <img
                         class="logo"
@@ -149,7 +156,7 @@ const ssrTransform = (d: number) => {
       </div>
       <div class="side">
         <span class="mono now-pos">
-          <span class="stars" data-stars aria-label={`${first.rating} stars`}>{meta[0].stars}</span> · <span data-watched>{meta[0].watched}</span> · <span data-pos>{pad(1)} / {pad(films.length)}</span>
+          <span class="stars" data-stars aria-label={`${first.rating} stars`}>{meta[0].stars}</span> · <span data-watched>{meta[0].watched}</span>
         </span>
         <div class="ctrls">
           <button type="button" class="ctrl" data-step="-1" aria-label="Previous film">
@@ -398,6 +405,46 @@ const ssrTransform = (d: number) => {
     pointer-events: none;
   }
 
+  /*
+   * The title in type, for prints with no logo: the display face as in the title under the player, centred on the
+   * same band as a logo, up to two balanced lines, sized against the disc so it scales with it.
+   */
+  .title-print {
+    position: absolute;
+    left: 50%;
+    top: 79%;
+    width: 58%;
+    transform: translate(-50%, -50%);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-stretch: 112%;
+    line-height: 1.05;
+    letter-spacing: 0.01em;
+    text-align: center;
+    text-wrap: balance;
+    color: #fbfaf6;
+    text-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.75),
+      0 0 12px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+  }
+
+  .title-print.short {
+    font-size: calc(var(--disc) * 0.07);
+  }
+
+  .title-print.mid {
+    font-size: calc(var(--disc) * 0.052);
+  }
+
+  .title-print.long {
+    font-size: calc(var(--disc) * 0.042);
+  }
+
   /* Real disc art is already round, with its own hole: shown whole. */
   .art.disc-art {
     object-fit: contain;
@@ -628,10 +675,8 @@ const ssrTransform = (d: number) => {
     const directorLine = root.querySelector<HTMLElement>('[data-director-line]')!;
     const starsEl = root.querySelector<HTMLElement>('[data-stars]')!;
     const watched = root.querySelector<HTMLElement>('[data-watched]')!;
-    const pos = root.querySelector<HTMLElement>('[data-pos]')!;
     const steps = [...root.querySelectorAll<HTMLButtonElement>('[data-step]')];
     const n = discs.length;
-    const pad = (v: number) => String(v).padStart(2, '0');
     let unit = 1;
     let focus = 0;
 
@@ -680,7 +725,6 @@ const ssrTransform = (d: number) => {
       starsEl.textContent = f.stars;
       starsEl.setAttribute('aria-label', `${f.rating} stars`);
       watched.textContent = f.watched;
-      pos.textContent = `${pad(focus + 1)} / ${pad(n)}`;
       steps[0].setAttribute('aria-disabled', String(focus === 0));
       steps[1].setAttribute('aria-disabled', String(focus === n - 1));
       if (moveFocus) discs[focus].focus({ preventScroll: true });

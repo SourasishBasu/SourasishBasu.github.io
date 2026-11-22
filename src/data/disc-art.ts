@@ -21,6 +21,8 @@ export interface DiscArt {
   position: string;
   /** The film's title logo (transparent PNG) to print on the disc's outer band. Only on prints: real disc art carries its own title. */
   logo?: Logo;
+  /** The art already shows the film's title (real disc art, or a poster with its title block), so nothing is added. */
+  titled: boolean;
 }
 
 /** How many of a film's logos to download and measure before choosing. */
@@ -56,16 +58,17 @@ async function measureLogos(urls: string[]): Promise<Logo | null> {
  * 3. The film's 1920×1080 still from Letterboxd.
  * 4. The Letterboxd poster.
  * Prints are cropped square around their subject at build time (see Films.astro) and get the film's title logo on
- * the band, except a poster, which already carries its title. An override can force the still or the poster, or
+ * the band (or, with no logo, the title set in the site's display face), except a poster, which already carries its
+ * title. An override can force the still or the poster, or
  * steer the crop. A centred crop loses whoever's off-centre and puts the hub over the middle; the attention crop
  * keeps the subject.
  */
 export async function discArt(film: RecentFilm): Promise<DiscArt | null> {
   const fix = discArtOverrides[film.slug] ?? {};
-  if (fix.disc) return { src: fix.disc, kind: 'disc', position: 'centre' };
+  if (fix.disc) return { src: fix.disc, kind: 'disc', position: 'centre', titled: true };
   const id = film.tmdb ?? film.imdb;
   const fanart = id ? await fetchFanart(id, FANART_API_KEY) : { disc: null, logos: [], keyart: null };
-  if (!fix.src && fanart.disc) return { src: fanart.disc, kind: 'disc', position: 'centre' };
+  if (!fix.src && fanart.disc) return { src: fanart.disc, kind: 'disc', position: 'centre', titled: true };
   const still = film.backdrop ?? film.still;
   let src: string | null | undefined;
   let titled = false;
@@ -83,5 +86,5 @@ export async function discArt(film: RecentFilm): Promise<DiscArt | null> {
   }
   if (!src) return null;
   const logo = titled ? null : await measureLogos(fanart.logos);
-  return { src, kind: 'print', position: fix.position ?? 'attention', ...(logo ? { logo } : {}) };
+  return { src, kind: 'print', position: fix.position ?? 'attention', titled, ...(logo ? { logo } : {}) };
 }
