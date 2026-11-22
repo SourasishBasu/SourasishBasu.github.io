@@ -150,10 +150,12 @@ test('dynames model: feet on the floor, about kit height, drive on the back, pai
   m.dispose();
 });
 
-test('kits: built ones first, only the Dynames has a model', async () => {
+test('kits: built ones first; models for all but the Vidar, credited when they aren\'t ours', async () => {
   const { kits } = await import('../src/data/kits.ts');
   const built = kits.map((k) => k.built);
   assert.deepEqual(built, [...built].sort((a, b) => Number(b) - Number(a)));
-  assert.deepEqual(kits.filter((k) => k.model).map((k) => k.id), ['dynames']);
+  assert.deepEqual(kits.filter((k) => k.model).map((k) => k.id), ['dynames', 'virtue', 'freedom']);
+  for (const k of kits) assert.equal(!!k.modelCredit, !!k.model && k.model !== 'dynames', k.id);
+  for (const k of kits) if (!k.model || k.model !== 'dynames') assert.ok(k.art, `${k.id} has a picture`);
   for (const k of kits) assert.equal(k.whenLabel, k.built ? 'Built' : 'Status');
 });

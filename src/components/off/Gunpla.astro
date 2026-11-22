@@ -57,6 +57,13 @@ const first = kits[0];
             <div class="eyebrow">{k.whenLabel}</div>
             <div class="val">{k.when}</div>
           </div>
+          {
+            k.modelCredit && (
+              <p class="credit">
+                3D model by <a href={k.modelCredit.href}>{k.modelCredit.author}</a>, {k.modelCredit.license}
+              </p>
+            )
+          }
         </div>
       ))
     }
@@ -79,6 +86,8 @@ const first = kits[0];
             data-kit={k.id}
             data-built={k.built ? '' : undefined}
             data-has-model={k.model ? '' : undefined}
+            data-model-id={k.model}
+            data-name={k.name}
           >
             <span class="ktext">
               <span class="kname">{k.name}</span>
@@ -112,13 +121,30 @@ const first = kits[0];
     let current = tabs.find((t) => t.getAttribute('aria-selected') === 'true') ?? tabs[0];
     let onScreen = false;
 
-    // Show the selected kit on the bench: the 3D model once it's ready, or the kit's picture.
+    // Show the selected kit on the bench: its 3D model once that's loaded, its picture until then (and for
+    // kits without one).
     const arts = [...stand.querySelectorAll<HTMLImageElement>('[data-art]')];
+    const ready = new Set<string>();
     const show = () => {
-      const model = current.dataset.hasModel !== undefined && viewer !== null;
+      const id = current.dataset.modelId;
+      const model = !!id && viewer !== null && ready.has(id);
       root.dataset.view = model ? 'model' : 'figure';
       for (const img of arts) img.hidden = img.dataset.art !== current.dataset.kit;
       viewer?.setActive(model && onScreen && !document.hidden);
+    };
+    const put = (tab: HTMLButtonElement) => {
+      const id = tab.dataset.modelId as 'dynames' | 'virtue' | 'freedom' | undefined;
+      if (!id || !viewer) return;
+      canvas.setAttribute('aria-label', `${tab.dataset.name}, a 3D model turning on the bench. Drag sideways to turn it; pinch or double-click to zoom.`);
+      viewer
+        .show(id)
+        .then(() => {
+          ready.add(id);
+          if (current === tab) show();
+        })
+        .catch(() => {
+          // The model didn't load: its picture stays.
+        });
     };
 
     const select = (tab: HTMLButtonElement, focus = false) => {
@@ -133,6 +159,7 @@ const first = kits[0];
       }
       if (focus) tab.focus();
       show();
+      put(tab);
     };
     tabs.forEach((tab, i) => {
       tab.addEventListener('click', () => select(tab));
@@ -153,7 +180,9 @@ const first = kits[0];
       import('./gunpla/viewer')
         .then(({ mountViewer }) => {
           viewer = mountViewer(canvas, { reducedMotion: reduced });
+          ready.add('dynames');
           show();
+          put(current);
         })
         .catch(() => {
           // No WebGL (or the chunk failed): the empty turntable stays.
@@ -381,6 +410,23 @@ const first = kits[0];
   .val {
     margin-top: 6px;
     font-size: 15px;
+  }
+
+  .credit {
+    grid-column: 1 / -1;
+    margin: -4px 0 0;
+    font: 400 12px/1.4 var(--font-mono);
+    color: var(--ink-muted);
+  }
+
+  .credit a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .credit a:hover {
+    color: var(--ink);
   }
 
   .pill {

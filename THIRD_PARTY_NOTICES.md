@@ -82,8 +82,9 @@ Both are trademarks of their owners, shown to name my employers.
 
 ## Gunpla viewer (`src/components/off/gunpla/`)
 
-- **three.js** 0.187.0 (https://threejs.org), MIT License, Copyright © 2010-2026 three.js authors. Loaded on demand with the viewer, including the addons `RoomEnvironment` and `BufferGeometryUtils`.
+- **three.js** 0.187.0 (https://threejs.org), MIT License, Copyright © 2010-2026 three.js authors. Loaded on demand with the viewer, including the addons `RoomEnvironment`, `GLTFLoader` and `BufferGeometryUtils`.
 - The **Gundam Dynames** model is built in code from primitives (`dynames.ts`) after photos of the Bandai MG 1/100 kit; no third-party mesh, scan or line art is used. Gundam and its mobile suit designs are © Sotsu·Sunrise; Gunpla is a trademark of Bandai Spirits.
+- The **Gundam Virtue** and **Freedom Gundam** 3D models in `public/models/` are by cosmos28 on Sketchfab, licensed CC BY 4.0: "Gundam Virtue" (https://sketchfab.com/3d-models/gundam-virtue-7f3bc6b2e4544c809a6bfd4cf77db777) and "gundam freedom" (https://sketchfab.com/3d-models/gundam-freedom-02042775eda240c09d8a39ecc989ad29). Changed for the web: textures re-encoded as 1024 px JPEGs, unused UV sets dropped, vertex data quantised (KHR_mesh_quantization); geometry is otherwise as published (`notes/gunpla/slim-glb.mjs`). Credited on the page under each kit.
 - The kit pictures in `public/gunpla/` (Virtue, Vidar, Freedom) are cut out of Bandai's official product photos (Virtue and Freedom from the Gundam Planet and HLJ listings, Vidar from Bandai's CG render on HLJ), then cut out with macOS Vision's subject lifting and given a light posterise and a thin outline (`notes/gunpla/lift.swift`, not shipped). Photos © Bandai Spirits; designs © Sotsu·Sunrise. Replace them with photos of the built kits when there are some.
 
 ## Film disc art (`src/data/disc-art.ts`)

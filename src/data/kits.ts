@@ -9,8 +9,10 @@ export interface Kit {
   /** Built: when it was finished. Not built: where it sits in the queue. */
   when: string;
   whenLabel: 'Built' | 'Status';
-  /** A 3D model exists for this kit. */
-  model?: 'dynames';
+  /** A 3D model for the bench: the Dynames is built in code, the others are glTF models from Sketchfab. */
+  model?: 'dynames' | 'virtue' | 'freedom';
+  /** Who made the model, when it isn't ours (CC BY needs credit). */
+  modelCredit?: { author: string; href: string; license: string };
   /**
    * Otherwise: a cut-out picture of the kit. `x` is where its body sits across the picture (0–1), so a
    * weapon held out to one side doesn't pull the kit off centre.
@@ -39,6 +41,8 @@ export const kits: Kit[] = [
     built: true,
     when: '[Month Year]',
     whenLabel: 'Built',
+    model: 'virtue',
+    modelCredit: { author: 'cosmos28', href: 'https://sketchfab.com/3d-models/gundam-virtue-7f3bc6b2e4544c809a6bfd4cf77db777', license: 'CC BY 4.0' },
     art: { src: '/gunpla/virtue.webp', width: 788, height: 754, x: 0.61 },
   },
   {
@@ -61,6 +65,8 @@ export const kits: Kit[] = [
     built: false,
     when: 'After Vidar',
     whenLabel: 'Status',
+    model: 'freedom',
+    modelCredit: { author: 'cosmos28', href: 'https://sketchfab.com/3d-models/gundam-freedom-02042775eda240c09d8a39ecc989ad29', license: 'CC BY 4.0' },
     art: { src: '/gunpla/freedom.webp', width: 872, height: 826, x: 0.48 },
   },
 ];

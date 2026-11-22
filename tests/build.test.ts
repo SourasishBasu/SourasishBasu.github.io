@@ -230,7 +230,11 @@ test('gunpla: kit tabs, Dynames first, a canvas for the model, details per kit',
   assert.equal(tabs.length, 4);
   assert.match(tabs[0], /aria-selected="true"/);
   assert.match(tabs[0], /data-has-model/);
-  tabs.slice(1).forEach((t) => assert.doesNotMatch(t, /data-has-model/));
+  assert.deepEqual(tabs.map((t) => t.match(/data-model-id="([^"]+)"/)?.[1] ?? null), ['dynames', 'virtue', null, 'freedom']);
+  // Sketchfab models are served from the site and credited.
+  for (const k of ['virtue', 'freedom']) assert.ok(existsSync(dist(`models/${k}.glb`)), k);
+  assert.equal((g.match(/class="credit"/g) ?? []).length, 2);
+  assert.match(g, /3D model by <a href="https:\/\/sketchfab\.com\/3d-models\/gundam-virtue-/);
   assert.equal(tags(g, 'canvas', /data-model/, /role="img"/).length, 1);
   const panels = tags(g, 'div', /role="tabpanel"/);
   assert.equal(panels.length, 4);

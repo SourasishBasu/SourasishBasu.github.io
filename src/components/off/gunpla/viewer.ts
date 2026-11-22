@@ -10,15 +10,39 @@
  * click or double tap zooms to the part under it, and again to zoom back out.
  * Zooming in rises toward the head unless you picked a spot.
  *
+ * The Dynames is built in code; the Virtue and Freedom are glTF models, loaded
+ * the first time they're picked and scaled to the Dynames' height.
+ *
  * Runs only while active (on screen and selected). With reduced motion it
  * doesn't spin or emit; it draws a still frame and moves only when you move it.
  */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { buildDynames, PALETTE } from './dynames';
+
+export type ModelId = 'dynames' | 'virtue' | 'freedom';
 
 export interface BenchViewer {
   setActive(on: boolean): void;
+  /** Put a kit on the turntable, loading it first if need be. Resolves once it's showing. */
+  show(id: ModelId): Promise<void>;
+  dispose(): void;
+}
+
+/** Kits from Sketchfab (CC BY, credited on the page), slimmed for the web: see THIRD_PARTY_NOTICES.md. */
+const GLB: Record<Exclude<ModelId, 'dynames'>, { url: string; yaw: number }> = {
+  virtue: { url: '/models/virtue.glb', yaw: 0 },
+  freedom: { url: '/models/freedom.glb', yaw: 0 },
+};
+
+interface OnBench {
+  root: any;
+  height: number;
+  radius: number;
+  /** GN Drive tip, for particles (the Dynames only). */
+  emitter?: any;
+  glow?: any;
   dispose(): void;
 }
 
@@ -67,14 +91,24 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   fill.position.set(12, 4, 10);
   scene.add(key, key.target, rim, fill);
 
-  const model = buildDynames();
-  owned.push(model);
+  const dynames = buildDynames();
+  const models = new Map<ModelId, OnBench>();
+  models.set('dynames', {
+    root: dynames.root,
+    height: dynames.size.height,
+    radius: dynames.size.radius,
+    emitter: dynames.emitter,
+    glow: dynames.glow,
+    dispose: () => dynames.dispose(),
+  });
+  let cur = models.get('dynames')!;
   const turntable = new THREE.Group();
-  turntable.add(model.root);
+  turntable.add(cur.root);
   scene.add(turntable);
 
-  // Turntable: a dark disc with tick marks round its rim, like the artboard's.
-  const discR = Math.max(5.6, model.size.radius + 0.5);
+  // Turntable: a dark disc with tick marks round its rim, like the artboard's. Built at radius 1 and
+  // scaled to whichever kit is on it.
+  let discR = Math.max(5.6, cur.radius + 0.5);
   const ticks = own(
     canvasTexture(1024, (g, s) => {
       g.fillStyle = '#1C1F1E';
@@ -100,7 +134,8 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   ticks.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const discSide = own(new THREE.MeshStandardMaterial({ color: '#16191A', roughness: 0.7 }));
   const discTop = own(new THREE.MeshStandardMaterial({ map: ticks, roughness: 0.75 }));
-  const disc = new THREE.Mesh(own(new THREE.CylinderGeometry(discR, discR + 0.15, 0.5, 96)), [discSide, discTop, discSide]);
+  const disc = new THREE.Mesh(own(new THREE.CylinderGeometry(1, 1.03, 0.5, 96)), [discSide, discTop, discSide]);
+  disc.scale.set(discR, 1, discR);
   disc.position.y = -0.25;
   disc.receiveShadow = true;
   turntable.add(disc);
@@ -116,11 +151,12 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     }),
   );
   const shadowBlob = new THREE.Mesh(
-    own(new THREE.PlaneGeometry(discR * 3, discR * 3)),
+    own(new THREE.PlaneGeometry(3, 3)),
     own(new THREE.MeshBasicMaterial({ map: blob, transparent: true, depthWrite: false })),
   );
   shadowBlob.rotation.x = -Math.PI / 2;
   shadowBlob.position.y = -0.52;
+  shadowBlob.scale.set(discR, discR, 1);
   const catcher = new THREE.Mesh(own(new THREE.PlaneGeometry(60, 60)), own(new THREE.ShadowMaterial({ opacity: 0.28 })));
   catcher.rotation.x = -Math.PI / 2;
   catcher.position.y = -0.5;
@@ -167,9 +203,12 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   const back = new THREE.Vector3();
   let spawn = 0;
   const stepParticles = (dt: number) => {
-    model.emitter.getWorldPosition(at);
-    model.emitter.getWorldDirection(back).negate();
-    spawn += dt * 24;
+    // Only the Dynames emits; switching away lets the motes in the air fade out.
+    if (cur.emitter) {
+      cur.emitter.getWorldPosition(at);
+      cur.emitter.getWorldDirection(back).negate();
+      spawn += dt * 24;
+    } else spawn = 0;
     for (let i = 0; i < N; i++) {
       const j = i * 3;
       if (pLife[i] <= 0) {
@@ -207,12 +246,12 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
 
   // Camera: frames the suit and the disc, whatever the bench's shape.
   const camera = new THREE.PerspectiveCamera(26, 1, 0.5, 200);
-  const target = new THREE.Vector3(0, model.size.height * 0.44, 0);
+  const target = new THREE.Vector3(0, cur.height * 0.44, 0);
   let tilt = 0.12;
   let dist = 50;
   // Zoom: 1 frames everything; closer in, the view rises toward `focusY` (the head unless a spot was picked).
-  const baseY = target.y;
-  const headY = model.size.height * 0.9;
+  let baseY = target.y;
+  let headY = cur.height * 0.9;
   let zoom = 1;
   let zoomTo = 1;
   let focusY = headY;
@@ -228,7 +267,7 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     const h = canvas.clientHeight || 1;
     camera.aspect = w / h;
     const half = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
-    const byHeight = (model.size.height + 1.6) / 2 / half;
+    const byHeight = (cur.height + 1.6) / 2 / half;
     const byWidth = (discR * 2 + 1.5) / 2 / (half * camera.aspect);
     dist = Math.max(byHeight, byWidth) * 1.2;
     camera.updateProjectionMatrix();
@@ -274,8 +313,8 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     } else {
       const r = canvas.getBoundingClientRect();
       ray.setFromCamera(new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1), camera);
-      const hit = ray.intersectObject(model.root, true).find((h: any) => h.object.isMesh);
-      focusY = hit ? THREE.MathUtils.clamp(hit.point.y, 2, model.size.height - 1) : headY;
+      const hit = ray.intersectObject(cur.root, true).find((h: any) => h.object.isMesh);
+      focusY = hit ? THREE.MathUtils.clamp(hit.point.y, 2, cur.height - 1) : headY;
       zoomTo = 2.6;
     }
     wake();
@@ -381,7 +420,7 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     }
     if (!reducedMotion) {
       stepParticles(dt);
-      model.glow.emissiveIntensity = 1.8 + 0.4 * Math.sin(now / 650);
+      if (cur.glow) cur.glow.emissiveIntensity = 1.8 + 0.4 * Math.sin(now / 650);
     }
     render();
     const moving = !reducedMotion || drag || Math.abs(vel - autoSpin) > 0.002 || Math.abs(zoomTo - zoom) > 0.0005;
@@ -411,11 +450,85 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       release() {
         frozen = false;
       },
-      meshes: model.meshCount,
+      meshes: dynames.meshCount,
     };
   }
 
+  // Loading and switching kits.
+  const loader = new GLTFLoader();
+  const pending = new Map<ModelId, Promise<OnBench>>();
+  const load = (id: ModelId): Promise<OnBench> => {
+    const have = models.get(id);
+    if (have) return Promise.resolve(have);
+    if (!pending.has(id)) {
+      const cfg = GLB[id as Exclude<ModelId, 'dynames'>];
+      pending.set(
+        id,
+        loader.loadAsync(cfg.url).then((gltf: any) => {
+          // Stand it on the floor, centred, at the Dynames' height, facing the camera.
+          const inner = gltf.scene;
+          const box = new THREE.Box3().setFromObject(inner);
+          const size = box.getSize(new THREE.Vector3());
+          const k = dynames.size.height / size.y;
+          inner.scale.multiplyScalar(k);
+          inner.updateMatrixWorld(true);
+          box.setFromObject(inner);
+          const c = box.getCenter(new THREE.Vector3());
+          inner.position.sub(new THREE.Vector3(c.x, box.min.y, c.z));
+          const root = new THREE.Group();
+          root.add(inner);
+          root.rotation.y = cfg.yaw;
+          root.updateMatrixWorld(true);
+          inner.traverse((o: any) => {
+            if (o.isMesh) {
+              o.castShadow = true;
+              o.receiveShadow = true;
+            }
+          });
+          const all = new THREE.Box3().setFromObject(root);
+          const m: OnBench = {
+            root,
+            height: all.max.y - all.min.y,
+            radius: Math.max(-all.min.x, all.max.x, -all.min.z, all.max.z),
+            dispose() {
+              inner.traverse((o: any) => {
+                if (!o.isMesh) return;
+                o.geometry.dispose();
+                for (const mat of [o.material].flat()) {
+                  for (const v of Object.values(mat)) if ((v as any)?.isTexture) (v as any).dispose();
+                  mat.dispose();
+                }
+              });
+            },
+          };
+          models.set(id, m);
+          return m;
+        }),
+      );
+    }
+    return pending.get(id)!;
+  };
+  let wanted: ModelId = 'dynames';
+
   return {
+    show(id) {
+      wanted = id;
+      return load(id).then((m) => {
+        if (wanted !== id || m === cur) return;
+        turntable.remove(cur.root);
+        cur = m;
+        turntable.add(cur.root);
+        discR = Math.max(5.6, cur.radius + 0.5);
+        disc.scale.set(discR, 1, discR);
+        shadowBlob.scale.set(discR, discR, 1);
+        baseY = cur.height * 0.44;
+        headY = cur.height * 0.9;
+        focusY = headY;
+        zoom = zoomTo = 1;
+        frame();
+        if (!raf) render();
+      });
+    },
     setActive(on) {
       active = on;
       if (on) wake();
@@ -435,6 +548,7 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       canvas.removeEventListener('wheel', onWheel);
       canvas.removeEventListener('dblclick', onDouble);
       for (const o of owned) o.dispose();
+      for (const m of models.values()) m.dispose();
       renderer.dispose();
     },
   };
