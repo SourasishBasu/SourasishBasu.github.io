@@ -1,11 +1,13 @@
 ---
 import { padCells } from '../../lib/flap';
 
-// The split-flap name board. Every tile flips in once on load; after that a
-// letter now and then flips to a colour chip for under a second and back, so
-// the name stays readable, and the status row cycles its messages. Stickers
-// appear on hover (CSS only). Off-screen, in a hidden tab or under reduced
-// motion nothing flips.
+// The split-flap name board. Every tile turns over once on load; after that a
+// letter now and then flips to one of the accent colours beside BASU for under
+// a second and back, so the name stays readable, and the status row cycles its
+// messages. Flips work like real flaps: the top half of the old face falls,
+// showing the new face's top half, and lands as the new face's bottom half.
+// The U at the end never flips. Stickers appear on hover. Off-screen, in a
+// hidden tab or under reduced motion nothing flips.
 type Art = 'dither-ink' | 'dither-blue' | 'dither-yellow' | 'dither-eink';
 type Sticker = { tile: number; rot: number; art: Art; icon: string; title: string; text: string };
 
@@ -47,7 +49,7 @@ const atlan = stickers[0];
         {row.map(({ ch, i }) => {
           const s = byTile.get(i);
           return (
-            <span class:list={['tile', { pin: i === 0 }]}>
+            <span class:list={['tile', { pin: i === 0 }]} data-still={i === letters.length - 1 ? '' : undefined}>
               <span class="glyph" data-letter={ch}>{ch}</span>
               {s && (
                 <span class="sticker" data-tile={s.tile} style={`--r:${s.rot}deg`}>
@@ -75,7 +77,7 @@ const atlan = stickers[0];
             </span>
           );
         })}
-        {r === 1 && chips.map((c) => <span class:list={['tile', c]} />)}
+        {r === 1 && chips.map((c) => <span class:list={['tile', c]} data-chip={c || undefined} />)}
       </div>
     ))
   }
@@ -155,59 +157,75 @@ const atlan = stickers[0];
     color: var(--flap-ink);
   }
 
-  .tile:hover .glyph {
-    animation: flick 0.38s ease;
+  /*
+   * A flip in progress (see the script): four half-cards laid over the tile, each a window onto a full-height face
+   * (a letter on the flap face, or a colour chip). The two leaves turn on the seam; the seam line stays on top.
+   */
+  .tile::after,
+  .mini::after {
+    z-index: 4;
   }
 
-  /* Two alternating classes restart the flick each time a tile changes. */
-  .tile.fa {
-    animation: flick-a 0.44s ease;
+  .board :global(.half) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    height: 50%;
+    overflow: hidden;
   }
 
-  .tile.fb {
-    animation: flick-b 0.44s ease;
+  .board :global(.half.top) {
+    top: 0;
+    border-radius: inherit;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    transform-origin: 50% 100%;
   }
 
-  .mini.fa {
-    animation: flick-a 0.4s ease both;
+  .board :global(.half.bottom) {
+    bottom: 0;
+    border-radius: inherit;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    transform-origin: 50% 0;
   }
 
-  .mini.fb {
-    animation: flick-b 0.4s ease both;
+  .board :global(.half.leaf.bottom) {
+    z-index: 2;
   }
 
-  @keyframes flick-a {
-    0% {
-      transform: perspective(240px) rotateX(0);
-    }
-    45% {
-      transform: perspective(240px) rotateX(-88deg);
-      filter: brightness(0.55);
-    }
-    46% {
-      transform: perspective(240px) rotateX(88deg);
-      filter: brightness(0.55);
-    }
-    100% {
-      transform: perspective(240px) rotateX(0);
-    }
+  .board :global(.half.leaf.top) {
+    z-index: 3;
   }
 
-  @keyframes flick-b {
-    0% {
-      transform: perspective(240px) rotateX(0);
-    }
-    45% {
-      transform: perspective(240px) rotateX(-88deg);
-      filter: brightness(0.55);
-    }
-    46% {
-      transform: perspective(240px) rotateX(88deg);
-      filter: brightness(0.55);
-    }
-    100% {
-      transform: perspective(240px) rotateX(0);
-    }
+  .board :global(.card) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 200%;
+    display: grid;
+    place-items: center;
+    color: var(--flap-ink);
+  }
+
+  .board :global(.half.top .card) {
+    top: 0;
+  }
+
+  .board :global(.half.bottom .card) {
+    bottom: 0;
+  }
+
+  .board :global(.card.plain) {
+    background: var(--flap-face);
+  }
+
+  .tile :global(.card) {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: calc(var(--th) * 0.6);
+    line-height: 1;
   }
 
   .sticker {
@@ -342,50 +360,109 @@ const atlan = stickers[0];
 <script>
   import { padCells } from '../../lib/flap';
 
+  /** What a flap shows: a character on the plain flap face, or a colour chip (a chip-* class). */
+  type Face = { ch: string; chip: string };
+
   const board = document.querySelector<HTMLElement>('[data-board]');
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (board && !reduced.matches) {
-    const tiles = [...board.querySelectorAll<HTMLElement>('.tile')].filter((t) => t.querySelector('[data-letter]'));
+    const tiles = [...board.querySelectorAll<HTMLElement>('.tile')].filter((t) => t.querySelector('[data-letter]') && !t.hasAttribute('data-still'));
     const cells = [...board.querySelectorAll<HTMLElement>('.status .mini')];
-    const CHIPS = ['chip-red', 'chip-orange', 'chip-yellow', 'chip-green', 'chip-blue', 'chip-white'];
-    const time = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' });
-    const messages = () => ['PLATFORM @ ATLAN', `LOCAL TIME ${time.format(new Date())} IST`, 'OPEN TO A CHAT'];
+    // Flips only use the accent colours on the board itself, the chips beside BASU.
+    const CHIPS = [...board.querySelectorAll<HTMLElement>('[data-chip]')].map((t) => t.dataset.chip!);
+    const MESSAGES = ['PLATFORM @ ATLAN', 'OPEN TO A CHAT'];
+    const HALF = 170; // ms for each leaf
     const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-    const flick = (el: HTMLElement, delay = 0) => {
-      const next = el.classList.contains('fa') ? 'fb' : 'fa';
-      el.classList.remove('fa', 'fb');
-      el.style.animationDelay = `${delay}ms`;
-      el.classList.add(next);
+    const glyphOf = (tile: HTMLElement) => tile.querySelector<HTMLElement>('[data-letter]')!;
+    const letterFace = (tile: HTMLElement): Face => ({ ch: glyphOf(tile).dataset.letter ?? '', chip: '' });
+    const setTile = (tile: HTMLElement, face: Face) => {
+      tile.classList.remove(...CHIPS);
+      if (face.chip) tile.classList.add(face.chip);
+      glyphOf(tile).textContent = face.ch;
+    };
+
+    const half = (pos: 'top' | 'bottom', face: Face, leaf: boolean) => {
+      const el = document.createElement('span');
+      el.className = `half ${pos}${leaf ? ' leaf' : ''}`;
+      const card = document.createElement('span');
+      card.className = `card ${face.chip || 'plain'}`;
+      card.textContent = face.ch;
+      el.append(card);
+      return el;
+    };
+
+    /**
+     * Turn a flap from one face to another. The new face's top half and the old face's bottom half sit underneath;
+     * the old top half falls on the seam (speeding up, as if under gravity), then the new bottom half lands with a
+     * small bounce. Each leaf dims a little as it turns edge-on and brightens as it lands. `apply` puts the new face
+     * on the flap itself just before the half-cards go.
+     */
+    const turn = async (el: HTMLElement, from: Face, to: Face, apply: () => void, delay = 0) => {
+      const under = [half('top', to, false), half('bottom', from, false)];
+      const fall = half('top', from, true);
+      const land = half('bottom', to, true);
+      el.append(...under, land, fall);
+      const p = 'perspective(300px)';
+      fall.animate(
+        [
+          { transform: `${p} rotateX(0deg)`, filter: 'brightness(1)' },
+          { transform: `${p} rotateX(-90deg)`, filter: 'brightness(0.78)' },
+        ],
+        { duration: HALF, delay, easing: 'cubic-bezier(0.55, 0, 1, 0.45)', fill: 'forwards' },
+      );
+      const landing = land.animate(
+        [
+          { transform: `${p} rotateX(90deg)`, filter: 'brightness(0.78)' },
+          { transform: `${p} rotateX(0deg)`, filter: 'brightness(1)', offset: 0.78 },
+          { transform: `${p} rotateX(9deg)`, offset: 0.9 },
+          { transform: `${p} rotateX(0deg)`, filter: 'brightness(1)' },
+        ],
+        { duration: HALF * 1.35, delay: delay + HALF, easing: 'cubic-bezier(0, 0.55, 0.45, 1)', fill: 'both' },
+      );
+      await landing.finished;
+      apply();
+      for (const h of [...under, land, fall]) h.remove();
     };
 
     let visible = false;
     let started = false;
     let lastTile = -1;
     let msg = 0;
-    const chipped = new Set<number>();
+    const busy = new Set<HTMLElement>();
 
-    // One flip: a letter turns into a colour chip for under a second, then back.
-    const flipOne = () => {
-      if (chipped.size >= 2) return;
-      const free = tiles.map((_, i) => i).filter((i) => !chipped.has(i) && i !== lastTile);
+    // One flip: a letter turns over to an accent colour, holds for under a second, and turns back to the letter.
+    const flipOne = async () => {
+      if (busy.size >= 2) return;
+      const free = tiles.map((_, i) => i).filter((i) => !busy.has(tiles[i]) && i !== lastTile);
       const i = free[Math.floor(Math.random() * free.length)];
       if (i === undefined) return;
       lastTile = i;
       const tile = tiles[i];
-      const glyph = tile.querySelector<HTMLElement>('[data-letter]')!;
-      const chip = CHIPS[Math.floor(Math.random() * CHIPS.length)];
-      chipped.add(i);
-      tile.classList.add(chip);
-      glyph.textContent = '';
-      flick(tile);
-      setTimeout(() => {
-        tile.classList.remove(chip);
-        glyph.textContent = glyph.dataset.letter ?? '';
-        flick(tile);
-        chipped.delete(i);
-      }, rand(650, 950));
+      const letter = letterFace(tile);
+      const chip = { ch: '', chip: CHIPS[Math.floor(Math.random() * CHIPS.length)] };
+      busy.add(tile);
+      await turn(tile, letter, chip, () => setTile(tile, chip));
+      await wait(rand(650, 950));
+      await turn(tile, chip, letter, () => setTile(tile, letter));
+      busy.delete(tile);
     };
+
+    /** A full turn back to the same letter: the load-in cascade and the hover flick. */
+    const turnOver = async (tile: HTMLElement, delay = 0) => {
+      if (busy.has(tile)) return;
+      busy.add(tile);
+      const letter = letterFace(tile);
+      await turn(tile, letter, letter, () => setTile(tile, letter), delay);
+      busy.delete(tile);
+    };
+
+    tiles.forEach((tile) =>
+      tile.addEventListener('pointerenter', (e) => {
+        if (e.pointerType === 'mouse' && started) turnOver(tile);
+      }),
+    );
 
     const loopFlips = () => {
       setTimeout(() => {
@@ -394,13 +471,19 @@ const atlan = stickers[0];
       }, rand(3500, 8000));
     };
 
+    // The status row: only cells whose character changes turn, left to right.
+    const showMessage = (text: string, start = 0) => {
+      padCells(text, cells.length).forEach((ch, k) => {
+        const cell = cells[k];
+        const was = cell.textContent ?? '';
+        if (was === ch) return;
+        turn(cell, { ch: was, chip: '' }, { ch, chip: '' }, () => (cell.textContent = ch), start + k * 32);
+      });
+    };
     const nextMessage = () => {
       if (visible && !document.hidden) {
-        msg = (msg + 1) % 4;
-        padCells(messages()[msg], cells.length).forEach((ch, k) => {
-          cells[k].textContent = ch;
-          flick(cells[k], k * 32);
-        });
+        msg = (msg + 1) % MESSAGES.length;
+        showMessage(MESSAGES[msg]);
       }
       setTimeout(nextMessage, 3600);
     };
@@ -409,9 +492,8 @@ const atlan = stickers[0];
       visible = !!entry?.isIntersecting;
       if (visible && !started) {
         started = true;
-        // Every tile flips in once, left to right.
-        tiles.forEach((t, k) => flick(t, k * 45));
-        cells.forEach((c, k) => flick(c, 300 + k * 32));
+        // Every tile turns over once, left to right.
+        tiles.forEach((t, k) => turnOver(t, k * 45));
         loopFlips();
         setTimeout(nextMessage, 3600);
       }
