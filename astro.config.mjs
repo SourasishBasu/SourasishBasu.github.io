@@ -3,11 +3,11 @@ import { defineConfig, envField } from 'astro/config';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 
-// Static output for Cloudflare Pages. Switch `site` when a custom domain is chosen.
+// Static output for Cloudflare Pages (project sourasishbasu). Switch `site` when a custom domain is chosen.
 // React is only for islands (copied-in components from 21st.dev, shadcn, React Bits,
 // Canvas UI); everything else stays zero-JS Astro.
 export default defineConfig({
-  site: 'https://sourasishbasu.github.io',
+  site: 'https://sourasishbasu.pages.dev',
   output: 'static',
   trailingSlash: 'ignore',
   build: { format: 'directory' },

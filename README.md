@@ -49,11 +49,12 @@ Disc art (`src/data/disc-art.ts`): each film's 1920×1080 still is cropped squar
 
 ## Deploy
 
-Cloudflare Pages, connected to this repository:
+Cloudflare Pages project `sourasishbasu` (https://sourasishbasu.pages.dev), connected to this repository. Pushes to `main` deploy to production; other branches don't build.
 
 - Build command: `npm run build`
-- Output directory: `dist`
+- Output directory: `dist`, with Pages build caching on
 - Node version: from `.node-version`
+- `FANART_API_KEY` and `TMDB_API_KEY`: encrypted production variables in the project's settings
 - Freshness: a daily rebuild through a Pages deploy hook (triggered by a scheduled Cloudflare Worker) refreshes the Letterboxd shelf
 
 ## Credits
