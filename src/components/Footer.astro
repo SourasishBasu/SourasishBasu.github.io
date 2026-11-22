@@ -1,11 +1,12 @@
 ---
 import { TMDB_API_KEY } from 'astro:env/server';
 import { site } from '../data/site';
+import { looksLikeReadToken } from '../data/tmdb';
 import IstClock from './IstClock.astro';
 
 const year = new Date().getFullYear();
-// TMDB's terms ask for this notice wherever its API is used; the film discs only use it when the key is set.
-const usesTmdb = !!TMDB_API_KEY;
+// TMDB's terms ask for this notice wherever its API is used; the film discs only use it with a usable token.
+const usesTmdb = !!TMDB_API_KEY && looksLikeReadToken(TMDB_API_KEY);
 ---
 
 <footer id="contact">
