@@ -1,0 +1,173 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Credits for other people's work on the site: data and images, models, code and type. The full licence texts are in
+// THIRD_PARTY_NOTICES.md. Linked from the Off the clock footer, where most of it shows.
+type Credit = { name: string; href?: string; text: string };
+const groups: { title: string; items: Credit[] }[] = [
+  {
+    title: 'Films',
+    items: [
+      { name: 'Letterboxd', href: 'https://letterboxd.com', text: 'The films, ratings and dates come from my Letterboxd diary, and so do the stills and posters some discs fall back to.' },
+      { name: 'fanart.tv', href: 'https://fanart.tv', text: 'Disc art and title logos, made by the fanart.tv community.' },
+    ],
+  },
+  {
+    title: 'Gunpla',
+    items: [
+      { name: 'Gundam Virtue', href: 'https://sketchfab.com/3d-models/gundam-virtue-7f3bc6b2e4544c809a6bfd4cf77db777', text: '3D model by cosmos28, CC BY 4.0. Repainted and slimmed for the web.' },
+      { name: 'Freedom Gundam', href: 'https://sketchfab.com/3d-models/freedom-gundam-e04d497c3765423886597443b4ce825e', text: '3D model by Ammer, CC BY 4.0. Coloured and slimmed for the web.' },
+      { name: 'Kit pictures', text: "Cut out of Bandai's product photos, © Bandai Spirits." },
+      { name: 'three.js', href: 'https://threejs.org', text: 'Draws the models. MIT licence.' },
+      { name: 'Designs', text: 'Gundam and its mobile suit designs are © Sotsu·Sunrise. Gunpla is a trademark of Bandai Spirits.' },
+    ],
+  },
+  {
+    title: 'Koi pond',
+    items: [{ name: 'ascii-animals', href: 'https://github.com/DesignerStephen1/ascii-animals', text: 'By drewdi and Stephen Zhang, built on ascii-sharks. MIT licence.' }],
+  },
+  {
+    title: 'This site',
+    items: [
+      { name: 'Archivo and IBM Plex', href: 'https://fontsource.org', text: 'The type, self-hosted through Fontsource. SIL Open Font License 1.1.' },
+      { name: 'simple-icons and devicon', href: 'https://simpleicons.org', text: 'The tool logos. CC0 1.0 and MIT. The marks belong to their owners.' },
+      { name: 'ridgeline-dither-footer', href: 'https://21st.dev', text: 'The mountain range in the Work footer, by @kedhareswer on 21st.dev.' },
+      { name: 'Company marks', text: 'Atlan and Anonymous Digital marks belong to their owners, shown to name where I worked.' },
+    ],
+  },
+];
+---
+
+<Base title="Credits · Sourasish Basu" description="Credits for the data, images, models, code and type on Sourasish Basu's site." theme="dark" page="none">
+  <section class="band credits-head">
+    <span class="eyebrow">Credits</span>
+    <h1 class="display h2">Credits</h1>
+    <p class="lead">Other people's work this site is built with. The full licence texts ship with the site's source, in THIRD_PARTY_NOTICES.md.</p>
+    <span class="cross cl"></span><span class="cross cr"></span>
+  </section>
+
+  {
+    groups.map((g, gi) => (
+      <section class="band group">
+        <h2 class="mono group-title">{g.title}</h2>
+        <ul class="items">
+          {gi === 0 && (
+            <li class="item tmdb">
+              <a class="tmdb-logo" href="https://www.themoviedb.org">
+                <img src="/credits/tmdb.svg" alt="TMDB" width="110" height="14" />
+              </a>
+              <p>Key art (textless posters) on the film discs comes from TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+            </li>
+          )}
+          {g.items.map((c) => (
+            <li class="item">
+              <span class="name">{c.href ? <a href={c.href}>{c.name}</a> : c.name}</span>
+              <p>{c.text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</Base>
+
+<style>
+  .credits-head {
+    padding: 96px 40px 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .group {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    border-top: 1px solid var(--rule);
+  }
+
+  .group-title {
+    margin: 0;
+    padding: 32px 40px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--graphite);
+  }
+
+  .items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-left: 1px solid var(--rule);
+  }
+
+  .item {
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .item + .item {
+    border-top: 1px solid var(--rule);
+  }
+
+  .name {
+    font: 500 15px/1.35 var(--font-sans);
+    color: var(--ink);
+  }
+
+  .item a {
+    color: inherit;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 3px;
+  }
+
+  .item a:hover {
+    color: var(--link);
+  }
+
+  .item p {
+    margin: 0;
+    max-width: 640px;
+    font: 400 14.5px/1.55 var(--font-sans);
+    color: var(--ink-muted);
+  }
+
+  /* TMDB's logo stays small, well below the site's own name in prominence, as its terms ask. */
+  .tmdb-logo {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 4px 0;
+  }
+
+  .tmdb-logo img {
+    display: block;
+    height: 14px;
+    width: auto;
+  }
+
+  @media (max-width: 760px) {
+    .credits-head {
+      padding: 64px 16px 40px;
+    }
+
+    .group {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .group-title {
+      padding: 24px 16px 8px;
+    }
+
+    .items {
+      border-left: 0;
+    }
+
+    .item {
+      padding: 16px;
+    }
+  }
+</style>

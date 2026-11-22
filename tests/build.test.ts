@@ -93,6 +93,22 @@ test('work footer has the dithered range without the altimeter, off footer has t
   assert.equal(tags(off, 'canvas', /class="pond-canvas/).length, 1);
 });
 
+test('credits page: TMDB logo and notice, linked only from the Off the clock footer', () => {
+  const page = html('credits/index.html');
+  assert.match(page, /<html[^>]*data-theme="dark"/);
+  assert.equal(tags(page, 'img', /src="\/credits\/tmdb\.svg"/, /alt="TMDB"/).length, 1);
+  assert.match(page, /This product uses the TMDB API but is not endorsed or certified by TMDB\./);
+  for (const href of ['https://fanart.tv', 'https://letterboxd.com', 'https://threejs.org']) assert.equal(tags(page, 'a', new RegExp(`href="${href}"`)).length, 1, href);
+  assert.ok(existsSync(dist('credits/tmdb.svg')));
+  const legal = (p: string) => {
+    const s = html(p);
+    return s.slice(s.indexOf('class="legal'), s.indexOf('</footer>'));
+  };
+  assert.equal(tags(legal('off-the-clock/index.html'), 'a', /href="\/credits\/"/).length, 1);
+  assert.equal(tags(legal('index.html'), 'a', /href="\/credits\/"/).length, 0);
+  for (const p of ['index.html', 'off-the-clock/index.html']) assert.doesNotMatch(html(p), /not endorsed or certified by TMDB/, p);
+});
+
 test('third-party code is credited with its licence', () => {
   const notices = readFileSync(new URL('../THIRD_PARTY_NOTICES.md', import.meta.url), 'utf8');
   assert.match(notices, /ascii-animals/);
@@ -210,9 +226,11 @@ test('films: recent rated discs, only nearby ones drawn and loaded, counts shown
     assert.match(img, /width="720" height="720"/);
     assert.equal(/\ssrc="\/_astro/.test(img), i <= 5, `art ${i} loads up front`);
   });
-  // Plain discs: no title or credit text printed on them, and a metal rim.
+  // No credit text printed on the discs; a title in type only where a print has no logo, hidden from screen readers
+  // (the disc's label already names the film). Every disc has a metal rim.
   assert.equal(tags(films, 'img', /class="ring/).length, 0);
-  assert.equal(tags(films, 'span', /class="title/).length, 0);
+  assert.equal(tags(films, 'span', /class="title(?!-print)/).length, 0);
+  tags(films, 'span', /class="title-print/).forEach((t) => assert.match(t, /aria-hidden="true"/));
   assert.equal(tags(films, 'span', /class="rim/).length, discs.length);
   assert.doesNotMatch(films, /<textPath/);
   const flaps = [...films.matchAll(/<span class="flap count-flap"[^>]*>([^<]*)<\/span>/g)].map((m) => m[1]).join('');

@@ -1,12 +1,13 @@
 ---
-import { TMDB_API_KEY } from 'astro:env/server';
 import { site } from '../data/site';
-import { looksLikeReadToken } from '../data/tmdb';
 import IstClock from './IstClock.astro';
 
+interface Props {
+  page?: 'work' | 'off' | 'none';
+}
+
+const { page } = Astro.props;
 const year = new Date().getFullYear();
-// TMDB's terms ask for this notice wherever its API is used; the film discs only use it with a usable token.
-const usesTmdb = !!TMDB_API_KEY && looksLikeReadToken(TMDB_API_KEY);
 ---
 
 <footer id="contact">
@@ -56,7 +57,7 @@ const usesTmdb = !!TMDB_API_KEY && looksLikeReadToken(TMDB_API_KEY);
   <slot name="scene" />
 
   <div class="legal">
-    {usesTmdb && <span>Film posters from <a href="https://www.themoviedb.org">TMDB</a>. This product uses the TMDB API but is not endorsed or certified by TMDB.</span>}
+    {page === 'off' && <a href="/credits/">Credits</a>}
     <span>© <span data-copyright-year>{year}</span> {site.name}</span>
   </div>
 </footer>

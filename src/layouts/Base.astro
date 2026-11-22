@@ -49,7 +49,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       <main id="main">
         <slot />
       </main>
-      <Footer>
+      <Footer page={page}>
         <slot name="scene" slot="scene" />
       </Footer>
     </div>
