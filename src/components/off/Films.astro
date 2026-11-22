@@ -4,7 +4,7 @@ import { getFilmStats } from '../../data/film-stats';
 import { getRecentFilms, MIN_RATING } from '../../data/recent-films';
 import { stars } from '../../data/letterboxd';
 import { getImage } from 'astro:assets';
-import { discArt } from '../../data/disc-art';
+import { discArt, type Logo } from '../../data/disc-art';
 import { discPose, discTilt, RENDER_RADIUS, LOAD_RADIUS } from './discs';
 
 // Films: the latest Letterboxd films rated 3.5+ as CDs, after Ravi Klaassens' A24
@@ -32,12 +32,15 @@ const meta = films.map((f) => ({
 
 // Disc art, fetched and cropped square at build time and served from the site (see disc-art.ts).
 // If processing fails the remote image is used as it is. A print can carry the film's title
-// logo, resized the same way (WebP keeps its transparency); a logo that fails is left off.
-const logoImage = async (src: string | undefined) => {
-  if (!src) return null;
+// logo, scaled down whole to 400px wide (both sides given, or the image service crops it to
+// the original height) as WebP, which keeps its transparency; a logo that fails is left off.
+const logoImage = async (logo: Logo | undefined) => {
+  if (!logo) return null;
+  const width = Math.min(400, logo.width);
+  const height = Math.round((width * logo.height) / logo.width);
   try {
-    const img = await getImage({ src, width: 400, inferSize: true, format: 'webp', quality: 85 });
-    return { src: img.src, width: Number(img.attributes.width), height: Number(img.attributes.height) };
+    const img = await getImage({ src: logo.src, width, height, fit: 'contain', format: 'webp', quality: 85 });
+    return { src: img.src, width, height };
   } catch {
     return null;
   }

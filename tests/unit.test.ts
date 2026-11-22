@@ -124,18 +124,72 @@ test('pickFanartDisc prefers English or neutral discs, then the most liked', asy
   assert.equal(pickFanartDisc(json), 'https://assets.fanart.tv/fanart/en-4.png');
 });
 
-test('pickFanartLogo takes the best HD logo, falling back to the old low-resolution ones', async () => {
-  const { pickFanartLogo } = await import('../src/data/fanart.ts');
-  assert.equal(pickFanartLogo({}), null);
-  assert.equal(pickFanartLogo(null), null);
+test('fanartLogoCandidates: HD logos first, readable languages only when there are any', async () => {
+  const { fanartLogoCandidates } = await import('../src/data/fanart.ts');
+  assert.deepEqual(fanartLogoCandidates({}), []);
+  assert.deepEqual(fanartLogoCandidates(null), []);
   const hd = [
     { url: 'http://assets.fanart.tv/fanart/fr.png', lang: 'fr', likes: '12' },
+    { url: 'http://assets.fanart.tv/fanart/none.png', lang: '00', likes: '9' },
     { url: 'http://assets.fanart.tv/fanart/en.png', lang: 'en', likes: '2' },
+    { lang: 'en' },
   ];
   const old = [{ url: 'http://assets.fanart.tv/fanart/old.png', lang: 'en', likes: '5' }];
-  assert.equal(pickFanartLogo({ hdmovielogo: hd, movielogo: old }), 'https://assets.fanart.tv/fanart/en.png');
-  assert.equal(pickFanartLogo({ hdmovielogo: [], movielogo: old }), 'https://assets.fanart.tv/fanart/old.png');
-  assert.equal(pickFanartLogo({ hdmovielogo: [{ lang: 'en' }] }), null, 'entries without a url are skipped');
+  assert.deepEqual(fanartLogoCandidates({ hdmovielogo: hd, movielogo: old }), [
+    'https://assets.fanart.tv/fanart/en.png',
+    'https://assets.fanart.tv/fanart/none.png',
+    'https://assets.fanart.tv/fanart/old.png',
+  ]);
+  assert.deepEqual(fanartLogoCandidates({ hdmovielogo: [hd[0]] }), ['https://assets.fanart.tv/fanart/fr.png'], 'a foreign logo beats none');
+});
+
+test('chooseLogo prefers the first one-line logo, else the widest', async () => {
+  const { chooseLogo } = await import('../src/data/fanart.ts');
+  assert.equal(chooseLogo([]), null);
+  // Digger on fanart.tv: a stacked logo, a two-line one, then a one-line one.
+  const digger = [
+    { id: 'stacked', aspect: 0.51 },
+    { id: 'two-line', aspect: 2.44 },
+    { id: 'one-line', aspect: 4.8 },
+  ];
+  assert.equal(chooseLogo(digger)?.id, 'one-line');
+  assert.equal(chooseLogo([{ id: 'wide', aspect: 3.4 }, { id: 'wider', aspect: 12 }])?.id, 'wide', 'preference order wins among one-line logos');
+  // Big Night: two near-identical shapes, the better-ranked one is kept.
+  assert.equal(chooseLogo([{ id: 'hd', aspect: 2.91 }, { id: 'small', aspect: 2.92 }])?.id, 'hd');
+  assert.equal(chooseLogo([{ id: 'stacked', aspect: 1.2 }, { id: 'squat', aspect: 1.8 }])?.id, 'squat');
+});
+
+test('pngInfo finds the visible part of a transparent PNG', async () => {
+  const { deflateSync } = await import('node:zlib');
+  const { pngInfo } = await import('../src/data/png-info.ts');
+  // A 20×10 RGBA image, transparent except a 12×3 block at (4, 5), rows written with the Sub and Paeth filters.
+  const w = 20;
+  const h = 10;
+  const rows: number[] = [];
+  for (let y = 0; y < h; y++) {
+    const px = Array.from({ length: w }, (_, x) => (x >= 4 && x < 16 && y >= 5 && y < 8 ? [200, 30, 30, 255] : [0, 0, 0, 0])).flat();
+    if (y % 2) {
+      rows.push(1, ...px.map((v, i) => (v - (i >= 4 ? px[i - 4] : 0)) & 255));
+    } else rows.push(0, ...px);
+  }
+  const chunk = (tag: string, data: Buffer) => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    return Buffer.concat([len, Buffer.from(tag, 'latin1'), data, Buffer.alloc(4)]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 6;
+  const png = Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    chunk('IHDR', ihdr),
+    chunk('IDAT', deflateSync(Buffer.from(rows))),
+    chunk('IEND', Buffer.alloc(0)),
+  ]);
+  assert.deepEqual(await pngInfo(png), { width: 20, height: 10, bounds: { x: 4, y: 5, w: 12, h: 3 } });
+  assert.equal(await pngInfo(Buffer.from('not a png at all, just some text bytes')), null);
 });
 
 test('stars formats halves', async () => {
