@@ -236,7 +236,7 @@ test('gunpla: kit tabs, Dynames first, a canvas for the model, details per kit',
   assert.equal(panels.length, 4);
   panels.forEach((p, i) => assert.equal(/\shidden/.test(p), i > 0));
   assert.equal(tags(g, 'div', /class="mruler/).length, 2);
-  // The other kits are halftone pictures, one each, only the selected one showing; no dither toggle.
+  // The other kits are cel-shaded pictures, one each, only the selected one showing; no dither toggle.
   const pics = tags(g, 'img', /data-art=/);
   assert.deepEqual(pics.map((t) => t.match(/data-art="([^"]+)"/)?.[1]), ['virtue', 'vidar', 'freedom']);
   pics.forEach((t) => assert.match(t, /\shidden/));

@@ -2,7 +2,7 @@
 import { kits } from '../../data/kits';
 
 // The bench: a green cutting mat with rulers and a turntable. The Dynames is a 3D model, loaded only when
-// the section comes near the screen; the other kits are cut-out, cel-shaded halftone pictures standing on the
+// the section comes near the screen; the other kits are cut-out, cel-shaded pictures standing on the
 // turntable. The kit list on the right is a set of tabs; each one shows its kit on the bench and its details below.
 const first = kits[0];
 ---
@@ -23,7 +23,7 @@ const first = kits[0];
                 src={k.art!.src}
                 width={k.art!.width}
                 height={k.art!.height}
-                alt={`${k.name}, drawn in halftone`}
+                alt={k.name}
                 loading="lazy"
                 decoding="async"
                 hidden={k.id !== first.id}
@@ -300,7 +300,7 @@ const first = kits[0];
     opacity: 0;
   }
 
-  /* ── The turntable, and the halftone pictures of kits without a model ── */
+  /* ── The turntable, and the pictures of kits without a model ── */
   .stand {
     position: absolute;
     inset: 0;
