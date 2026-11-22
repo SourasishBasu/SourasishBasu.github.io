@@ -433,12 +433,53 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       meshes: dynames.meshCount,
       /** The kit on the turntable and three.js, for inspecting materials. */
       inspect: () => ({ root: cur.root, THREE, render }),
+      /** Put any GLB on the bench, for trying out models. */
+      preview: (url: string, yaw = 0) => loader.loadAsync(url).then((g: any) => swapTo(fromGltf(g, yaw))),
     };
   }
 
   // Loading and switching kits.
   const loader = new GLTFLoader();
   const pending = new Map<ModelId, Promise<OnBench>>();
+  const fromGltf = (gltf: any, yaw: number): OnBench => {
+    // Stand it on the floor, centred, at the Dynames' height, facing the camera.
+    const inner = gltf.scene;
+    const box = new THREE.Box3().setFromObject(inner);
+    const size = box.getSize(new THREE.Vector3());
+    const k = dynames.size.height / size.y;
+    inner.scale.multiplyScalar(k);
+    inner.updateMatrixWorld(true);
+    box.setFromObject(inner);
+    const c = box.getCenter(new THREE.Vector3());
+    inner.position.sub(new THREE.Vector3(c.x, box.min.y, c.z));
+    const root = new THREE.Group();
+    root.add(inner);
+    root.rotation.y = yaw;
+    root.updateMatrixWorld(true);
+    inner.traverse((o: any) => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+      }
+    });
+    const all = new THREE.Box3().setFromObject(root);
+    const m: OnBench = {
+      root,
+      height: all.max.y - all.min.y,
+      radius: Math.max(-all.min.x, all.max.x, -all.min.z, all.max.z),
+      dispose() {
+        inner.traverse((o: any) => {
+          if (!o.isMesh) return;
+          o.geometry.dispose();
+          for (const mat of [o.material].flat()) {
+            for (const v of Object.values(mat)) if ((v as any)?.isTexture) (v as any).dispose();
+            mat.dispose();
+          }
+        });
+      },
+    };
+    return m;
+  };
   const load = (id: ModelId): Promise<OnBench> => {
     const have = models.get(id);
     if (have) return Promise.resolve(have);
@@ -447,42 +488,7 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       pending.set(
         id,
         loader.loadAsync(cfg.url).then((gltf: any) => {
-          // Stand it on the floor, centred, at the Dynames' height, facing the camera.
-          const inner = gltf.scene;
-          const box = new THREE.Box3().setFromObject(inner);
-          const size = box.getSize(new THREE.Vector3());
-          const k = dynames.size.height / size.y;
-          inner.scale.multiplyScalar(k);
-          inner.updateMatrixWorld(true);
-          box.setFromObject(inner);
-          const c = box.getCenter(new THREE.Vector3());
-          inner.position.sub(new THREE.Vector3(c.x, box.min.y, c.z));
-          const root = new THREE.Group();
-          root.add(inner);
-          root.rotation.y = cfg.yaw;
-          root.updateMatrixWorld(true);
-          inner.traverse((o: any) => {
-            if (o.isMesh) {
-              o.castShadow = true;
-              o.receiveShadow = true;
-            }
-          });
-          const all = new THREE.Box3().setFromObject(root);
-          const m: OnBench = {
-            root,
-            height: all.max.y - all.min.y,
-            radius: Math.max(-all.min.x, all.max.x, -all.min.z, all.max.z),
-            dispose() {
-              inner.traverse((o: any) => {
-                if (!o.isMesh) return;
-                o.geometry.dispose();
-                for (const mat of [o.material].flat()) {
-                  for (const v of Object.values(mat)) if ((v as any)?.isTexture) (v as any).dispose();
-                  mat.dispose();
-                }
-              });
-            },
-          };
+          const m = fromGltf(gltf, cfg.yaw);
           models.set(id, m);
           return m;
         }),
@@ -490,25 +496,28 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     }
     return pending.get(id)!;
   };
+  const swapTo = (m: OnBench) => {
+    if (m === cur) return;
+    turntable.remove(cur.root);
+    cur = m;
+    turntable.add(cur.root);
+    discR = Math.max(5.6, cur.radius + 0.5);
+    disc.scale.set(discR, 1, discR);
+    shadowBlob.scale.set(discR, discR, 1);
+    baseY = cur.height * 0.44;
+    headY = cur.height * 0.9;
+    focusY = headY;
+    zoom = zoomTo = 1;
+    frame();
+    if (!raf) render();
+  };
   let wanted: ModelId = 'dynames';
 
   return {
     show(id) {
       wanted = id;
       return load(id).then((m) => {
-        if (wanted !== id || m === cur) return;
-        turntable.remove(cur.root);
-        cur = m;
-        turntable.add(cur.root);
-        discR = Math.max(5.6, cur.radius + 0.5);
-        disc.scale.set(discR, 1, discR);
-        shadowBlob.scale.set(discR, discR, 1);
-        baseY = cur.height * 0.44;
-        headY = cur.height * 0.9;
-        focusY = headY;
-        zoom = zoomTo = 1;
-        frame();
-        if (!raf) render();
+        if (wanted === id) swapTo(m);
       });
     },
     setActive(on) {
