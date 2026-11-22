@@ -106,35 +106,15 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   turntable.add(cur.root);
   scene.add(turntable);
 
-  // Turntable: a dark disc with tick marks round its rim, like the artboard's. Built at radius 1 and
-  // scaled to whichever kit is on it.
+  // Turntable: a plain dark hexagonal base, built with an inner radius of 1 and scaled to whichever kit is
+  // on it. Its edges get a faint lighter line so the facets read.
   let discR = Math.max(5.6, cur.radius + 0.5);
-  const ticks = own(
-    canvasTexture(1024, (g, s) => {
-      g.fillStyle = '#1C1F1E';
-      g.fillRect(0, 0, s, s);
-      g.translate(s / 2, s / 2);
-      g.strokeStyle = '#2E3432';
-      g.lineWidth = 3;
-      g.beginPath();
-      g.arc(0, 0, s * 0.47, 0, Math.PI * 2);
-      g.stroke();
-      g.strokeStyle = '#8A918D';
-      for (let i = 0; i < 120; i++) {
-        const a = (i / 120) * Math.PI * 2;
-        const r0 = s * (i % 10 === 0 ? 0.405 : 0.43);
-        g.lineWidth = i % 10 === 0 ? 4 : 2.5;
-        g.beginPath();
-        g.moveTo(Math.cos(a) * r0, Math.sin(a) * r0);
-        g.lineTo(Math.cos(a) * s * 0.46, Math.sin(a) * s * 0.46);
-        g.stroke();
-      }
-    }),
-  );
-  ticks.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  const discSide = own(new THREE.MeshStandardMaterial({ color: '#16191A', roughness: 0.7 }));
-  const discTop = own(new THREE.MeshStandardMaterial({ map: ticks, roughness: 0.75 }));
-  const disc = new THREE.Mesh(own(new THREE.CylinderGeometry(1, 1.03, 0.5, 96)), [discSide, discTop, discSide]);
+  const hexR = 1 / Math.cos(Math.PI / 6);
+  const discSide = own(new THREE.MeshStandardMaterial({ color: '#16191A', roughness: 0.7, flatShading: true }));
+  const discTop = own(new THREE.MeshStandardMaterial({ color: '#1F2322', roughness: 0.78 }));
+  const hex = own(new THREE.CylinderGeometry(hexR, hexR * 1.03, 0.5, 6));
+  const disc = new THREE.Mesh(hex, [discSide, discTop, discSide]);
+  disc.add(new THREE.LineSegments(own(new THREE.EdgesGeometry(hex, 20)), own(new THREE.LineBasicMaterial({ color: '#3A403E' }))));
   disc.scale.set(discR, 1, discR);
   disc.position.y = -0.25;
   disc.receiveShadow = true;

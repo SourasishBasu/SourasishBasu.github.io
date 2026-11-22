@@ -66,7 +66,7 @@ export const kits: Kit[] = [
     when: 'After Vidar',
     whenLabel: 'Status',
     model: 'freedom',
-    modelCredit: { author: 'cosmos28', href: 'https://sketchfab.com/3d-models/gundam-freedom-02042775eda240c09d8a39ecc989ad29', license: 'CC BY 4.0' },
+    modelCredit: { author: 'Ammer', href: 'https://sketchfab.com/3d-models/freedom-gundam-e04d497c3765423886597443b4ce825e', license: 'CC BY 4.0' },
     art: { src: '/gunpla/freedom.webp', width: 872, height: 826, x: 0.48 },
   },
 ];
