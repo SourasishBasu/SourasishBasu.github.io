@@ -1,5 +1,5 @@
 import { FANART_API_KEY } from 'astro:env/server';
-import { fetchFanartDisc } from './fanart';
+import { fetchFanart } from './fanart';
 import { discArtOverrides } from './disc-art-overrides';
 import type { RecentFilm } from './letterboxd';
 
@@ -10,6 +10,8 @@ export interface DiscArt {
   kind: 'disc' | 'print';
   /** Where the square crop sits in the source (a sharp position or strategy). */
   position: string;
+  /** The film's title logo (transparent PNG) to print on the disc's outer band. Only on prints: real disc art carries its own title. */
+  logo?: string;
 }
 
 /**
@@ -23,10 +25,9 @@ export interface DiscArt {
 export async function discArt(film: RecentFilm): Promise<DiscArt | null> {
   const fix = discArtOverrides[film.slug] ?? {};
   const id = film.tmdb ?? film.imdb;
-  if (!fix.src && id) {
-    const disc = await fetchFanartDisc(id, FANART_API_KEY);
-    if (disc) return { src: disc, kind: 'disc', position: 'centre' };
-  }
+  const fanart = id ? await fetchFanart(id, FANART_API_KEY) : { disc: null, logo: null };
+  if (!fix.src && fanart.disc) return { src: fanart.disc, kind: 'disc', position: 'centre' };
   const src = fix.src === 'poster' ? film.poster : (film.backdrop ?? film.still ?? film.poster);
-  return src ? { src, kind: 'print', position: fix.position ?? 'attention' } : null;
+  if (!src) return null;
+  return { src, kind: 'print', position: fix.position ?? 'attention', ...(fanart.logo ? { logo: fanart.logo } : {}) };
 }

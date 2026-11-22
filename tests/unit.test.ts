@@ -124,6 +124,20 @@ test('pickFanartDisc prefers English or neutral discs, then the most liked', asy
   assert.equal(pickFanartDisc(json), 'https://assets.fanart.tv/fanart/en-4.png');
 });
 
+test('pickFanartLogo takes the best HD logo, falling back to the old low-resolution ones', async () => {
+  const { pickFanartLogo } = await import('../src/data/fanart.ts');
+  assert.equal(pickFanartLogo({}), null);
+  assert.equal(pickFanartLogo(null), null);
+  const hd = [
+    { url: 'http://assets.fanart.tv/fanart/fr.png', lang: 'fr', likes: '12' },
+    { url: 'http://assets.fanart.tv/fanart/en.png', lang: 'en', likes: '2' },
+  ];
+  const old = [{ url: 'http://assets.fanart.tv/fanart/old.png', lang: 'en', likes: '5' }];
+  assert.equal(pickFanartLogo({ hdmovielogo: hd, movielogo: old }), 'https://assets.fanart.tv/fanart/en.png');
+  assert.equal(pickFanartLogo({ hdmovielogo: [], movielogo: old }), 'https://assets.fanart.tv/fanart/old.png');
+  assert.equal(pickFanartLogo({ hdmovielogo: [{ lang: 'en' }] }), null, 'entries without a url are skipped');
+});
+
 test('stars formats halves', async () => {
   const { stars } = await import('../src/data/letterboxd.ts');
   assert.equal(stars(3.5), '★★★½');

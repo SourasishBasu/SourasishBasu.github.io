@@ -31,16 +31,27 @@ const meta = films.map((f) => ({
 }));
 
 // Disc art, fetched and cropped square at build time and served from the site (see disc-art.ts).
-// If processing fails the remote image is used as it is.
+// If processing fails the remote image is used as it is. A print can carry the film's title
+// logo, resized the same way (WebP keeps its transparency); a logo that fails is left off.
+const logoImage = async (src: string | undefined) => {
+  if (!src) return null;
+  try {
+    const img = await getImage({ src, width: 400, inferSize: true, format: 'webp', quality: 85 });
+    return { src: img.src, width: Number(img.attributes.width), height: Number(img.attributes.height) };
+  } catch {
+    return null;
+  }
+};
 const arts = await Promise.all(
   films.map(async (f) => {
     const art = await discArt(f);
     if (!art) return null;
+    const logo = await logoImage(art.logo);
     try {
       const img = await getImage({ src: art.src, width: 720, height: 720, fit: 'cover', position: art.position, format: 'webp', quality: 80 });
-      return { kind: art.kind, src: img.src };
+      return { kind: art.kind, src: img.src, logo };
     } catch {
-      return { kind: art.kind, src: art.src };
+      return { kind: art.kind, src: art.src, logo };
     }
   }),
 );
@@ -102,6 +113,19 @@ const ssrTransform = (d: number) => {
                       referrerpolicy="no-referrer"
                       draggable="false"
                     />
+                    {arts[i]?.logo && (
+                      <img
+                        class="logo"
+                        src={load ? arts[i]!.logo!.src : undefined}
+                        data-src={arts[i]!.logo!.src}
+                        alt=""
+                        width={arts[i]!.logo!.width}
+                        height={arts[i]!.logo!.height}
+                        loading={i < 3 ? 'eager' : 'lazy'}
+                        decoding="async"
+                        draggable="false"
+                      />
+                    )}
                   </span>
                   <span class="gloss" />
                   <span class="rim" />
@@ -354,6 +378,23 @@ const ssrTransform = (d: number) => {
     pointer-events: none;
   }
 
+  /*
+   * The title logo, printed on the band below the hub (between its clear lip at 24.7% of the
+   * radius and the rim at 96.6%), turning with the disc. A soft shadow keeps it readable on a
+   * light still.
+   */
+  .logo {
+    position: absolute;
+    left: 50%;
+    top: 79%;
+    width: 46%;
+    height: 15%;
+    transform: translate(-50%, -50%);
+    object-fit: contain;
+    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 10px rgba(0, 0, 0, 0.45));
+    pointer-events: none;
+  }
+
   /* Real disc art is already round, with its own hole: shown whole. */
   .art.disc-art {
     object-fit: contain;
@@ -577,7 +618,7 @@ const ssrTransform = (d: number) => {
     const films: Meta[] = JSON.parse(root.dataset.films ?? '[]');
     const player = root.querySelector<HTMLElement>('.player')!;
     const discs = [...root.querySelectorAll<HTMLButtonElement>('.cd')];
-    const arts = discs.map((d) => d.querySelector<HTMLImageElement>('.art')!);
+    const images = discs.map((d) => [...d.querySelectorAll<HTMLImageElement>('img[data-src]')]);
     const tilts = discs.map((d) => d.querySelector<HTMLElement>('.disc')!);
     const title = root.querySelector<HTMLAnchorElement>('[data-title]')!;
     const director = root.querySelector<HTMLElement>('[data-director]')!;
@@ -613,8 +654,9 @@ const ssrTransform = (d: number) => {
 
     /** Load the art for discs near the focus, so the next few are ready and the rest stay unfetched. */
     const loadNear = () => {
-      arts.forEach((img, i) => {
-        if (Math.abs(i - focus) <= LOAD_RADIUS && !img.getAttribute('src') && img.dataset.src) img.src = img.dataset.src;
+      images.forEach((list, i) => {
+        if (Math.abs(i - focus) > LOAD_RADIUS) return;
+        for (const img of list) if (!img.getAttribute('src') && img.dataset.src) img.src = img.dataset.src;
       });
     };
 
