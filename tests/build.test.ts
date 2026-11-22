@@ -204,7 +204,7 @@ test('tools: 26 logo tiles in five groups, icons present', () => {
   }
 });
 
-test('projects: five rows in order, first selected, spec sheet for the AMD stack', () => {
+test('projects: five rows in order, a sheet each, the AMD stack showing first', () => {
   const page = html('index.html');
   const pj = page.slice(page.indexOf('id="projects"'), page.indexOf('<footer'));
   const rows = tags(pj, 'button', /class="prow/);
@@ -213,7 +213,13 @@ test('projects: five rows in order, first selected, spec sheet for the AMD stack
   rows.slice(1).forEach((r) => assert.match(r, /aria-pressed="false"/));
   const names = [...pj.matchAll(/<span class="pname"[^>]*>([^<]+)<\/span>/g)].map((m) => m[1]);
   assert.deepEqual(names, ['GPU inference stack', 'Frontier SWE OpenEnv', 'Observ', 'VaultAssist', 'RAGnarok']);
-  const spec = pj.slice(pj.indexOf('class="spec'));
+  // One sheet per project, each named by its row; only the first shows until a row is clicked.
+  const panes = tags(pj, 'div', /class="pane/);
+  assert.equal(panes.length, 5);
+  panes.forEach((p, i) => assert.equal(/\shidden/.test(p), i > 0, `pane ${i}`));
+  rows.forEach((r, i) => assert.match(r, new RegExp(`aria-controls="${panes[i].match(/id="([^"]+)"/)![1]}"`)));
+  for (const repo of ['amd-hackathon', 'frontier-swe-openenv', 'Observ', 'mcp-server', 'RAGnarok']) assert.match(pj, new RegExp(`href="https://github.com/[^"]+/${repo}"`));
+  const spec = pj.slice(pj.indexOf('class="pane'), pj.indexOf('class="pane', pj.indexOf('class="pane') + 1));
   assert.match(spec, /Oct 2025/);
   assert.match(spec, /AMD hackathon · 3xcaffeine/);
   assert.match(spec, /\$ terraform apply/);

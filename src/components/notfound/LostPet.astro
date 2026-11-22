@@ -1,6 +1,6 @@
 ---
 // The 404's footer pet: Sasquatch hunting for the missing page. Its eyes follow the pointer, it perks up when you
-// hover it, dozes off when left alone, and sulks when poked. Bigger mood changes get an e-ink refresh flash.
+// hover it, dozes off when left alone, and sulks when poked.
 ---
 
 <div class="pcb" data-lost-pet role="img" aria-label="Sasquatch the e-ink pet, looking for the page">
@@ -66,17 +66,6 @@
     font-family: var(--font-mono);
   }
 
-  /* An e-ink full refresh: the panel goes dark for a frame or two. */
-  .eink.flash {
-    background-color: #16181a;
-    color: #dcded4;
-  }
-
-  .eink.flash .eink-top,
-  .eink.flash .eink-line {
-    border-color: #dcded4;
-  }
-
   .eink-top {
     display: flex;
     justify-content: space-between;
@@ -135,106 +124,66 @@
 </style>
 
 <script>
+  import { FACES, screen } from '../pet/eink';
+
   const pet = document.querySelector<HTMLElement>('[data-lost-pet]');
   if (pet) {
     const path = decodeURI(location.pathname);
-    const eink = pet.querySelector<HTMLElement>('.eink')!;
-    const face = pet.querySelector<HTMLElement>('[data-face]')!;
-    const mood = pet.querySelector<HTMLElement>('[data-mood]')!;
-    const line = pet.querySelector<HTMLElement>('[data-line]')!;
     const short = path.length > 24 ? `${path.slice(0, 23)}…` : path;
-
-    const FACES = {
-      right: '( ⚆_⚆)',
-      left: '(☉_☉ )',
-      happy: '(◕‿‿◕)',
-      sad: '(╥☁╥ )',
-      sleep: '(⇀‿‿↼)',
-      shock: '(°▃▃°)',
-    } as const;
-    type Mood = 'SEARCHING' | 'HAPPY' | 'SAD' | 'ASLEEP' | 'STARTLED';
-
+    const s = screen(pet, 'SEARCHING');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-    let typing = 0;
-    const say = async (text: string) => {
-      const id = ++typing;
-      if (reduced) return void (line.textContent = text);
-      line.textContent = '>';
-      for (let i = 2; i <= text.length; i++) {
-        if (id !== typing) return;
-        line.textContent = text.slice(0, i);
-        await wait(26);
-      }
-    };
-
-    let current: Mood = 'SEARCHING';
-    const refresh = () => {
-      if (reduced) return;
-      eink.classList.add('flash');
-      setTimeout(() => eink.classList.remove('flash'), 90);
-    };
-    const become = (m: Mood, f: string, text?: string) => {
-      if (m !== current) refresh();
-      current = m;
-      mood.textContent = m;
-      face.textContent = f;
-      if (text) say(text);
-    };
+    const now = () => performance.now();
 
     // Searching: eyes dart left and right while the log runs.
     const LOG = [`> GET ${short}`, '> 404: not on this board', '> sniffing the logs…', '> try the work tab?'];
     let step = 0;
-    let lastPointer = performance.now();
+    let lastPointer = now();
     let hovering = false;
     let sulking = 0;
 
     if (reduced) {
-      face.textContent = FACES.right;
-      line.textContent = `> GET ${short} → 404`;
+      s.look(FACES.lookRight);
+      s.say(`> GET ${short} → 404`);
     } else {
-      say(LOG[0]);
+      s.say(LOG[0]);
       setInterval(() => {
-        if (document.hidden || hovering || performance.now() < sulking) return;
-        const idle = performance.now() - lastPointer;
+        if (document.hidden || hovering || now() < sulking) return;
+        const idle = now() - lastPointer;
         if (idle > 9000) {
-          if (current !== 'ASLEEP') become('ASLEEP', FACES.sleep, '> zzz… (move to wake)');
+          if (s.mood !== 'ASLEEP') s.become('ASLEEP', FACES.sleep, '> zzz… (move to wake)');
           return;
         }
-        if (current !== 'SEARCHING') become('SEARCHING', FACES.right, LOG[(step = (step + 1) % LOG.length)]);
+        if (s.mood !== 'SEARCHING') s.become('SEARCHING', FACES.lookRight, LOG[(step = (step + 1) % LOG.length)]);
         else if (idle > 2500) {
-          face.textContent = face.textContent === FACES.right ? FACES.left : FACES.right;
-          if (Math.random() < 0.35) say(LOG[(step = (step + 1) % LOG.length)]);
+          s.look(pet.querySelector('[data-face]')!.textContent === FACES.lookRight ? FACES.lookLeft : FACES.lookRight);
+          if (Math.random() < 0.35) s.say(LOG[(step = (step + 1) % LOG.length)]);
         }
       }, 1100);
 
       window.addEventListener(
         'pointermove',
         (e) => {
-          const wasAsleep = current === 'ASLEEP';
-          lastPointer = performance.now();
-          if (hovering || performance.now() < sulking) return;
-          if (wasAsleep) return become('STARTLED', FACES.shock, '> !! huh? still looking');
+          const wasAsleep = s.mood === 'ASLEEP';
+          lastPointer = now();
+          if (hovering || now() < sulking) return;
+          if (wasAsleep) return s.become('STARTLED', FACES.shock, '> !! huh? still looking');
           const r = pet.getBoundingClientRect();
-          const mid = r.left + r.width / 2;
-          if (current === 'STARTLED' || current === 'SEARCHING') face.textContent = e.clientX < mid ? FACES.left : FACES.right;
+          if (s.mood === 'STARTLED' || s.mood === 'SEARCHING') s.look(e.clientX < r.left + r.width / 2 ? FACES.lookLeft : FACES.lookRight);
         },
         { passive: true },
       );
       pet.addEventListener('pointerenter', () => {
         hovering = true;
-        become('HAPPY', FACES.happy, '> oh, hi. you lost too?');
+        s.become('HAPPY', FACES.awake, '> oh, hi. you lost too?');
       });
       pet.addEventListener('pointerleave', () => {
         hovering = false;
-        become('SEARCHING', FACES.right, LOG[step]);
+        s.become('SEARCHING', FACES.lookRight, LOG[step]);
       });
-      pet.addEventListener('click', async () => {
-        sulking = performance.now() + 2600;
-        become('SAD', FACES.sad, '> hey. i looked everywhere');
-        await wait(2600);
-        become(hovering ? 'HAPPY' : 'SEARCHING', hovering ? FACES.happy : FACES.right, hovering ? '> ok, back to it' : LOG[step]);
+      pet.addEventListener('click', () => {
+        sulking = now() + 2600;
+        s.become('SAD', FACES.sad, '> hey. i looked everywhere');
+        setTimeout(() => s.become(hovering ? 'HAPPY' : 'SEARCHING', hovering ? FACES.awake : FACES.lookRight, hovering ? '> ok, back to it' : LOG[step]), 2600);
       });
     }
   }

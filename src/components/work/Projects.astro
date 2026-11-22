@@ -1,8 +1,8 @@
 ---
 import { projects } from '../../data/projects';
 
-// Static in phase 2: the first project is selected. Phase 4 adds selection on
-// hover, focus and click, swapping the spec sheet.
+// Click a row (or move with the arrow keys) to show its spec sheet. Every sheet is in the page; only the selected
+// one shows, so the content stays real HTML without a script.
 const sel = projects[0];
 ---
 
@@ -16,7 +16,7 @@ const sel = projects[0];
     <div class="rows">
       {
         projects.map((p) => (
-          <button type="button" class:list={['prow', { sel: p.id === sel.id }]} aria-pressed={p.id === sel.id ? 'true' : 'false'} aria-controls="project-spec">
+          <button type="button" class:list={['prow', { sel: p.id === sel.id }]} data-project={p.id} aria-pressed={p.id === sel.id ? 'true' : 'false'} aria-controls={`spec-${p.id}`}>
             <span class="prow-text">
               <span class="pname">{p.name}</span>
               <span class="pwhat">{p.what}</span>
@@ -30,24 +30,30 @@ const sel = projects[0];
     </div>
 
     <aside class="spec-wrap" aria-label="Selected project">
-      <div class="spec" id="project-spec">
-        <pre class="art term">{sel.term}</pre>
-        <div class="spec-body">
-          <div class="spec-meta">
-            <span class="mono spec-when">{sel.when}</span>
-            <span class="tag tag--sm">{sel.team}</span>
-          </div>
-          <h3 class="display spec-name">{sel.name}</h3>
-          <p class="spec-detail">{sel.detail}</p>
-          <div class="spec-stack">
-            {sel.stack.map((s) => <span class="tag">{s}</span>)}
-          </div>
-          <div class="spec-hl">
-            <span class="eyebrow">Highlight</span>
-            <span>{sel.highlight}</span>
-          </div>
-          <a class="spec-link" href={sel.link}>Open the repository ↗</a>
-        </div>
+      <div class="spec">
+        {
+          projects.map((p) => (
+            <div class="pane" id={`spec-${p.id}`} data-pane={p.id} hidden={p.id !== sel.id}>
+              <pre class="art term">{p.term}</pre>
+              <div class="spec-body">
+                <div class="spec-meta">
+                  <span class="mono spec-when">{p.when}</span>
+                  <span class="tag tag--sm">{p.team}</span>
+                </div>
+                <h3 class="display spec-name">{p.name}</h3>
+                <p class="spec-detail">{p.detail}</p>
+                <div class="spec-stack">
+                  {p.stack.map((s) => <span class="tag">{s}</span>)}
+                </div>
+                <div class="spec-hl">
+                  <span class="eyebrow">Highlight</span>
+                  <span>{p.highlight}</span>
+                </div>
+                <a class="spec-link" href={p.link}>Open the repository ↗</a>
+              </div>
+            </div>
+          ))
+        }
       </div>
     </aside>
   </div>
@@ -160,6 +166,22 @@ const sel = projects[0];
       0 0 0 1px var(--rail),
       0 18px 36px -24px rgba(20, 22, 25, 0.35);
     overflow: hidden;
+  }
+
+  .pane:not([hidden]) {
+    animation: pane-in 0.18s ease-out;
+  }
+
+  @keyframes pane-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pane:not([hidden]) {
+      animation: none;
+    }
   }
 
   .art {
@@ -312,3 +334,36 @@ const sel = projects[0];
     }
   }
 </style>
+
+<script>
+  const rows = [...document.querySelectorAll<HTMLButtonElement>('.projects .prow')];
+  const panes = [...document.querySelectorAll<HTMLElement>('.projects .pane')];
+  const spec = document.querySelector<HTMLElement>('.projects .spec');
+
+  const select = (id: string) => {
+    rows.forEach((r) => {
+      const on = r.dataset.project === id;
+      r.classList.toggle('sel', on);
+      r.setAttribute('aria-pressed', String(on));
+    });
+    panes.forEach((p) => (p.hidden = p.dataset.pane !== id));
+  };
+
+  rows.forEach((row, i) => {
+    row.addEventListener('click', () => {
+      select(row.dataset.project!);
+      // On narrow screens the sheet sits under the list: bring it into view if it's off screen.
+      if (spec && matchMedia('(max-width: 1023px)').matches && spec.getBoundingClientRect().top > innerHeight - 120) {
+        spec.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      }
+    });
+    row.addEventListener('keydown', (e) => {
+      const step = e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0;
+      if (!step) return;
+      e.preventDefault();
+      const next = rows[(i + step + rows.length) % rows.length];
+      next.focus();
+      select(next.dataset.project!);
+    });
+  });
+</script>

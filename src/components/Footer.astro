@@ -40,15 +40,15 @@ const year = new Date().getFullYear();
 
     <div class="pet-cell vline">
       <slot name="pet">
-        <div class="pcb" role="img" aria-label="E-ink pet named Sasquatch">
+        <div class="pcb" data-pet="footer" role="img" aria-label="E-ink pet named Sasquatch">
           <span class="hole" style="left:7px;top:7px"></span>
           <span class="hole" style="right:7px;top:7px"></span>
           <span class="hole" style="left:7px;bottom:7px"></span>
           <span class="hole" style="right:7px;bottom:7px"></span>
           <span class="eink">
             <span class="eink-top"><span>SASQUATCH</span><span><IstClock /> IST</span></span>
-            <span class="face">(◕‿‿◕)</span>
-            <span class="eink-line">&gt; watching you scroll</span>
+            <span class="face" data-face>(◕‿‿◕)</span>
+            <span class="eink-line" data-line>&gt; watching you scroll</span>
           </span>
         </div>
       </slot>
@@ -65,11 +65,80 @@ const year = new Date().getFullYear();
 </footer>
 
 <script>
+  import { FACES, screen } from './pet/eink';
+
   // The year renders at build time; correct it in the browser so it never goes stale between builds.
   const year = String(new Date().getFullYear());
   document.querySelectorAll('[data-copyright-year]').forEach((el) => {
     if (el.textContent !== year) el.textContent = year;
   });
+
+  // Sasquatch, the footer's e-ink pet: eyes follow the pointer, hearts on hover, boops on click (too many and it
+  // gets annoyed), curious about the email and links, and a nap when nobody's around. The 404 has its own pet.
+  const pet = document.querySelector<HTMLElement>('[data-pet="footer"]');
+  if (pet) {
+    const s = screen(pet, 'idle');
+    const footer = pet.closest('footer')!;
+    let visible = false;
+    let hovering = false;
+    let busyUntil = 0;
+    let boops = 0;
+    let boopReset = 0;
+    let lastPointer = performance.now();
+    const now = () => performance.now();
+    const settle = () => s.become('idle', FACES.awake, '> watching you scroll');
+
+    new IntersectionObserver(([e]) => (visible = !!e?.isIntersecting)).observe(pet);
+
+    window.addEventListener(
+      'pointermove',
+      (e) => {
+        lastPointer = now();
+        if (!visible || hovering || now() < busyUntil) return;
+        if (s.mood === 'asleep') return s.become('awake', FACES.shock, '> oh! hi');
+        const r = pet.getBoundingClientRect();
+        s.look(e.clientX < r.left + r.width / 2 ? FACES.happyLeft : FACES.happyRight);
+      },
+      { passive: true },
+    );
+
+    pet.addEventListener('pointerenter', () => {
+      hovering = true;
+      s.become('friend', FACES.friend, '> friend detected');
+    });
+    pet.addEventListener('pointerleave', () => {
+      hovering = false;
+      if (now() >= busyUntil) settle();
+    });
+    pet.addEventListener('click', () => {
+      clearTimeout(boopReset);
+      boopReset = window.setTimeout(() => (boops = 0), 3000);
+      boops++;
+      busyUntil = now() + 1600;
+      if (boops >= 5) s.become('annoyed', FACES.annoyed, '> ok, enough boops');
+      else s.become(`boop${boops % 2}`, FACES.excited, boops === 1 ? '> boop!' : `> boop x${boops}`);
+      setTimeout(() => now() >= busyUntil && (hovering ? s.become('friend', FACES.friend, '> again?') : settle()), 1650);
+    });
+
+    const react = (sel: string, mood: string, face: string, text: string) =>
+      footer.querySelectorAll<HTMLElement>(sel).forEach((el) => {
+        el.addEventListener('pointerenter', () => now() >= busyUntil && s.become(mood, face, text));
+        el.addEventListener('pointerleave', () => now() >= busyUntil && settle());
+      });
+    react('.chipbtn', 'curious', FACES.lookLeft, '> ooh, an email');
+    react('.flink, .resume', 'keen', FACES.happyLeft, '> go on, take a look');
+    footer.querySelector('.chipbtn')?.addEventListener('click', () => {
+      busyUntil = now() + 2200;
+      s.become('grateful', FACES.grateful, '> say hi!');
+      setTimeout(settle, 2250);
+    });
+
+    // A nap after a while without the pointer moving.
+    setInterval(() => {
+      if (!visible || hovering || document.hidden || now() < busyUntil) return;
+      if (now() - lastPointer > 20000 && s.mood !== 'asleep') s.become('asleep', FACES.sleep, '> zzz');
+    }, 2000);
+  }
 </script>
 
 <style>
@@ -161,8 +230,9 @@ const year = new Date().getFullYear();
     color: var(--link);
   }
 
+  /* The pill hangs into the column padding by its own inner padding, so its label lines up with GitHub and LinkedIn. */
   .resume {
-    margin-top: 18px;
+    margin: 10px 0 0 -16px;
     align-self: flex-start;
   }
 
@@ -176,6 +246,8 @@ const year = new Date().getFullYear();
   .pcb {
     position: relative;
     display: block;
+    cursor: pointer;
+    user-select: none;
     width: 300px;
     max-width: 100%;
     padding: 18px 18px 16px;
@@ -235,6 +307,8 @@ const year = new Date().getFullYear();
     padding-top: 6px;
     border-top: 1px solid #16181a;
     font-size: 11px;
+    white-space: pre;
+    overflow: hidden;
   }
 
   .legal {
