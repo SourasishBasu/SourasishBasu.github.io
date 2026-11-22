@@ -28,8 +28,8 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
             <span class="role-text">
               <span class="role-title">{j.role}</span>
               <span class="role-at">at {j.company}</span>
+              <span class="role-span">{j.span}</span>
             </span>
-            <span class="role-span">{j.span}</span>
           </button>
         ))
       }
@@ -108,6 +108,11 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
 <script>
   const list = document.querySelector<HTMLElement>('.xp [role="tablist"]');
   if (list) {
+    // A column of rows on wide screens, a row of tabs on tablets.
+    const tablet = window.matchMedia('(max-width: 1023px)');
+    const orient = () => list.setAttribute('aria-orientation', tablet.matches ? 'horizontal' : 'vertical');
+    orient();
+    tablet.addEventListener('change', orient);
     const tabs = [...list.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
     const select = (tab: HTMLButtonElement, focus = false) => {
       for (const t of tabs) {
@@ -147,20 +152,15 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
   }
 
   /*
-   * Roles, after danielsun.space's experience list: round logo, role with "at company" under it,
-   * dates on the right, hairlines between rows. It sits as a detached inset panel rather than
-   * running to the column's edges, since there are only two rows.
+   * Roles, flat on the sheet: rows run to the column's edges on the same hairlines as the cells
+   * beside them (round logo; role, "at company" and dates stacked), and a thin ink bar on the
+   * left marks the one that's showing. No card, no shadow.
    */
   .xp-roles {
     display: flex;
     flex-direction: column;
-    margin-top: 16px;
-    padding: 6px;
-    border-radius: 14px;
-    background: var(--paper);
-    box-shadow:
-      inset 0 0 0 1px var(--rule),
-      0 10px 24px -20px rgba(20, 22, 25, 0.5);
+    margin: 20px -40px 0;
+    border-top: 1px solid var(--rule);
   }
 
   .role-row {
@@ -168,26 +168,17 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
     box-sizing: border-box;
     position: relative;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 14px;
-    padding: 14px 14px 14px 12px;
-    border-radius: 10px;
+    gap: 16px;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--rule);
     color: var(--ink-muted);
     cursor: pointer;
     transition:
       background-color 0.2s,
-      color 0.2s;
-  }
-
-  .role-row + .role-row::before {
-    content: '';
-    position: absolute;
-    left: 14px;
-    right: 14px;
-    top: 0;
-    height: 1px;
-    background: var(--rule);
+      color 0.2s,
+      box-shadow 0.2s;
   }
 
   .role-row:hover {
@@ -197,18 +188,12 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
 
   .role-row.sel {
     color: var(--ink);
-    background: var(--tint);
-  }
-
-  /* No hairline touching the selected row's tint. */
-  .role-row.sel::before,
-  .role-row.sel + .role-row::before {
-    opacity: 0;
+    box-shadow: inset 2px 0 0 var(--ink);
   }
 
   .role-row:focus-visible {
     outline: 2px solid var(--focus);
-    outline-offset: 1px;
+    outline-offset: -2px;
   }
 
   .role-text {
@@ -229,8 +214,7 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
   }
 
   .role-span {
-    align-self: start;
-    padding-top: 2px;
+    margin-top: 4px;
     font: 400 12px/1.3 var(--font-mono);
     color: var(--graphite);
     white-space: nowrap;
@@ -412,19 +396,38 @@ const dither = { cost: 'dither-yellow', dash: 'dither-blue', alert: 'dither-red'
     border-top: 1px solid var(--rule);
   }
 
-  /* tablet: switcher as a row above a full-width detail */
+  /* tablet: the roles become a row of tabs sitting right on top of the detail they switch */
   @media (max-width: 1023px) {
     .xp {
       grid-template-columns: minmax(0, 1fr);
     }
 
     .xp-side {
-      padding: 56px 40px 24px;
+      padding: 56px 40px 0;
     }
 
     .xp-roles {
-      max-width: 520px;
-      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+      grid-auto-flow: column;
+      margin-top: 16px;
+    }
+
+    .role-row {
+      padding: 18px 24px 20px;
+      border-bottom: 0;
+    }
+
+    .role-row:first-child {
+      padding-left: 40px;
+    }
+
+    .role-row + .role-row {
+      border-left: 1px solid var(--rule);
+    }
+
+    .role-row.sel {
+      box-shadow: inset 0 -2px 0 var(--ink);
     }
 
     .xp-detail {
