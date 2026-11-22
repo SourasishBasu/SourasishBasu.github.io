@@ -451,6 +451,8 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
         frozen = false;
       },
       meshes: dynames.meshCount,
+      /** The kit on the turntable and three.js, for inspecting materials. */
+      inspect: () => ({ root: cur.root, THREE, render }),
     };
   }
 
