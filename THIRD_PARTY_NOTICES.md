@@ -91,5 +91,6 @@ Both are trademarks of their owners, shown to name my employers.
 ## Film disc art (`src/data/disc-art.ts`)
 
 - By default each disc prints the film's Letterboxd still (TMDB and Letterboxd imagery), cropped square at build time with sharp's attention strategy through Astro's image service, and served from the site.
-- With a `FANART_API_KEY`, discs use fanart.tv's community disc art where it exists, and its title logos on discs that print a still (https://fanart.tv). fanart.tv's terms let uploads be used without attribution; copyright in the artwork stays with its owners.
+- With a `FANART_API_KEY`, discs use fanart.tv's community disc art where it exists, and its title logos on discs that print a still (https://fanart.tv). fanart.tv's terms let uploads be used without attribution; copyright in the artwork stays with its owners. Textless posters from fanart.tv (language code 00) are used as key art when TMDB has none.
+- With a `TMDB_API_KEY`, discs without disc art print the film's textless poster (key art) from TMDB (https://www.themoviedb.org). This product uses the TMDB API but is not endorsed or certified by TMDB; the footer carries that notice whenever the key is set. Copyright in the posters stays with their owners.
 

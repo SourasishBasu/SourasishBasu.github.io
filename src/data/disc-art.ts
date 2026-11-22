@@ -1,5 +1,6 @@
-import { FANART_API_KEY } from 'astro:env/server';
+import { FANART_API_KEY, TMDB_API_KEY } from 'astro:env/server';
 import { chooseLogo, fetchFanart } from './fanart';
+import { fetchTextlessPoster } from './tmdb';
 import { pngInfo } from './png-info';
 import { discArtOverrides } from './disc-art-overrides';
 import type { RecentFilm } from './letterboxd';
@@ -14,7 +15,7 @@ export interface Logo {
 export interface DiscArt {
   /** Remote image to fetch and crop at build time. */
   src: string;
-  /** 'disc': real disc art from fanart.tv, already round. 'print': a square crop of a still or poster. */
+  /** 'disc': real disc art from fanart.tv, already round. 'print': a square crop of key art, a still or a poster. */
   kind: 'disc' | 'print';
   /** Where the square crop sits in the source (a sharp position or strategy). */
   position: string;
@@ -48,22 +49,39 @@ async function measureLogos(urls: string[]): Promise<Logo | null> {
 }
 
 /**
- * What to print on a film's disc. Real disc art from fanart.tv when there's an
- * API key and the film has some (or the disc an override names); otherwise the
- * 1920×1080 still, cropped square around its subject at build time (see
- * Films.astro), unless an override says otherwise, with the film's title logo.
- * A centred crop of a wide still loses whoever's off-centre and puts the hub
- * over the middle; the attention crop keeps the subject, and stills tend to put
- * faces in the upper third, clear of the hub.
+ * What to print on a film's disc, best first:
+ * 1. Real disc art from fanart.tv (with a FANART_API_KEY), or the disc an override names.
+ * 2. Key art: a textless poster from TMDB (with a TMDB_API_KEY), else from fanart.tv. Real disc designs are mostly
+ *    key art plus the title, and without a title block the poster crops onto a disc cleanly.
+ * 3. The film's 1920×1080 still from Letterboxd.
+ * 4. The Letterboxd poster.
+ * Prints are cropped square around their subject at build time (see Films.astro) and get the film's title logo on
+ * the band, except a poster, which already carries its title. An override can force the still or the poster, or
+ * steer the crop. A centred crop loses whoever's off-centre and puts the hub over the middle; the attention crop
+ * keeps the subject.
  */
 export async function discArt(film: RecentFilm): Promise<DiscArt | null> {
   const fix = discArtOverrides[film.slug] ?? {};
   if (fix.disc) return { src: fix.disc, kind: 'disc', position: 'centre' };
   const id = film.tmdb ?? film.imdb;
-  const fanart = id ? await fetchFanart(id, FANART_API_KEY) : { disc: null, logos: [] };
+  const fanart = id ? await fetchFanart(id, FANART_API_KEY) : { disc: null, logos: [], keyart: null };
   if (!fix.src && fanart.disc) return { src: fanart.disc, kind: 'disc', position: 'centre' };
-  const src = fix.src === 'poster' ? film.poster : (film.backdrop ?? film.still ?? film.poster);
+  const still = film.backdrop ?? film.still;
+  let src: string | null | undefined;
+  let titled = false;
+  if (fix.src === 'poster') {
+    src = film.poster;
+    titled = true;
+  } else if (fix.src === 'still') {
+    src = still;
+  } else {
+    src = (film.tmdb ? await fetchTextlessPoster(film.tmdb, TMDB_API_KEY) : null) ?? fanart.keyart ?? still;
+    if (!src) {
+      src = film.poster;
+      titled = true;
+    }
+  }
   if (!src) return null;
-  const logo = await measureLogos(fanart.logos);
+  const logo = titled ? null : await measureLogos(fanart.logos);
   return { src, kind: 'print', position: fix.position ?? 'attention', ...(logo ? { logo } : {}) };
 }

@@ -19,6 +19,8 @@ export interface FanartArt {
   disc: string | null;
   /** Title logos worth considering, best first (see fanartLogoCandidates). */
   logos: string[];
+  /** A textless poster (key art), when there is one. */
+  keyart: string | null;
 }
 
 const langRank = (l?: string) => (l === 'en' ? 0 : l === '00' || !l ? 1 : 2);
@@ -33,6 +35,13 @@ function ranked(list: FanartImage[] | undefined): FanartImage[] {
 /** The best disc image in a fanart.tv v3 movie response. */
 export function pickFanartDisc(json: unknown): string | null {
   const best = ranked((json as { moviedisc?: FanartImage[] })?.moviedisc)[0];
+  return best ? https(best.url) : null;
+}
+
+/** The best textless poster: fanart.tv marks posters without text with the language code 00. */
+export function pickFanartKeyart(json: unknown): string | null {
+  const textless = ((json as { movieposter?: FanartImage[] } | null)?.movieposter ?? []).filter((d) => d?.lang === '00');
+  const best = ranked(textless)[0];
   return best ? https(best.url) : null;
 }
 
@@ -65,7 +74,7 @@ export function chooseLogo<T extends { aspect: number }>(measured: T[]): T | nul
 
 /** Look a film up by TMDB id (or IMDb id); empty when there's no key, no art, or the request fails. */
 export async function fetchFanart(id: number | string, key: string | undefined, timeout = 6000): Promise<FanartArt> {
-  const none = { disc: null, logos: [] };
+  const none = { disc: null, logos: [], keyart: null };
   if (!key) return none;
   try {
     const res = await fetch(`https://webservice.fanart.tv/v3/movies/${encodeURIComponent(String(id))}`, {
@@ -74,7 +83,7 @@ export async function fetchFanart(id: number | string, key: string | undefined, 
     });
     if (!res.ok) return none;
     const json = await res.json();
-    return { disc: pickFanartDisc(json), logos: fanartLogoCandidates(json) };
+    return { disc: pickFanartDisc(json), logos: fanartLogoCandidates(json), keyart: pickFanartKeyart(json) };
   } catch {
     return none;
   }

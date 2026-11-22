@@ -143,6 +143,38 @@ test('fanartLogoCandidates: HD logos first, readable languages only when there a
   assert.deepEqual(fanartLogoCandidates({ hdmovielogo: [hd[0]] }), ['https://assets.fanart.tv/fanart/fr.png'], 'a foreign logo beats none');
 });
 
+test('pickFanartKeyart takes the most liked textless poster', async () => {
+  const { pickFanartKeyart } = await import('../src/data/fanart.ts');
+  assert.equal(pickFanartKeyart({}), null);
+  assert.equal(pickFanartKeyart({ movieposter: [{ url: 'http://assets.fanart.tv/fanart/en.jpg', lang: 'en', likes: '9' }] }), null, 'posters with text are not key art');
+  const json = {
+    movieposter: [
+      { url: 'http://assets.fanart.tv/fanart/a.jpg', lang: '00', likes: '1' },
+      { url: 'http://assets.fanart.tv/fanart/b.jpg', lang: '00', likes: '4' },
+      { url: 'http://assets.fanart.tv/fanart/en.jpg', lang: 'en', likes: '9' },
+    ],
+  };
+  assert.equal(pickFanartKeyart(json), 'https://assets.fanart.tv/fanart/b.jpg');
+});
+
+test('pickTextlessPoster takes the best-rated language-less TMDB poster', async () => {
+  const { pickTextlessPoster, looksLikeReadToken } = await import('../src/data/tmdb.ts');
+  assert.equal(pickTextlessPoster({}), null);
+  assert.equal(pickTextlessPoster(null), null);
+  const json = {
+    posters: [
+      { file_path: '/en.jpg', iso_639_1: 'en', vote_average: 9, vote_count: 50 },
+      { file_path: '/low.jpg', iso_639_1: null, vote_average: 5.2, vote_count: 3 },
+      { file_path: '/best.jpg', iso_639_1: null, vote_average: 5.6, vote_count: 2 },
+      { file_path: '/xx.jpg', iso_639_1: 'xx', vote_average: 5.6, vote_count: 1 },
+    ],
+  };
+  assert.equal(pickTextlessPoster(json), 'https://image.tmdb.org/t/p/w780/best.jpg');
+  assert.equal(pickTextlessPoster({ posters: [{ file_path: '/en.jpg', iso_639_1: 'en' }] }), null, 'posters with text are skipped');
+  assert.equal(looksLikeReadToken('0123456789abcdef0123456789abcdef'), false, 'the short v3 key is not a bearer token');
+  assert.equal(looksLikeReadToken(`eyJhbGciOiJIUzI1NiJ9.${'a'.repeat(80)}.${'b'.repeat(43)}`), true);
+});
+
 test('chooseLogo prefers the first one-line logo, else the widest', async () => {
   const { chooseLogo } = await import('../src/data/fanart.ts');
   assert.equal(chooseLogo([]), null);

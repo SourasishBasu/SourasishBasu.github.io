@@ -14,11 +14,13 @@ export default defineConfig({
   devToolbar: { enabled: false },
   integrations: [react()],
   // Film disc art is fetched and cropped at build time, then served from the site.
-  image: { domains: ['a.ltrbxd.com', 'assets.fanart.tv'] },
+  image: { domains: ['a.ltrbxd.com', 'assets.fanart.tv', 'image.tmdb.org'] },
   env: {
     schema: {
       // Optional: a fanart.tv project key, for real disc art where it exists. Build-time only.
       FANART_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // Optional: a TMDB API Read Access Token, for textless posters (key art) on discs without disc art. Build-time only.
+      TMDB_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
   vite: { plugins: [tailwindcss()] },
