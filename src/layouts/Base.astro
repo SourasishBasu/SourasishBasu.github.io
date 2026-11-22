@@ -49,9 +49,20 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       <main id="main">
         <slot />
       </main>
-      <Footer page={page}>
-        <slot name="scene" slot="scene" />
-      </Footer>
+      {
+        // A page can swap the footer's pet (the 404 does). Astro registers a slot passed conditionally even when
+        // the condition is false, which would blank the default pet, so pass it only when the page has one.
+        Astro.slots.has('pet') ? (
+          <Footer page={page}>
+            <slot name="scene" slot="scene" />
+            <slot name="pet" slot="pet" />
+          </Footer>
+        ) : (
+          <Footer page={page}>
+            <slot name="scene" slot="scene" />
+          </Footer>
+        )
+      }
     </div>
     </div>
   </body>

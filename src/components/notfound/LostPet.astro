@@ -1,0 +1,241 @@
+---
+// The 404's footer pet: Sasquatch hunting for the missing page. Its eyes follow the pointer, it perks up when you
+// hover it, dozes off when left alone, and sulks when poked. Bigger mood changes get an e-ink refresh flash.
+---
+
+<div class="pcb" data-lost-pet role="img" aria-label="Sasquatch the e-ink pet, looking for the page">
+  <span class="hole" style="left:8px;top:8px"></span>
+  <span class="hole" style="right:8px;top:8px"></span>
+  <span class="hole" style="left:8px;bottom:8px"></span>
+  <span class="hole" style="right:8px;bottom:8px"></span>
+  <span class="silk">SQ-404 rev B</span>
+  <span class="eink">
+    <span class="eink-top"><span>SASQUATCH</span><span data-mood>SEARCHING</span></span>
+    <span class="face" data-face>( ⚆_⚆)</span>
+    <span class="eink-line"><span data-line>&gt;</span><span class="caret">_</span></span>
+  </span>
+</div>
+
+<style>
+  .pcb {
+    position: relative;
+    width: min(360px, 100%);
+    padding: 20px 20px 30px;
+    border-radius: 12px;
+    background-color: #22513c;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1.3px);
+    background-size: 8px 8px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 2px 0 #0f2a1e,
+      0 20px 40px -22px rgba(0, 0, 0, 0.8);
+  }
+
+  .hole {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--hole-bg);
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.45),
+      0 0 0 3px #c9a64a;
+  }
+
+  .silk {
+    position: absolute;
+    right: 24px;
+    bottom: 10px;
+    font: 500 9px/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(236, 234, 228, 0.55);
+  }
+
+  .eink {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background-color: #dcded4;
+    background-image: radial-gradient(circle, rgba(20, 22, 25, 0.06) 1px, transparent 1.2px);
+    background-size: 3px 3px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+    color: #16181a;
+    font-family: var(--font-mono);
+  }
+
+  /* An e-ink full refresh: the panel goes dark for a frame or two. */
+  .eink.flash {
+    background-color: #16181a;
+    color: #dcded4;
+  }
+
+  .eink.flash .eink-top,
+  .eink.flash .eink-line {
+    border-color: #dcded4;
+  }
+
+  .eink-top {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #16181a;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+
+  .face {
+    display: block;
+    padding: 20px 0 16px;
+    font: 500 46px/1 var(--font-mono);
+    letter-spacing: -0.02em;
+    text-align: center;
+    white-space: pre;
+  }
+
+  .eink-line {
+    display: block;
+    min-height: 1.4em;
+    padding-top: 6px;
+    border-top: 1px solid #16181a;
+    font-size: 11.5px;
+    white-space: pre;
+    overflow: hidden;
+  }
+
+  .caret {
+    animation: blink 1s steps(1) infinite;
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .caret {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .pcb {
+      width: 100%;
+      padding: 14px 14px 26px;
+    }
+
+    .face {
+      font-size: 36px;
+      padding: 14px 0 12px;
+    }
+  }
+</style>
+
+<script>
+  const pet = document.querySelector<HTMLElement>('[data-lost-pet]');
+  if (pet) {
+    const path = decodeURI(location.pathname);
+    const eink = pet.querySelector<HTMLElement>('.eink')!;
+    const face = pet.querySelector<HTMLElement>('[data-face]')!;
+    const mood = pet.querySelector<HTMLElement>('[data-mood]')!;
+    const line = pet.querySelector<HTMLElement>('[data-line]')!;
+    const short = path.length > 24 ? `${path.slice(0, 23)}…` : path;
+
+    const FACES = {
+      right: '( ⚆_⚆)',
+      left: '(☉_☉ )',
+      happy: '(◕‿‿◕)',
+      sad: '(╥☁╥ )',
+      sleep: '(⇀‿‿↼)',
+      shock: '(°▃▃°)',
+    } as const;
+    type Mood = 'SEARCHING' | 'HAPPY' | 'SAD' | 'ASLEEP' | 'STARTLED';
+
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    let typing = 0;
+    const say = async (text: string) => {
+      const id = ++typing;
+      if (reduced) return void (line.textContent = text);
+      line.textContent = '>';
+      for (let i = 2; i <= text.length; i++) {
+        if (id !== typing) return;
+        line.textContent = text.slice(0, i);
+        await wait(26);
+      }
+    };
+
+    let current: Mood = 'SEARCHING';
+    const refresh = () => {
+      if (reduced) return;
+      eink.classList.add('flash');
+      setTimeout(() => eink.classList.remove('flash'), 90);
+    };
+    const become = (m: Mood, f: string, text?: string) => {
+      if (m !== current) refresh();
+      current = m;
+      mood.textContent = m;
+      face.textContent = f;
+      if (text) say(text);
+    };
+
+    // Searching: eyes dart left and right while the log runs.
+    const LOG = [`> GET ${short}`, '> 404: not on this board', '> sniffing the logs…', '> try the work tab?'];
+    let step = 0;
+    let lastPointer = performance.now();
+    let hovering = false;
+    let sulking = 0;
+
+    if (reduced) {
+      face.textContent = FACES.right;
+      line.textContent = `> GET ${short} → 404`;
+    } else {
+      say(LOG[0]);
+      setInterval(() => {
+        if (document.hidden || hovering || performance.now() < sulking) return;
+        const idle = performance.now() - lastPointer;
+        if (idle > 9000) {
+          if (current !== 'ASLEEP') become('ASLEEP', FACES.sleep, '> zzz… (move to wake)');
+          return;
+        }
+        if (current !== 'SEARCHING') become('SEARCHING', FACES.right, LOG[(step = (step + 1) % LOG.length)]);
+        else if (idle > 2500) {
+          face.textContent = face.textContent === FACES.right ? FACES.left : FACES.right;
+          if (Math.random() < 0.35) say(LOG[(step = (step + 1) % LOG.length)]);
+        }
+      }, 1100);
+
+      window.addEventListener(
+        'pointermove',
+        (e) => {
+          const wasAsleep = current === 'ASLEEP';
+          lastPointer = performance.now();
+          if (hovering || performance.now() < sulking) return;
+          if (wasAsleep) return become('STARTLED', FACES.shock, '> !! huh? still looking');
+          const r = pet.getBoundingClientRect();
+          const mid = r.left + r.width / 2;
+          if (current === 'STARTLED' || current === 'SEARCHING') face.textContent = e.clientX < mid ? FACES.left : FACES.right;
+        },
+        { passive: true },
+      );
+      pet.addEventListener('pointerenter', () => {
+        hovering = true;
+        become('HAPPY', FACES.happy, '> oh, hi. you lost too?');
+      });
+      pet.addEventListener('pointerleave', () => {
+        hovering = false;
+        become('SEARCHING', FACES.right, LOG[step]);
+      });
+      pet.addEventListener('click', async () => {
+        sulking = performance.now() + 2600;
+        become('SAD', FACES.sad, '> hey. i looked everywhere');
+        await wait(2600);
+        become(hovering ? 'HAPPY' : 'SEARCHING', hovering ? FACES.happy : FACES.right, hovering ? '> ok, back to it' : LOG[step]);
+      });
+    }
+  }
+</script>

@@ -18,8 +18,20 @@ test('old blog posts are gone', () => {
   assert.equal(existsSync(dist('article')), false);
 });
 
-test('404 page exists', () => {
-  assert.ok(existsSync(dist('404.html')));
+test('404: dark, butterflies in the main band, the lost pet in the footer', () => {
+  const page = html('404.html');
+  assert.match(page, /<html lang="en" data-theme="dark"/);
+  assert.equal(tags(page, 'canvas', /class="field"/).length, 1);
+  assert.match(page, /<h1[^>]*>Page not found<\/h1>/);
+  const footer = page.slice(page.indexOf('<footer'), page.indexOf('</footer>'));
+  assert.equal(tags(footer, 'div', /data-lost-pet/).length, 1);
+  assert.doesNotMatch(footer, /E-ink pet named Sasquatch/);
+  // Every other page keeps the usual pet.
+  for (const p of ['index.html', 'off-the-clock/index.html', 'credits/index.html', 'resume/index.html']) {
+    const f = html(p);
+    assert.match(f.slice(f.indexOf('<footer')), /E-ink pet named Sasquatch/, p);
+    assert.doesNotMatch(f, /data-lost-pet/, p);
+  }
 });
 
 /** All opening tags of `name` in `src` whose attribute text matches every pattern. */

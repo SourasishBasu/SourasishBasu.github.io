@@ -39,17 +39,19 @@ const year = new Date().getFullYear();
     </div>
 
     <div class="pet-cell vline">
-      <div class="pcb" role="img" aria-label="E-ink pet named Sasquatch">
-        <span class="hole" style="left:7px;top:7px"></span>
-        <span class="hole" style="right:7px;top:7px"></span>
-        <span class="hole" style="left:7px;bottom:7px"></span>
-        <span class="hole" style="right:7px;bottom:7px"></span>
-        <span class="eink">
-          <span class="eink-top"><span>SASQUATCH</span><span><IstClock /> IST</span></span>
-          <span class="face">(◕‿‿◕)</span>
-          <span class="eink-line">&gt; watching you scroll</span>
-        </span>
-      </div>
+      <slot name="pet">
+        <div class="pcb" role="img" aria-label="E-ink pet named Sasquatch">
+          <span class="hole" style="left:7px;top:7px"></span>
+          <span class="hole" style="right:7px;top:7px"></span>
+          <span class="hole" style="left:7px;bottom:7px"></span>
+          <span class="hole" style="right:7px;bottom:7px"></span>
+          <span class="eink">
+            <span class="eink-top"><span>SASQUATCH</span><span><IstClock /> IST</span></span>
+            <span class="face">(◕‿‿◕)</span>
+            <span class="eink-line">&gt; watching you scroll</span>
+          </span>
+        </div>
+      </slot>
     </div>
     <span class="cross cl"></span><span class="cross cr"></span>
   </section>

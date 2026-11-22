@@ -1,0 +1,86 @@
+---
+// The 404's main band: ASCII butterflies in the four chip colours drifting across the dark sheet behind a big 404.
+// No trails. Click anywhere on the band to scatter them.
+---
+
+<section class="band meadow">
+  <canvas class="field" aria-hidden="true"></canvas>
+  <div class="copy">
+    <span class="big display" aria-hidden="true">404</span>
+    <h1 class="display h2">Page not found</h1>
+    <p class="lead">Nothing lives at <code data-path>this address</code>.</p>
+    <a class="pill-btn pill-btn--lg" href="/">Back to the work</a>
+  </div>
+  <span class="cross cl"></span><span class="cross cr"></span>
+</section>
+
+<style>
+  .meadow {
+    position: relative;
+    min-height: 640px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .field {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    font-family: var(--font-mono);
+    cursor: pointer;
+  }
+
+  .copy {
+    position: relative;
+    z-index: 1;
+    padding: 0 40px 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    pointer-events: none;
+  }
+
+  .copy a {
+    pointer-events: auto;
+  }
+
+  .big {
+    font-size: clamp(120px, 20vw, 260px);
+    font-weight: 500;
+    line-height: 0.82;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+  }
+
+  .h2,
+  .lead {
+    margin: 0;
+  }
+
+  .lead code {
+    font: 500 0.9em/1 var(--font-mono);
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 760px) {
+    .meadow {
+      min-height: 540px;
+    }
+
+    .copy {
+      padding: 0 16px 56px;
+    }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('.meadow');
+  if (root) {
+    root.querySelector('[data-path]')!.textContent = decodeURI(location.pathname);
+    const canvas = root.querySelector<HTMLCanvasElement>('canvas.field')!;
+    import('./nf-butterflies').then(({ mountButterflies }) => mountButterflies(canvas));
+  }
+</script>

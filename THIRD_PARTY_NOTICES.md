@@ -47,9 +47,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Koi pond engine (`src/vendor/ascii-animals/`)
+## ASCII animals: koi pond and 404 butterflies (`src/vendor/ascii-animals/`)
 
-**ascii-animals** (https://github.com/DesignerStephen1/ascii-animals), commit `93f2b66`, built on stackedlol/ascii-sharks. Vendored, with one change to `engine.ts` (described in the folder's README).
+**ascii-animals** (https://github.com/DesignerStephen1/ascii-animals), commit `93f2b66`, built on stackedlol/ascii-sharks. Vendored: the engine, the koi (Off the clock pond) and the butterflies (404 page), with small changes marked `portfolio:` and described in the folder's README.
 
 ```
 MIT License
