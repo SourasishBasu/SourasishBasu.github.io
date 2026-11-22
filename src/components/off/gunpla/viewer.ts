@@ -1,25 +1,24 @@
 /**
- * The Gunpla bench viewer: the Dynames model on a turntable. The canvas is
- * transparent, so the bench's cutting mat (CSS) shows behind it, with the
- * turntable's shadow drawn onto it. It turns slowly; drag sideways to turn it
- * yourself (vertical drags still scroll the page on touch screens), and mouse
- * drags up and down tilt the view a little. GN particles drift from the drive.
+ * The Gunpla bench viewer: a 3D kit on a turntable. The canvas is transparent,
+ * so the bench's cutting mat (CSS) shows behind it, with the turntable's shadow
+ * drawn onto it. It turns slowly; drag sideways to turn it yourself (vertical
+ * drags still scroll the page on touch screens), and mouse drags up and down
+ * tilt the view a little.
  *
  * Zoom has no buttons: pinch (trackpad or touch), Ctrl/⌘ + wheel, or a plain
  * wheel once you've grabbed the model (until the pointer leaves it); a double
  * click or double tap zooms to the part under it, and again to zoom back out.
  * Zooming in rises toward the head unless you picked a spot.
  *
- * The Dynames is built in code; the Virtue and Freedom are glTF models, loaded
- * the first time they're picked and scaled to the Dynames' height.
+ * All three kits are glTF models, loaded the first time they're picked and
+ * scaled to kit height (~18 cm at 1/100).
  *
  * Runs only while active (on screen and selected). With reduced motion it
- * doesn't spin or emit; it draws a still frame and moves only when you move it.
+ * doesn't spin; it draws a still frame and moves only when you move it.
  */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { buildDynames, PALETTE } from './dynames';
 
 export type ModelId = 'dynames' | 'virtue' | 'freedom';
 
@@ -30,8 +29,9 @@ export interface BenchViewer {
   dispose(): void;
 }
 
-/** Kits from Sketchfab (CC BY, credited on the page), slimmed for the web: see THIRD_PARTY_NOTICES.md. */
-const GLB: Record<Exclude<ModelId, 'dynames'>, { url: string; yaw: number }> = {
+/** Community glTF kits (credited on the page), repainted and slimmed for the web: see THIRD_PARTY_NOTICES.md. */
+const GLB: Record<ModelId, { url: string; yaw: number }> = {
+  dynames: { url: '/models/dynames.glb', yaw: 0 },
   virtue: { url: '/models/virtue.glb', yaw: 0 },
   freedom: { url: '/models/freedom.glb', yaw: 0 },
 };
@@ -40,12 +40,10 @@ interface OnBench {
   root: any;
   height: number;
   radius: number;
-  /** GN Drive tip, for particles (the Dynames only). */
-  emitter?: any;
-  glow?: any;
   dispose(): void;
 }
 
+const KIT_HEIGHT = 18;
 const MAX_ZOOM = 5;
 
 function canvasTexture(size: number, draw: (g: CanvasRenderingContext2D, s: number) => void) {
@@ -91,24 +89,14 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   fill.position.set(12, 4, 10);
   scene.add(key, key.target, rim, fill);
 
-  const dynames = buildDynames();
   const models = new Map<ModelId, OnBench>();
-  models.set('dynames', {
-    root: dynames.root,
-    height: dynames.size.height,
-    radius: dynames.size.radius,
-    emitter: dynames.emitter,
-    glow: dynames.glow,
-    dispose: () => dynames.dispose(),
-  });
-  let cur = models.get('dynames')!;
+  let cur: OnBench | null = null;
   const turntable = new THREE.Group();
-  turntable.add(cur.root);
   scene.add(turntable);
 
   // Turntable: a plain dark hexagonal base, built with an inner radius of 1 and scaled to whichever kit is
   // on it. Its edges get a faint lighter line so the facets read.
-  let discR = Math.max(5.6, cur.radius + 0.5);
+  let discR = 5.6;
   const hexR = 1 / Math.cos(Math.PI / 6);
   const discSide = own(new THREE.MeshStandardMaterial({ color: '#16191A', roughness: 0.7, flatShading: true }));
   const discTop = own(new THREE.MeshStandardMaterial({ color: '#1F2322', roughness: 0.78 }));
@@ -143,95 +131,14 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   catcher.receiveShadow = true;
   scene.add(shadowBlob, catcher);
 
-  // GN particles: green motes drifting back and down from the drive, fading out.
-  const N = 90;
-  const pPos = new Float32Array(N * 3);
-  const pCol = new Float32Array(N * 3);
-  const pVel = new Float32Array(N * 3);
-  const pLife = new Float32Array(N);
-  const pMax = new Float32Array(N).fill(1);
-  const pGeo = own(new THREE.BufferGeometry());
-  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-  pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
-  const dot = own(
-    canvasTexture(64, (g, s) => {
-      const grad = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-      grad.addColorStop(0, 'rgba(255,255,255,1)');
-      grad.addColorStop(0.4, 'rgba(255,255,255,0.5)');
-      grad.addColorStop(1, 'rgba(255,255,255,0)');
-      g.fillStyle = grad;
-      g.fillRect(0, 0, s, s);
-    }),
-  );
-  const particles = new THREE.Points(
-    pGeo,
-    own(
-      new THREE.PointsMaterial({
-        size: 0.32,
-        map: dot,
-        vertexColors: true,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      }),
-    ),
-  );
-  particles.frustumCulled = false;
-  scene.add(particles);
-  const glowColor = new THREE.Color(PALETTE.glow);
-  const at = new THREE.Vector3();
-  const back = new THREE.Vector3();
-  let spawn = 0;
-  const stepParticles = (dt: number) => {
-    // Only the Dynames emits; switching away lets the motes in the air fade out.
-    if (cur.emitter) {
-      cur.emitter.getWorldPosition(at);
-      cur.emitter.getWorldDirection(back).negate();
-      spawn += dt * 24;
-    } else spawn = 0;
-    for (let i = 0; i < N; i++) {
-      const j = i * 3;
-      if (pLife[i] <= 0) {
-        if (spawn < 1) {
-          pCol[j] = pCol[j + 1] = pCol[j + 2] = 0;
-          continue;
-        }
-        spawn -= 1;
-        const sp = 0.5 + Math.random() * 0.6;
-        pPos[j] = at.x + (Math.random() - 0.5) * 0.3;
-        pPos[j + 1] = at.y + (Math.random() - 0.5) * 0.3;
-        pPos[j + 2] = at.z + (Math.random() - 0.5) * 0.3;
-        pVel[j] = back.x * sp + (Math.random() - 0.5) * 0.5;
-        pVel[j + 1] = -0.2 - Math.random() * 0.35;
-        pVel[j + 2] = back.z * sp + (Math.random() - 0.5) * 0.5;
-        pLife[i] = pMax[i] = 2.2 + Math.random() * 1.8;
-      }
-      pLife[i] -= dt;
-      const drag = 1 - 0.35 * dt;
-      pVel[j] *= drag;
-      pVel[j + 1] = pVel[j + 1] * drag - 0.1 * dt;
-      pVel[j + 2] *= drag;
-      pPos[j] += pVel[j] * dt;
-      pPos[j + 1] += pVel[j + 1] * dt;
-      pPos[j + 2] += pVel[j + 2] * dt;
-      const f = Math.max(0, pLife[i] / pMax[i]);
-      const k = Math.sin(f * Math.PI) * 0.9;
-      pCol[j] = glowColor.r * k;
-      pCol[j + 1] = glowColor.g * k;
-      pCol[j + 2] = glowColor.b * k;
-    }
-    pGeo.attributes.position.needsUpdate = true;
-    pGeo.attributes.color.needsUpdate = true;
-  };
-
   // Camera: frames the suit and the disc, whatever the bench's shape.
   const camera = new THREE.PerspectiveCamera(26, 1, 0.5, 200);
-  const target = new THREE.Vector3(0, cur.height * 0.44, 0);
+  const target = new THREE.Vector3(0, KIT_HEIGHT * 0.44, 0);
   let tilt = 0.12;
   let dist = 50;
   // Zoom: 1 frames everything; closer in, the view rises toward `focusY` (the head unless a spot was picked).
   let baseY = target.y;
-  let headY = cur.height * 0.9;
+  let headY = KIT_HEIGHT * 0.9;
   let zoom = 1;
   let zoomTo = 1;
   let focusY = headY;
@@ -245,9 +152,10 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   const frame = () => {
     const w = canvas.clientWidth || 1;
     const h = canvas.clientHeight || 1;
+    const height = cur ? cur.height : KIT_HEIGHT;
     camera.aspect = w / h;
     const half = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
-    const byHeight = (cur.height + 1.6) / 2 / half;
+    const byHeight = (height + 1.6) / 2 / half;
     const byWidth = (discR * 2 + 1.5) / 2 / (half * camera.aspect);
     dist = Math.max(byHeight, byWidth) * 1.2;
     camera.updateProjectionMatrix();
@@ -293,8 +201,8 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     } else {
       const r = canvas.getBoundingClientRect();
       ray.setFromCamera(new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1), camera);
-      const hit = ray.intersectObject(cur.root, true).find((h: any) => h.object.isMesh);
-      focusY = hit ? THREE.MathUtils.clamp(hit.point.y, 2, cur.height - 1) : headY;
+      const hit = cur ? ray.intersectObject(cur.root, true).find((h: any) => h.object.isMesh) : undefined;
+      focusY = hit && cur ? THREE.MathUtils.clamp(hit.point.y, 2, cur.height - 1) : headY;
       zoomTo = 2.6;
     }
     wake();
@@ -398,10 +306,6 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       zoom += (zoomTo - zoom) * Math.min(1, dt * (reducedMotion ? 30 : 7));
       place();
     }
-    if (!reducedMotion) {
-      stepParticles(dt);
-      if (cur.glow) cur.glow.emissiveIntensity = 1.8 + 0.4 * Math.sin(now / 650);
-    }
     render();
     const moving = !reducedMotion || drag || Math.abs(vel - autoSpin) > 0.002 || Math.abs(zoomTo - zoom) > 0.0005;
     if (active && moving) raf = requestAnimationFrame(tick);
@@ -430,9 +334,8 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       release() {
         frozen = false;
       },
-      meshes: dynames.meshCount,
       /** The kit on the turntable and three.js, for inspecting materials. */
-      inspect: () => ({ root: cur.root, THREE, render }),
+      inspect: () => ({ root: cur?.root ?? null, THREE, render }),
       /** Put any GLB on the bench, for trying out models. */
       preview: (url: string, yaw = 0) => loader.loadAsync(url).then((g: any) => swapTo(fromGltf(g, yaw))),
     };
@@ -442,11 +345,11 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   const loader = new GLTFLoader();
   const pending = new Map<ModelId, Promise<OnBench>>();
   const fromGltf = (gltf: any, yaw: number): OnBench => {
-    // Stand it on the floor, centred, at the Dynames' height, facing the camera.
+    // Stand it on the floor, centred, at kit height, facing the camera.
     const inner = gltf.scene;
     const box = new THREE.Box3().setFromObject(inner);
     const size = box.getSize(new THREE.Vector3());
-    const k = dynames.size.height / size.y;
+    const k = KIT_HEIGHT / size.y;
     inner.scale.multiplyScalar(k);
     inner.updateMatrixWorld(true);
     box.setFromObject(inner);
@@ -484,7 +387,7 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     const have = models.get(id);
     if (have) return Promise.resolve(have);
     if (!pending.has(id)) {
-      const cfg = GLB[id as Exclude<ModelId, 'dynames'>];
+      const cfg = GLB[id];
       pending.set(
         id,
         loader.loadAsync(cfg.url).then((gltf: any) => {
@@ -498,7 +401,7 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   };
   const swapTo = (m: OnBench) => {
     if (m === cur) return;
-    turntable.remove(cur.root);
+    if (cur) turntable.remove(cur.root);
     cur = m;
     turntable.add(cur.root);
     discR = Math.max(5.6, cur.radius + 0.5);
@@ -514,11 +417,10 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   let wanted: ModelId = 'dynames';
 
   return {
-    show(id) {
+    async show(id) {
       wanted = id;
-      return load(id).then((m) => {
-        if (wanted === id) swapTo(m);
-      });
+      const m = await load(id);
+      if (wanted === id) swapTo(m);
     },
     setActive(on) {
       active = on;

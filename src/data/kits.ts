@@ -9,13 +9,13 @@ export interface Kit {
   /** Built: when it was finished. Not built: where it sits in the queue. */
   when: string;
   whenLabel: 'Built' | 'Status';
-  /** A 3D model for the bench: the Dynames is built in code, the others are glTF models from Sketchfab. */
+  /** A 3D glTF model for the bench, loaded on demand from `/models/<id>.glb`. */
   model?: 'dynames' | 'virtue' | 'freedom';
-  /** Who made the model, when it isn't ours (CC BY needs credit). */
+  /** Who made the model (CC BY / CC BY-SA credit). */
   modelCredit?: { author: string; href: string; license: string };
   /**
-   * Otherwise: a cut-out picture of the kit. `x` is where its body sits across the picture (0–1), so a
-   * weapon held out to one side doesn't pull the kit off centre.
+   * Cut-out picture of the kit, shown until its 3D model loads (or on its own when there isn't one). `x` is
+   * where its body sits across the picture (0–1), so a weapon held out to one side doesn't pull the kit off centre.
    */
   art?: { src: string; width: number; height: number; x: number };
 }
@@ -31,6 +31,8 @@ export const kits: Kit[] = [
     when: '[Month Year]',
     whenLabel: 'Built',
     model: 'dynames',
+    modelCredit: { author: 'MrGundam', href: 'https://www.thingiverse.com/thing:184096', license: 'CC BY-SA 4.0' },
+    art: { src: '/gunpla/dynames.webp', width: 529, height: 830, x: 0.45 },
   },
   {
     id: 'virtue',

@@ -230,33 +230,38 @@ test('stars formats halves', async () => {
   assert.equal(stars(5), '★★★★★');
 });
 
-test('dynames model: feet on the floor, about kit height, drive on the back, pairs reflected', async () => {
+test('dynames glb: quantised meshes, kit materials with glowing sensors and translucent visor', async () => {
+  const { readFileSync } = await import('node:fs');
   const THREE = await import('three');
-  const { buildDynames } = await import('../src/components/off/gunpla/dynames.ts');
-  const m = buildDynames();
-  assert.ok(m.meshCount > 120, `${m.meshCount} parts`);
-  assert.ok(m.size.height > 17 && m.size.height < 20, `height ${m.size.height}`);
-  const box = new THREE.Box3().setFromObject(m.root);
-  assert.ok(Math.abs(box.min.y) < 0.05, `lowest point ${box.min.y}`);
-  // The rifle reaches out to the right (-x), the left shield sets the other side: both sides within the turntable.
-  assert.ok(m.size.radius < 7.5, `radius ${m.size.radius}`);
-  const drive = m.emitter.getWorldPosition(new THREE.Vector3());
-  assert.ok(drive.z < -2.5 && drive.y > 12 && Math.abs(drive.x) < 0.01, `drive at ${drive.toArray()}`);
-  // Right-hand copies are reflections (negative determinant), never rotations.
-  const mirrored: number[] = [];
-  m.root.traverse((o: any) => o.isMesh && mirrored.push(o.matrixWorld.determinant() < 0 ? 1 : 0));
-  const right = mirrored.filter(Boolean).length;
-  assert.ok(right > 30 && right < mirrored.length / 2, `${right} of ${mirrored.length} reflected`);
-  m.dispose();
+  const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+  const buf = readFileSync(new URL('../public/models/dynames.glb', import.meta.url));
+  const gltf = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), '');
+  let meshes = 0;
+  let emissive = 0;
+  let blended = 0;
+  gltf.scene.traverse((o: any) => {
+    if (!o.isMesh) return;
+    meshes++;
+    for (const m of [o.material].flat()) {
+      if (m.emissive && (m.emissive.r + m.emissive.g + m.emissive.b) > 0.2) emissive++;
+      if (m.transparent) blended++;
+    }
+  });
+  assert.ok(meshes > 400, `${meshes} meshes`);
+  assert.ok(emissive >= 5, `${emissive} glowing sensor/condenser meshes`);
+  assert.ok(blended >= 1, `${blended} translucent visor mesh`);
+  const box = new THREE.Box3().setFromObject(gltf.scene);
+  const size = box.getSize(new THREE.Vector3());
+  assert.ok(size.y > size.z * 1.8 && size.x > size.z * 1.8, `upright proportions ${size.toArray()}`);
 });
 
-test('kits: built ones first; models for all but the Vidar, credited when they aren\'t ours', async () => {
+test('kits: built ones first; models for all but the Vidar, credited and backed by cut-out pictures', async () => {
   const { kits } = await import('../src/data/kits.ts');
   const built = kits.map((k) => k.built);
   assert.deepEqual(built, [...built].sort((a, b) => Number(b) - Number(a)));
   assert.deepEqual(kits.filter((k) => k.model).map((k) => k.id), ['dynames', 'virtue', 'freedom']);
-  for (const k of kits) assert.equal(!!k.modelCredit, !!k.model && k.model !== 'dynames', k.id);
-  for (const k of kits) if (!k.model || k.model !== 'dynames') assert.ok(k.art, `${k.id} has a picture`);
+  for (const k of kits) assert.equal(!!k.modelCredit, !!k.model, k.id);
+  for (const k of kits) assert.ok(k.art, `${k.id} has a picture`);
   for (const k of kits) assert.equal(k.whenLabel, k.built ? 'Built' : 'Status');
 });
 

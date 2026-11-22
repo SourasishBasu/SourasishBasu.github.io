@@ -1,8 +1,9 @@
 ---
 import { kits } from '../../data/kits';
 
-// The bench: a green cutting mat with rulers and a turntable. The Dynames is a 3D model, loaded only when
-// the section comes near the screen; the other kits are cut-out pictures standing on the mat. The kit list on the right is a set of tabs; each one shows its kit on the bench and its details below.
+// The bench: a green cutting mat with rulers and a turntable. Each kit starts as a cut-out picture on the mat;
+// kits with a 3D model load three.js and their GLB when the section comes near the screen, then fade onto the
+// turntable. The kit list on the right is a set of tabs; each one shows its kit on the bench and its details below.
 const first = kits[0];
 ---
 
@@ -180,12 +181,11 @@ const first = kits[0];
       import('./gunpla/viewer')
         .then(({ mountViewer }) => {
           viewer = mountViewer(canvas, { reducedMotion: reduced });
-          ready.add('dynames');
           show();
           put(current);
         })
         .catch(() => {
-          // No WebGL (or the chunk failed): the empty turntable stays.
+          // No WebGL (or the chunk failed): the cut-out picture stays.
         });
     };
     new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && load(), { rootMargin: '800px 0px' }).observe(bench);

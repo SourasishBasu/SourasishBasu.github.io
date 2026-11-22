@@ -110,7 +110,7 @@ test('credits page: TMDB logo and notice, linked only from the Off the clock foo
   assert.match(page, /<html[^>]*data-theme="dark"/);
   assert.equal(tags(page, 'img', /src="\/credits\/tmdb\.svg"/, /alt="TMDB"/).length, 1);
   assert.match(page, /This product uses the TMDB API but is not endorsed or certified by TMDB\./);
-  for (const href of ['https://fanart.tv', 'https://letterboxd.com', 'https://threejs.org']) assert.equal(tags(page, 'a', new RegExp(`href="${href}"`)).length, 1, href);
+  for (const href of ['https://fanart.tv', 'https://letterboxd.com', 'https://threejs.org', 'https://www.thingiverse.com/thing:184096']) assert.equal(tags(page, 'a', new RegExp(`href="${href}"`)).length, 1, href);
   assert.ok(existsSync(dist('credits/tmdb.svg')));
   const legal = (p: string) => {
     const s = html(p);
@@ -267,20 +267,21 @@ test('gunpla: kit tabs, Dynames first, a canvas for the model, details per kit',
   assert.match(tabs[0], /aria-selected="true"/);
   assert.match(tabs[0], /data-has-model/);
   assert.deepEqual(tabs.map((t) => t.match(/data-model-id="([^"]+)"/)?.[1] ?? null), ['dynames', 'virtue', null, 'freedom']);
-  // Sketchfab models are served from the site and credited.
-  for (const k of ['virtue', 'freedom']) assert.ok(existsSync(dist(`models/${k}.glb`)), k);
-  assert.equal((g.match(/class="credit"/g) ?? []).length, 2);
+  // glTF models are served from the site and credited.
+  for (const k of ['dynames', 'virtue', 'freedom']) assert.ok(existsSync(dist(`models/${k}.glb`)), k);
+  assert.equal((g.match(/class="credit"/g) ?? []).length, 3);
+  assert.match(g, /3D model by <a href="https:\/\/www\.thingiverse\.com\/thing:184096"[^>]*>MrGundam<\/a>, CC BY-SA 4\.0/);
   assert.match(g, /3D model by <a href="https:\/\/sketchfab\.com\/3d-models\/gundam-virtue-/);
   assert.equal(tags(g, 'canvas', /data-model/, /role="img"/).length, 1);
   const panels = tags(g, 'div', /role="tabpanel"/);
   assert.equal(panels.length, 4);
   panels.forEach((p, i) => assert.equal(/\shidden/.test(p), i > 0));
   assert.equal(tags(g, 'div', /class="mruler/).length, 2);
-  // The other kits are cel-shaded pictures, one each, only the selected one showing; no dither toggle.
+  // Every kit has a cel-shaded cut-out picture, only the first one showing before JS runs; no dither toggle.
   const pics = tags(g, 'img', /data-art=/);
-  assert.deepEqual(pics.map((t) => t.match(/data-art="([^"]+)"/)?.[1]), ['virtue', 'vidar', 'freedom']);
-  pics.forEach((t) => assert.match(t, /\shidden/));
-  for (const k of ['virtue', 'vidar', 'freedom']) assert.ok(existsSync(dist(`gunpla/${k}.webp`)), k);
+  assert.deepEqual(pics.map((t) => t.match(/data-art="([^"]+)"/)?.[1]), ['dynames', 'virtue', 'vidar', 'freedom']);
+  pics.forEach((t, i) => assert.equal(/\shidden/.test(t), i > 0));
+  for (const k of ['dynames', 'virtue', 'vidar', 'freedom']) assert.ok(existsSync(dist(`gunpla/${k}.webp`)), k);
   assert.doesNotMatch(g, /data-dither/);
   // three.js is loaded on demand, not with the page.
   const entry = [...off.matchAll(/<script type="module" src="([^"]+)"/g)].map((m) => m[1]);
