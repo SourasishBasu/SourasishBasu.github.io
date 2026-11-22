@@ -9,6 +9,13 @@ Self-hosted through [Fontsource](https://fontsource.org) packages (MIT-licensed 
 
 OFL 1.1: https://openfontlicense.org
 
+## Resume (`resume/`)
+
+- **Typst**, compiled at build time by **typst.ts** (`@myriaddreamin/typst-ts-node-compiler`), Apache License 2.0 (https://github.com/Myriad-Dreamin/typst.ts). A build tool; none of it ships with the site.
+- **New Computer Modern** (built into Typst), GUST Font License; subsets are embedded in the PDF.
+- **Font Awesome 4.7** (`resume/fonts/FontAwesome.otf`), by Dave Gandy, SIL Open Font License 1.1, for the contact icons; subsets are embedded in the PDF.
+- The layout follows the LaTeX resume template by Aras Gungore (MIT).
+
 ## Tool logos (`public/icons/tools/`)
 
 Brand marks belong to their owners and are shown only to say which tools I use.

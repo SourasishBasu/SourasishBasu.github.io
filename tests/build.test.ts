@@ -67,10 +67,10 @@ test('both pages share the footer', () => {
     assert.equal(tags(footer, 'a', /href="mailto:sourasishbasu06@gmail.com"/).length, 1, p);
     assert.equal(tags(footer, 'a', /href="https:\/\/github.com\/SourasishBasu"/).length, 1, p);
     assert.equal(tags(footer, 'a', /href="https:\/\/www.linkedin.com\/in\/sourasishbasu"/).length, 1, p);
-    const resume = tags(footer, 'a', /aria-disabled="true"/);
+    const resume = tags(footer, 'a', /class="ghost-btn resume/);
     assert.equal(resume.length, 1, p);
-    assert.doesNotMatch(resume[0], /href=/, p);
-    assert.match(footer, /Résumé, PDF/, p);
+    assert.match(resume[0], /href="\/resume\/"/, p);
+    assert.doesNotMatch(resume[0], /aria-disabled/, p);
     assert.match(footer, /SASQUATCH/, p);
     assert.match(footer, /<ist-clock/, p);
     assert.match(footer, /© <span data-copyright-year[^>]*>\d{4}<\/span> Sourasish Basu/, p);
@@ -267,4 +267,23 @@ test('gunpla: kit tabs, Dynames first, a canvas for the model, details per kit',
   // three.js is loaded on demand, not with the page.
   const entry = [...off.matchAll(/<script type="module" src="([^"]+)"/g)].map((m) => m[1]);
   for (const src of entry) assert.doesNotMatch(readFileSync(dist(src.replace(/^\//, '')), 'utf8'), /WebGLRenderer/);
+});
+
+test('resume: the Typst drawing inline, the PDF to download, no source link', () => {
+  const page = html('resume/index.html');
+  assert.match(page, /<html lang="en" data-theme="light"/);
+  assert.equal(tags(page, 'svg', /class="typst-doc"/).length, 1);
+  // The drawing's stylesheet is scoped, so it can't blank the site's own icons.
+  assert.doesNotMatch(page, /(^|[}>\s])svg\s*\{/);
+  assert.match(page, /\.typst-doc \{/);
+  const download = tags(page, 'a', /href="\/resume\.pdf"/);
+  assert.equal(download.length, 1);
+  assert.match(download[0], /download="Sourasish-Basu-Resume\.pdf"/);
+  assert.doesNotMatch(page, /\.typ\b|Typst source/);
+  const pdf = readFileSync(dist('resume.pdf'));
+  assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
+  assert.ok(pdf.length > 20_000 && pdf.length < 500_000, `pdf is ${pdf.length} bytes`);
+  // The sources and the icon font stay out of the site.
+  assert.equal(existsSync(dist('resume/resume.typ')), false);
+  assert.equal(existsSync(dist('resume/fonts')), false);
 });

@@ -1,0 +1,86 @@
+---
+import Base from '../layouts/Base.astro';
+import { compileResume, scopeSvg, RESUME_PDF, RESUME_DOWNLOAD_NAME } from '../data/resume';
+
+// The resume page: the Typst drawing of the PDF, with its text selectable and its links live, and the PDF to download.
+const { svg } = compileResume();
+---
+
+<Base title="Résumé · Sourasish Basu" description="Sourasish Basu's résumé: platform engineering at Atlan, projects and skills, with a PDF to download." theme="light" page="none">
+  <section class="band resume-head">
+    <div class="head-text">
+      <span class="eyebrow">Résumé</span>
+      <h1 class="display h2">Sourasish Basu</h1>
+    </div>
+    <div class="actions">
+      <a class="pill-btn" href={RESUME_PDF} download={RESUME_DOWNLOAD_NAME}>
+        Download PDF
+        <svg class="arr" aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 2v9M4 7l4 4 4-4M3 14h10" />
+        </svg>
+      </a>
+    </div>
+    <span class="cross cl"></span><span class="cross cr"></span>
+  </section>
+
+  <section class="band sheet">
+    <div class="paper" set:html={scopeSvg(svg)} />
+  </section>
+</Base>
+
+<style>
+  .resume-head {
+    padding: 96px 40px 48px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px 40px;
+    flex-wrap: wrap;
+  }
+
+  .head-text {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .h2 {
+    margin: 0;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .sheet {
+    padding: 48px 40px 80px;
+    border-top: 1px solid var(--rule);
+  }
+
+  /* US Letter at most 860px wide, on a hairline instead of a shadow. */
+  .paper {
+    max-width: 860px;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--rule);
+  }
+
+  .paper :global(svg.typst-doc) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 760px) {
+    .resume-head {
+      padding: 64px 16px 32px;
+    }
+
+    .sheet {
+      padding: 24px 16px 48px;
+    }
+  }
+</style>

@@ -259,3 +259,24 @@ test('kits: built ones first; models for all but the Vidar, credited when they a
   for (const k of kits) if (!k.model || k.model !== 'dynames') assert.ok(k.art, `${k.id} has a picture`);
   for (const k of kits) assert.equal(k.whenLabel, k.built ? 'Built' : 'Status');
 });
+
+test('resume: Typst compiles it to one page without warnings', async () => {
+  const { compileResume } = await import('../src/data/resume.ts');
+  const r = compileResume();
+  assert.equal(r.pages, 1);
+  assert.deepEqual(r.warnings, []);
+  assert.equal(new TextDecoder().decode(r.pdf.subarray(0, 5)), '%PDF-');
+  assert.match(r.svg, /class="typst-doc"/);
+  // The contact links survive into the drawing.
+  for (const url of ['mailto:sourasishbasu06@gmail.com', 'https://www.linkedin.com/in/sourasishbasu', 'https://github.com/SourasishBasu']) {
+    assert.ok(r.svg.includes(url), url);
+  }
+});
+
+test('scopeSvg moves the bare svg rule onto the drawing', async () => {
+  const { scopeSvg } = await import('../src/data/resume.ts');
+  const out = scopeSvg('<svg class="typst-doc"><style>.a {\n}\nsvg {\n  fill: none;\n}\n.b svg { x: 1 }</style></svg>');
+  assert.match(out, /\}\n\.typst-doc \{\n  fill: none;/);
+  assert.match(out, /\.b svg \{ x: 1 \}/);
+  assert.doesNotMatch(out, /(^|[}>]\s*)svg\s*\{/);
+});

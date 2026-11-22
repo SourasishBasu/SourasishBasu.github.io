@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",
+    "@myriaddreamin/typst-ts-node-compiler": "0.7.0",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "typescript": "6.0.3"

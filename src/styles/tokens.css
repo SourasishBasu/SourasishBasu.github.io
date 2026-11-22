@@ -51,7 +51,6 @@
   --pill-text: #fbfbf9;
   --pill-hover-bg: #262a30;
   --pill-hover-text: #fff;
-  --pill-sheen: rgba(255, 255, 255, 0.18);
   --pill-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 10px 20px -12px rgba(20, 22, 25, 0.8);
 
   /* ghost pill, tags, chip button */
@@ -119,7 +118,6 @@
   --pill-text: #141619;
   --pill-hover-bg: #fff;
   --pill-hover-text: #000;
-  --pill-sheen: rgba(255, 255, 255, 0.7);
   --pill-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 10px 22px -12px rgba(0, 0, 0, 0.9);
 
   --ghost-ring: #3a3f45;
