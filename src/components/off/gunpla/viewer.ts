@@ -29,16 +29,34 @@ export interface BenchViewer {
   dispose(): void;
 }
 
+interface GlbConfig {
+  url: string;
+  yaw: number;
+  /** Scale multiplier when high-mounted wings/weapons inflate the overall bounding-box height relative to the suit body. */
+  scale?: number;
+  /** Z offset (in normalized kit units before `scale`) to centre the suit's stance on the dais when wings extend behind. */
+  z?: number;
+  /** Optional turntable inner radius override (otherwise computed from full bounding box). */
+  disc?: number;
+  /** Optional camera framing height override (defaults to `KIT_HEIGHT` when `scale` is set, else full height). */
+  frame?: number;
+  /** Optional camera vertical look-at target override. */
+  aimY?: number;
+}
+
 /** Community glTF kits (credited on the page), repainted and slimmed for the web: see THIRD_PARTY_NOTICES.md. */
-const GLB: Record<ModelId, { url: string; yaw: number }> = {
+const GLB: Record<ModelId, GlbConfig> = {
   dynames: { url: '/models/dynames.glb', yaw: 0 },
   virtue: { url: '/models/virtue.glb', yaw: 0 },
-  freedom: { url: '/models/freedom.glb', yaw: 0 },
+  freedom: { url: '/models/freedom.glb', yaw: 0, scale: 1.2, z: -2.65, disc: 7.4, frame: 18.8, aimY: 8.6 },
 };
 
 interface OnBench {
   root: any;
   height: number;
+  frameHeight: number;
+  aimY: number;
+  headY: number;
   radius: number;
   dispose(): void;
 }
@@ -152,7 +170,7 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
   const frame = () => {
     const w = canvas.clientWidth || 1;
     const h = canvas.clientHeight || 1;
-    const height = cur ? cur.height : KIT_HEIGHT;
+    const height = cur ? cur.frameHeight : KIT_HEIGHT;
     camera.aspect = w / h;
     const half = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
     const byHeight = (height + 1.6) / 2 / half;
@@ -337,27 +355,28 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       /** The kit on the turntable and three.js, for inspecting materials. */
       inspect: () => ({ root: cur?.root ?? null, THREE, render }),
       /** Put any GLB on the bench, for trying out models. */
-      preview: (url: string, yaw = 0) => loader.loadAsync(url).then((g: any) => swapTo(fromGltf(g, yaw))),
+      preview: (url: string, yaw = 0) => loader.loadAsync(url).then((g: any) => swapTo(fromGltf(g, { url, yaw }))),
     };
   }
 
   // Loading and switching kits.
   const loader = new GLTFLoader();
   const pending = new Map<ModelId, Promise<OnBench>>();
-  const fromGltf = (gltf: any, yaw: number): OnBench => {
+  const fromGltf = (gltf: any, cfg: GlbConfig): OnBench => {
     // Stand it on the floor, centred, at kit height, facing the camera.
+    const mult = cfg.scale ?? 1;
     const inner = gltf.scene;
     const box = new THREE.Box3().setFromObject(inner);
     const size = box.getSize(new THREE.Vector3());
-    const k = KIT_HEIGHT / size.y;
+    const k = (KIT_HEIGHT * mult) / size.y;
     inner.scale.multiplyScalar(k);
     inner.updateMatrixWorld(true);
     box.setFromObject(inner);
     const c = box.getCenter(new THREE.Vector3());
-    inner.position.sub(new THREE.Vector3(c.x, box.min.y, c.z));
+    inner.position.sub(new THREE.Vector3(c.x, box.min.y, c.z - (cfg.z ?? 0) * mult));
     const root = new THREE.Group();
     root.add(inner);
-    root.rotation.y = yaw;
+    root.rotation.y = cfg.yaw;
     root.updateMatrixWorld(true);
     inner.traverse((o: any) => {
       if (o.isMesh) {
@@ -366,10 +385,15 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       }
     });
     const all = new THREE.Box3().setFromObject(root);
+    const fullH = all.max.y - all.min.y;
+    const frameH = cfg.frame ?? (cfg.scale ? KIT_HEIGHT : fullH);
     const m: OnBench = {
       root,
-      height: all.max.y - all.min.y,
-      radius: Math.max(-all.min.x, all.max.x, -all.min.z, all.max.z),
+      height: fullH,
+      frameHeight: frameH,
+      aimY: cfg.aimY ?? frameH * 0.44,
+      headY: cfg.scale ? KIT_HEIGHT * 0.84 : fullH * 0.9,
+      radius: cfg.disc ? cfg.disc - 0.5 : Math.max(-all.min.x, all.max.x, -all.min.z, all.max.z),
       dispose() {
         inner.traverse((o: any) => {
           if (!o.isMesh) return;
@@ -391,7 +415,7 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
       pending.set(
         id,
         loader.loadAsync(cfg.url).then((gltf: any) => {
-          const m = fromGltf(gltf, cfg.yaw);
+          const m = fromGltf(gltf, cfg);
           models.set(id, m);
           return m;
         }),
@@ -407,8 +431,8 @@ export function mountViewer(canvas: HTMLCanvasElement, { reducedMotion }: { redu
     discR = Math.max(5.6, cur.radius + 0.5);
     disc.scale.set(discR, 1, discR);
     shadowBlob.scale.set(discR, discR, 1);
-    baseY = cur.height * 0.44;
-    headY = cur.height * 0.9;
+    baseY = cur.aimY;
+    headY = cur.headY;
     focusY = headY;
     zoom = zoomTo = 1;
     frame();

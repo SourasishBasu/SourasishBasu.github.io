@@ -255,6 +255,26 @@ test('dynames glb: quantised meshes, kit materials with glowing sensors and tran
   assert.ok(size.y > size.z * 1.8 && size.x > size.z * 1.8, `upright proportions ${size.toArray()}`);
 });
 
+test('freedom glb: blue shoulder armor with red thruster tips, glowing eyes and cameras', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+  const buf = readFileSync(new URL('../public/models/freedom.glb', import.meta.url));
+  const gltf = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), '');
+  const mats = new Map<string, any>();
+  gltf.scene.traverse((o: any) => {
+    if (!o.isMesh) return;
+    for (const m of [o.material].flat()) mats.set(m.name, m);
+  });
+  const shoulder = mats.get('13___Default_kitBlue');
+  const thrusterTip = mats.get('09___Default');
+  const eyes = mats.get('21___Default');
+  const cameras = mats.get('21___Default_emissive:sensorBlue');
+  assert.ok(shoulder && shoulder.color.b > shoulder.color.r * 2, 'shoulder armor is blue');
+  assert.ok(thrusterTip && thrusterTip.color.r > thrusterTip.color.b * 2, 'shoulder thruster tip accent is red');
+  assert.ok(eyes && eyes.emissive.r + eyes.emissive.g > 1.2, 'twin-eyes glow gold');
+  assert.ok(cameras && cameras.emissive.b > cameras.emissive.r, 'head cameras glow blue');
+});
+
 test('kits: built ones first; models for all but the Vidar, credited and backed by cut-out pictures', async () => {
   const { kits } = await import('../src/data/kits.ts');
   const built = kits.map((k) => k.built);
